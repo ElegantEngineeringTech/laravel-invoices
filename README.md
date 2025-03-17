@@ -134,7 +134,7 @@ return [
             'country' => null,
         ],
         'email' => null,
-        'phone_number' => null,
+        'phone' => null,
         'tax_number' => null,
         'company_number' => null,
     ],
@@ -431,49 +431,55 @@ Here’s an example of a fully configured `PdfInvoice` instance:
 
 ```php
 use Elegantly\Invoices\Pdf\PdfInvoice;
+use Elegantly\Invoices\Support\Address;
+use Elegantly\Invoices\Support\Seller;
+use Elegantly\Invoices\Support\Buyer;
 
 $pdfInvoice = new PdfInvoice(
     name: "Invoice",
     state: "Paid",
     serial_number: "INV-241200001",
-    seller: [
-        'name' => 'elegantly',
-        'address' => [
-            'street' => "Place de l'Opéra",
-            'city' => 'Paris',
-            'postal_code' => '75009',
-            'country' => 'France',
-        ],
-        'email' => 'john.doe@example.com',
-        'tax_number' => 'FR123456789',
-        "data" => [
+    seller: new Seller(
+        name: 'elegantly',
+        address: new Address(
+            street: "Place de l'Opéra",
+            city: 'Paris',
+            postal_code: '75009',
+            country: 'France',
+        ),
+        email: 'john.doe@example.com',
+        tax_number: 'FR123456789',
+        fields: [
             "foo" => "bar"
         ]
-    ],
-    buyer: [
-        'name' => 'John Doe',
-        'address' => [
-            'street' => '8405 Old James St.Rochester',
-            'city' => 'New York',
-            'postal_code' => '14609',
-            'state' => 'New York (NY)',
-            'country' => 'United States',
-        ],
-        'email' => 'john.doe@example.com',
-        "data" => [
+    ),
+    buyer: new Buyer(
+        name: 'John Doe',
+        address: new Address(
+            street: '8405 Old James St.Rochester',
+            city: 'New York',
+            postal_code: '14609',
+            state: 'New York (NY)',
+            country: 'United States',
+        ),
+        email: 'john.doe@example.com',
+        data: [
             "foo" => "bar"
         ]
-    ],
-    description: "A invoice description",
+    ),
+    description: "An invoice description",
     created_at: now(),
     due_at: now(),
     paid_at: now(),
     tax_label: "VAT (20%)",
+    fields: [],
     items: [],
     discounts: [],
     logo: public_path('/images/logo.png'),
     template: "default.layout",
-    font: "Helvetica",
+    templateData: [
+        'color' => '#050038'
+    ],
 )
 ```
 
@@ -534,7 +540,7 @@ class Invoice extends Component
         );
 
         return response()->streamDownload(function () use ($pdfInvoice) {
-            echo $pdf->output();
+            echo $pdf->getPdfOutput();
         }, 'laravel-invoices-demo.pdf');
     }
 }
@@ -550,7 +556,7 @@ $pdfInvoice = new PdfInvoice(
 
 Storage::put(
     "path/to/invoice.pdf",
-    $pdfInvoice->pdf()->output()
+    $pdfInvoice->getPdfOutput()
 );
 ```
 
