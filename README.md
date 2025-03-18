@@ -43,7 +43,7 @@ Try out [the interactive demo](https://elegantengineering.tech/laravel-invoices)
 
 -   PHP 8.1+
 -   Laravel 11.0+
--   `barryvdh/laravel-dompdf` for PDF rendering
+-   `dompdf/dompdf` for PDF rendering
 -   `elegantly/laravel-money` for money computation
 
 ## Installation
