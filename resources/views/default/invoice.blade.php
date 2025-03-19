@@ -75,7 +75,7 @@
     <table class="mb-6 w-full">
         <tbody>
             <tr>
-                <td class="p-0 align-top" width="50%">
+                <td class="p-0 align-top" width="33%">
                     @php
                         $name = $invoice->seller->name;
                         $street = $invoice->seller->address->street;
@@ -138,7 +138,7 @@
                         </p>
                     @endforeach
                 </td>
-                <td class="p-0 align-top" width="50%">
+                <td class="p-0 align-top" width="33%">
                     @php
                         $name = $invoice->buyer->name;
                         $street = $invoice->buyer->address?->street;
@@ -203,7 +203,7 @@
                 </td>
 
                 @if ($invoice->buyer->shipping_address)
-                    <td class="p-0 align-top" width="50%">
+                    <td class="p-0 align-top" width="33%">
                         @php
                             $name = $invoice->buyer->shipping_address->name;
                             $street = $invoice->buyer->shipping_address->street;
