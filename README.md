@@ -7,7 +7,7 @@
 
 This package provides a robust, easy-to-use system for managing invoices within a Laravel application, with options for database storage, serial numbering, and PDF generation.
 
-![laravel-invoices](https://repository-images.githubusercontent.com/527661364/030d6384-41e5-454c-a9f5-9f6eebe93da7)
+![laravel-invoices](https://repository-images.githubusercontent.com/527661364/f98e92f9-62a6-48a1-a7b1-1a587b92a430)
 
 ## Demo
 
