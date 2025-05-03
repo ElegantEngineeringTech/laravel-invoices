@@ -349,7 +349,9 @@ class InvoiceController extends Controller
 
 ### Attaching Your Invoice to an Email
 
-The `Invoice` model provide a `toMailAttachment` method making it easy to use with `Mailable`
+The `Invoice` model provide a `toMailAttachment` method making it easy to use with `Mailable` and `Notification`.
+
+### Attach an invoice to a Mailable
 
 ```php
 namespace App\Mail;
@@ -376,6 +378,35 @@ class PaymentInvoice extends Mailable
         return [
             $this->invoice->toMailAttachment()
         ];
+    }
+}
+```
+
+### Attach an invoice to a Notification
+
+```php
+namespace App\Mail;
+
+use App\Models\Invoice;
+use Illuminate\Bus\Queueable;
+use Illuminate\Notifications\Notification;
+use Illuminate\Notifications\Messages\MailMessage;
+
+class PaymentInvoice extends Notification implements ShouldQueue
+{
+    use Queueable;
+
+    /**
+     * Create a new message instance.
+     */
+    public function __construct(
+        protected Invoice $invoice,
+    ) {}
+
+    public function toMail($notifiable)
+    {
+        return (new MailMessage)
+            ->attach($this->invoice->toMailAttachment());
     }
 }
 ```
