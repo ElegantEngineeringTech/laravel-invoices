@@ -11,7 +11,7 @@ This package provides a robust, easy-to-use system for managing invoices within 
 
 ## Demo
 
-Try out [the interactive demo](https://elegantengineering.tech/laravel-invoices) to explore package capabilities.
+Try out [the interactive demo](https://elegantly.dev/laravel-invoices) to explore package capabilities.
 
 ## Table of Contents
 
@@ -593,7 +593,7 @@ Storage::put(
 
 ### Rendering the Invoice in a View
 
-You can render your invoice within a larger view, enabling you to create an "invoice builder" experience similar to the [interactive demo](https://elegantengineering.tech/laravel-invoices).
+You can render your invoice within a larger view, enabling you to create an "invoice builder" experience similar to the [interactive demo](https://elegantly.devlaravel-invoices).
 
 To achieve this, include the main part of the invoice in your view as shown below:
 
