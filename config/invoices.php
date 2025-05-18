@@ -66,7 +66,7 @@ return [
             'country' => null,
         ],
         'email' => null,
-        'phone_number' => null,
+        'phone' => null,
         'tax_number' => null,
         'company_number' => null,
     ],
