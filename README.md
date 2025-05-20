@@ -226,7 +226,7 @@ $invoice = new Invoice([
             'street' => '8405 Old James St.Rochester',
             'city' => 'New York',
             'postal_code' => '14609',
-            'state' => 'New York (NY)',
+            'state' => 'NY',
             'country' => 'United States',
         ],
         'email' => 'john.doe@example.com',
@@ -487,10 +487,13 @@ $pdfInvoice = new PdfInvoice(
     buyer: new Buyer(
         name: 'John Doe',
         address: new Address(
-            street: '8405 Old James St.Rochester',
+            street: [
+                '8405 Old James St.Rochester'
+                'Apartment 1',
+            ],
             city: 'New York',
             postal_code: '14609',
-            state: 'New York (NY)',
+            state: 'NY',
             country: 'United States',
         ),
         email: 'john.doe@example.com',
