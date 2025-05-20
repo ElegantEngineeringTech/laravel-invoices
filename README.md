@@ -625,6 +625,9 @@ php artisan vendor:publish --tag="invoices-views"
 
 Then modify the blade files to your liking.
 
+> [!NOTE]
+> If you add new CSS clas, don't forget to define them in the `style.blade.php` file.
+
 Alternatively, you can create a completely custom template by editing the config file like this:
 
 ```php
@@ -650,6 +653,9 @@ return [
 
 ];
 ```
+
+> [!WARNING]
+> Your custom template file must be in `resources/views/vendor/invoices`
 
 Ensure that your custom template follows the same structure and conventions as the default one to maintain compatibility with various use cases.
 
