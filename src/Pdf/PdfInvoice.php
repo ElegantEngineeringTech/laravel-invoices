@@ -134,8 +134,9 @@ class PdfInvoice
 
     /**
      * @param  array<string, mixed>  $options
+     * @param  array{ size?: string, orientation?: string }  $paper
      */
-    public function pdf(array $options = []): Dompdf
+    public function pdf(array $options = [], array $paper = []): Dompdf
     {
 
         $pdf = new Dompdf(array_merge(
@@ -146,9 +147,9 @@ class PdfInvoice
 
         $pdf->setPaper(
             // @phpstan-ignore-next-line
-            config('invoices.pdf.paper.paper') ?? config('invoices.paper_options.paper') ?? 'a4',
+            $paper['size'] ?? config('invoices.pdf.paper.size') ?? config('invoices.pdf.paper.paper') ?? config('invoices.paper_options.paper') ?? 'a4',
             // @phpstan-ignore-next-line
-            config('invoices.pdf.paper.orientation') ?? config('invoices.paper_options.orientation') ?? 'portrait'
+            $paper['orientation'] ?? config('invoices.pdf.paper.orientation') ?? config('invoices.paper_options.orientation') ?? 'portrait'
         );
 
         $html = $this->view()->render();
