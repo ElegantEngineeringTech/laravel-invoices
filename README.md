@@ -617,9 +617,41 @@ See the [Dompdf font guide](https://github.com/dompdf/dompdf).
 
 ## Customizing the Template
 
-To customize the invoice template, you can publish the provided views and modify them as needed.
+To customize the invoice template, first publish the views using:
 
-Alternatively, you can create a completely custom template. Ensure that your custom template follows the same structure and conventions as the default one to maintain compatibility with various use cases.
+```bash
+php artisan vendor:publish --tag="invoices-views"
+```
+
+Then modify the blade files to your liking.
+
+Alternatively, you can create a completely custom template by editing the config file like this:
+
+```php
+return [
+
+    // ...
+
+    'pdf' => [
+
+        /**
+         * The template used to render the PDF
+         */
+        'template' => 'default.layout',
+
+        'template_data' => [
+            /**
+             * The color displayed at the top of the PDF
+             */
+            'color' => '#050038',
+        ],
+
+    ],
+
+];
+```
+
+Ensure that your custom template follows the same structure and conventions as the default one to maintain compatibility with various use cases.
 
 ## Testing
 
