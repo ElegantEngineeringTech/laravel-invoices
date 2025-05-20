@@ -12,12 +12,13 @@ use Illuminate\Contracts\Support\Arrayable;
 class Address implements Arrayable
 {
     /**
+     * @param  null|string|string[]  $street
      * @param  array<array-key, null|int|float|string>  $fields
      */
     public function __construct(
         public ?string $company = null,
         public ?string $name = null,
-        public ?string $street = null,
+        public null|string|array $street = null,
         public ?string $state = null,
         public ?string $postal_code = null,
         public ?string $city = null,
@@ -56,7 +57,7 @@ class Address implements Arrayable
      * @return array{
      *    company: ?string,
      *    name: ?string,
-     *    street: ?string,
+     *    street: null|string|string[],
      *    state: ?string,
      *    postal_code: ?string,
      *    city: ?string,

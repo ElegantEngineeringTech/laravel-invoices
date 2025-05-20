@@ -6,7 +6,11 @@
      <p class="pb-1 text-xs">{{ $address->name }}</p>
  @endif
 
- @if ($address->street)
+ @if (is_array($address->street))
+     @foreach ($address->street as $line)
+         <p class="pb-1 text-xs">{{ $line }}</p>
+     @endforeach
+ @elseif($address->street)
      <p class="pb-1 text-xs">{{ $address->street }}</p>
  @endif
 

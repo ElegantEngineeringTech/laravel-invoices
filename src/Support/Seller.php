@@ -56,7 +56,7 @@ class Seller implements Arrayable
      *    address: null|array{
      *       company: ?string,
      *       name: ?string,
-     *       street: ?string,
+     *       street: null|string|string[],
      *       state: ?string,
      *       postal_code: ?string,
      *       city: ?string,
