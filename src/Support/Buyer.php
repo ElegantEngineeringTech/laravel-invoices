@@ -15,6 +15,7 @@ class Buyer implements Arrayable
      * @param  array<array-key, null|int|float|string>  $fields
      */
     public function __construct(
+        public ?string $company = null,
         public ?string $name = null,
         public ?Address $address = null,
         public ?Address $shipping_address = null,
@@ -32,6 +33,8 @@ class Buyer implements Arrayable
     public static function fromArray(array $values): self
     {
         return new self(
+            // @phpstan-ignore-next-line
+            company: data_get($values, 'company'),
             // @phpstan-ignore-next-line
             name: data_get($values, 'name'),
             // @phpstan-ignore-next-line
@@ -51,8 +54,10 @@ class Buyer implements Arrayable
 
     /**
      * @return array{
+     *    company: ?string,
      *    name: ?string,
      *    address: null|array{
+     *       company: ?string,
      *       name: ?string,
      *       street: ?string,
      *       state: ?string,
@@ -62,6 +67,7 @@ class Buyer implements Arrayable
      *       fields: null|array<array-key, null|int|float|string>,
      *    },
      *    shipping_address: null|array{
+     *       company: ?string,
      *       name: ?string,
      *       street: ?string,
      *       state: ?string,
@@ -79,6 +85,7 @@ class Buyer implements Arrayable
     public function toArray(): array
     {
         return [
+            'company' => $this->company,
             'name' => $this->name,
             'address' => $this->address?->toArray(),
             'shipping_address' => $this->shipping_address?->toArray(),

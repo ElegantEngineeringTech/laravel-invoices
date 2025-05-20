@@ -15,6 +15,7 @@ class Address implements Arrayable
      * @param  array<array-key, null|int|float|string>  $fields
      */
     public function __construct(
+        public ?string $company = null,
         public ?string $name = null,
         public ?string $street = null,
         public ?string $state = null,
@@ -32,6 +33,8 @@ class Address implements Arrayable
     public static function fromArray(array $values): self
     {
         return new self(
+            // @phpstan-ignore-next-line
+            company: data_get($values, 'company'),
             // @phpstan-ignore-next-line
             name: data_get($values, 'name'),
             // @phpstan-ignore-next-line
@@ -51,6 +54,7 @@ class Address implements Arrayable
 
     /**
      * @return array{
+     *    company: ?string,
      *    name: ?string,
      *    street: ?string,
      *    state: ?string,
@@ -63,6 +67,7 @@ class Address implements Arrayable
     public function toArray(): array
     {
         return [
+            'company' => $this->company,
             'name' => $this->name,
             'street' => $this->street,
             'state' => $this->state,

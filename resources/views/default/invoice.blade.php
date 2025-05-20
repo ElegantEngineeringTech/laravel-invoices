@@ -76,166 +76,34 @@
         <tbody>
             <tr>
                 <td class="p-0 align-top" width="33%">
-                    @php
-                        $name = $invoice->seller->name;
-                        $street = $invoice->seller->address->street;
-                        $postal_code = $invoice->seller->address->postal_code;
-                        $city = $invoice->seller->address->city;
-                        $state = $invoice->seller->address->state;
-                        $country = $invoice->seller->address->country;
-                        $address_fields = $invoice->seller->address?->fields ?? [];
-                        $email = $invoice->seller->email;
-                        $phone = $invoice->seller->phone;
-                        $tax_number = $invoice->seller->tax_number;
-                        $fields = $invoice->seller->fields;
-                    @endphp
-
                     <p class="mb-1 pb-1 text-xs text-gray-500">{{ __('invoices::invoice.from') }}</p>
 
-                    @if ($name)
-                        <p class="pb-1 text-xs"><strong>{{ $name }}</strong></p>
-                    @endif
-                    @if ($street)
-                        <p class="pb-1 text-xs">{{ $street }}</p>
-                    @endif
-                    @if ($postal_code || $city)
-                        <p class="whitespace-nowrap pb-1 text-xs">
-                            {{ $postal_code }}
-                            {{ $city }}
-                        </p>
-                    @endif
-                    @if ($state)
-                        <p class="pb-1 text-xs">{{ $state }}</p>
-                    @endif
-                    @if ($country)
-                        <p class="pb-1 text-xs">{{ $country }}</p>
+                    @if ($invoice->seller->company)
+                        <p class="pb-1 text-xs"><strong>{{ $invoice->seller->company }}</strong></p>
                     @endif
 
-                    @foreach ($address_fields as $key => $value)
-                        <p class="pb-1 text-xs">
-                            @if (is_string($key))
-                                {{ $key }}
-                            @endif
-                            {{ $value }}
-                        </p>
-                    @endforeach
-
-                    @if ($email)
-                        <p class="pb-1 text-xs">{{ $email }}</p>
-                    @endif
-                    @if ($phone)
-                        <p class="pb-1 text-xs">{{ $phone }}</p>
-                    @endif
-                    @if ($tax_number)
-                        <p class="pb-1 text-xs">{{ $tax_number }}</p>
-                    @endif
-                    @foreach ($fields as $key => $value)
-                        <p class="pb-1 text-xs">
-                            @if (is_string($key))
-                                {{ $key }}
-                            @endif
-                            {{ $value }}
-                        </p>
-                    @endforeach
-                </td>
-                <td class="p-0 align-top" width="33%">
-                    @php
-                        $name = $invoice->buyer->name;
-                        $street = $invoice->buyer->address?->street;
-                        $postal_code = $invoice->buyer->address?->postal_code;
-                        $city = $invoice->buyer->address?->city;
-                        $state = $invoice->buyer->address?->state;
-                        $country = $invoice->buyer->address?->country;
-                        $address_fields = $invoice->buyer->address?->fields ?? [];
-                        $email = $invoice->buyer->email;
-                        $phone = $invoice->buyer->phone;
-                        $tax_number = $invoice->buyer->tax_number;
-                        $fields = $invoice->buyer->fields;
-                    @endphp
-                    <p class="mb-1 pb-1 text-xs text-gray-500">{{ __('invoices::invoice.to') }}</p>
-
-                    @if ($name)
-                        <p class="pb-1 text-xs"><strong>{{ $name }}</strong></p>
-                    @endif
-                    @if ($street)
-                        <p class="pb-1 text-xs">{{ $street }}</p>
-                    @endif
-                    @if ($postal_code || $city)
-                        <p class="whitespace-nowrap pb-1 text-xs">
-                            {{ $postal_code }}
-                            {{ $city }}
-                        </p>
-                    @endif
-                    @if ($state)
-                        <p class="pb-1 text-xs">{{ $state }}</p>
-                    @endif
-                    @if ($country)
-                        <p class="pb-1 text-xs">{{ $country }}</p>
+                    @if ($invoice->seller->name)
+                        <p class="pb-1 text-xs"><strong>{{ $invoice->seller->name }}</strong></p>
                     @endif
 
-                    @foreach ($address_fields as $key => $value)
-                        <p class="pb-1 text-xs">
-                            @if (is_string($key))
-                                {{ $key }}
-                            @endif
-                            {{ $value }}
-                        </p>
-                    @endforeach
-
-                    @if ($email)
-                        <p class="pb-1 text-xs">{{ $email }}</p>
-                    @endif
-                    @if ($phone)
-                        <p class="pb-1 text-xs">{{ $phone }}</p>
-                    @endif
-                    @if ($tax_number)
-                        <p class="pb-1 text-xs">{{ $tax_number }}</p>
+                    @if ($invoice->seller->address)
+                        @include('invoices::default.includes.address', [
+                            'address' => $invoice->seller->address,
+                        ])
                     @endif
 
-                    @foreach ($fields as $key => $value)
-                        <p class="pb-1 text-xs">
-                            @if (is_string($key))
-                                {{ $key }}
-                            @endif
-                            {{ $value }}
-                        </p>
-                    @endforeach
-                </td>
+                    @if ($invoice->seller->email)
+                        <p class="pb-1 text-xs">{{ $invoice->seller->email }}</p>
+                    @endif
+                    @if ($invoice->seller->phone)
+                        <p class="pb-1 text-xs">{{ $invoice->seller->phone }}</p>
+                    @endif
+                    @if ($invoice->seller->tax_number)
+                        <p class="pb-1 text-xs">{{ $invoice->seller->tax_number }}</p>
+                    @endif
 
-                @if ($invoice->buyer->shipping_address)
-                    <td class="p-0 align-top" width="33%">
-                        @php
-                            $name = $invoice->buyer->shipping_address->name;
-                            $street = $invoice->buyer->shipping_address->street;
-                            $postal_code = $invoice->buyer->shipping_address->postal_code;
-                            $city = $invoice->buyer->shipping_address->city;
-                            $state = $invoice->buyer->shipping_address->state;
-                            $country = $invoice->buyer->shipping_address->country;
-                            $fields = $invoice->buyer->shipping_address->fields;
-                        @endphp
-                        <p class="mb-1 whitespace-nowrap pb-1 text-xs text-gray-500">
-                            {{ __('invoices::invoice.shipping_to') }}
-                        </p>
-
-                        @if ($name)
-                            <p class="pb-1 text-xs"><strong>{{ $name }}</strong></p>
-                        @endif
-                        @if ($street)
-                            <p class="pb-1 text-xs">{{ $street }}</p>
-                        @endif
-                        @if ($postal_code || $city)
-                            <p class="whitespace-nowrap pb-1 text-xs">
-                                {{ $postal_code }}
-                                {{ $city }}
-                            </p>
-                        @endif
-                        @if ($state)
-                            <p class="pb-1 text-xs">{{ $state }}</p>
-                        @endif
-                        @if ($country)
-                            <p class="pb-1 text-xs">{{ $country }}</p>
-                        @endif
-                        @foreach ($fields as $key => $value)
+                    @if ($invoice->seller->fields)
+                        @foreach ($invoice->seller->fields as $key => $value)
                             <p class="pb-1 text-xs">
                                 @if (is_string($key))
                                     {{ $key }}
@@ -243,6 +111,59 @@
                                 {{ $value }}
                             </p>
                         @endforeach
+                    @endif
+                </td>
+                <td class="p-0 align-top" width="33%">
+                    <p class="mb-1 pb-1 text-xs text-gray-500">{{ __('invoices::invoice.to') }}</p>
+
+                    @if ($invoice->buyer->company)
+                        <p class="pb-1 text-xs"><strong>{{ $invoice->buyer->company }}</strong></p>
+                    @endif
+
+                    @if ($invoice->buyer->name)
+                        <p class="pb-1 text-xs"><strong>{{ $invoice->buyer->name }}</strong></p>
+                    @endif
+
+                    @if ($invoice->buyer->address)
+                        @include('invoices::default.includes.address', [
+                            'address' => $invoice->buyer->address,
+                        ])
+                    @endif
+
+                    @if ($invoice->buyer->email)
+                        <p class="pb-1 text-xs">{{ $invoice->buyer->email }}</p>
+                    @endif
+                    @if ($invoice->buyer->phone)
+                        <p class="pb-1 text-xs">{{ $invoice->buyer->phone }}</p>
+                    @endif
+                    @if ($invoice->buyer->tax_number)
+                        <p class="pb-1 text-xs">{{ $invoice->buyer->tax_number }}</p>
+                    @endif
+
+                    @if ($invoice->buyer->fields)
+                        @foreach ($invoice->buyer->fields as $key => $value)
+                            <p class="pb-1 text-xs">
+                                @if (is_string($key))
+                                    {{ $key }}
+                                @endif
+                                {{ $value }}
+                            </p>
+                        @endforeach
+                    @endif
+                </td>
+
+                @if ($invoice->buyer->shipping_address)
+                    <td class="p-0 align-top" width="33%">
+
+                        <p class="mb-1 whitespace-nowrap pb-1 text-xs text-gray-500">
+                            {{ __('invoices::invoice.shipping_to') }}
+                        </p>
+
+                        @if ($invoice->buyer->shipping_address)
+                            @include('invoices::default.includes.address', [
+                                'address' => $invoice->buyer->shipping_address,
+                            ])
+                        @endif
                     </td>
                 @endif
 

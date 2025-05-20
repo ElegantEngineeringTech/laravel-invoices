@@ -57,6 +57,7 @@ return [
     'date_format' => 'Y-m-d',
 
     'default_seller' => [
+        'company' => null,
         'name' => null,
         'address' => [
             'street' => null,
@@ -68,7 +69,9 @@ return [
         'email' => null,
         'phone' => null,
         'tax_number' => null,
-        'company_number' => null,
+        'fields' => [
+            //
+        ],
     ],
 
     /**
