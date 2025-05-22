@@ -11,11 +11,17 @@
 
     <div class="flex p-16">
 
-        <div class="relative mx-auto flex aspect-[210/297] w-full max-w-2xl flex-col bg-white p-12 shadow-md">
+        <div class="relative mx-auto flex w-full max-w-3xl flex-col gap-2">
 
-            @include('invoices::default.invoice', [
-                'invoice' => $invoice,
-            ])
+            <div>
+                <a class="text-blue-500" href="/pdf">View as PDF</a>
+            </div>
+
+            <div class="bg-white p-12 shadow-md">
+                @include('invoices::default.invoice', [
+                    'invoice' => $invoice,
+                ])
+            </div>
 
         </div>
 

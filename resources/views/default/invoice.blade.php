@@ -78,78 +78,16 @@
                 <td class="p-0 align-top" width="33%">
                     <p class="mb-1 pb-1 text-xs text-gray-500">{{ __('invoices::invoice.from') }}</p>
 
-                    @if ($invoice->seller->company)
-                        <p class="pb-1 text-xs"><strong>{{ $invoice->seller->company }}</strong></p>
-                    @endif
-
-                    @if ($invoice->seller->name)
-                        <p class="pb-1 text-xs"><strong>{{ $invoice->seller->name }}</strong></p>
-                    @endif
-
-                    @if ($invoice->seller->address)
-                        @include('invoices::default.includes.address', [
-                            'address' => $invoice->seller->address,
-                        ])
-                    @endif
-
-                    @if ($invoice->seller->email)
-                        <p class="pb-1 text-xs">{{ $invoice->seller->email }}</p>
-                    @endif
-                    @if ($invoice->seller->phone)
-                        <p class="pb-1 text-xs">{{ $invoice->seller->phone }}</p>
-                    @endif
-                    @if ($invoice->seller->tax_number)
-                        <p class="pb-1 text-xs">{{ $invoice->seller->tax_number }}</p>
-                    @endif
-
-                    @if ($invoice->seller->fields)
-                        @foreach ($invoice->seller->fields as $key => $value)
-                            <p class="pb-1 text-xs">
-                                @if (is_string($key))
-                                    {{ $key }}
-                                @endif
-                                {{ $value }}
-                            </p>
-                        @endforeach
-                    @endif
+                    @include('invoices::default.includes.party', [
+                        'party' => $invoice->seller,
+                    ])
                 </td>
                 <td class="p-0 align-top" width="33%">
                     <p class="mb-1 pb-1 text-xs text-gray-500">{{ __('invoices::invoice.to') }}</p>
 
-                    @if ($invoice->buyer->company)
-                        <p class="pb-1 text-xs"><strong>{{ $invoice->buyer->company }}</strong></p>
-                    @endif
-
-                    @if ($invoice->buyer->name)
-                        <p class="pb-1 text-xs"><strong>{{ $invoice->buyer->name }}</strong></p>
-                    @endif
-
-                    @if ($invoice->buyer->address)
-                        @include('invoices::default.includes.address', [
-                            'address' => $invoice->buyer->address,
-                        ])
-                    @endif
-
-                    @if ($invoice->buyer->email)
-                        <p class="pb-1 text-xs">{{ $invoice->buyer->email }}</p>
-                    @endif
-                    @if ($invoice->buyer->phone)
-                        <p class="pb-1 text-xs">{{ $invoice->buyer->phone }}</p>
-                    @endif
-                    @if ($invoice->buyer->tax_number)
-                        <p class="pb-1 text-xs">{{ $invoice->buyer->tax_number }}</p>
-                    @endif
-
-                    @if ($invoice->buyer->fields)
-                        @foreach ($invoice->buyer->fields as $key => $value)
-                            <p class="pb-1 text-xs">
-                                @if (is_string($key))
-                                    {{ $key }}
-                                @endif
-                                {{ $value }}
-                            </p>
-                        @endforeach
-                    @endif
+                    @include('invoices::default.includes.party', [
+                        'party' => $invoice->buyer,
+                    ])
                 </td>
 
                 @if ($invoice->buyer->shipping_address)

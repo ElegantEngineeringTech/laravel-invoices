@@ -26,14 +26,15 @@ $invoice = new PdfInvoice(
     ],
     logo: 'https://avatars.githubusercontent.com/u/170185760?s=400&u=becdedf9606e6a80ea4831e8fc5cac301763368a&v=4',
     seller: new Seller(
-        name: 'Elegantly',
+        company: 'Elegantly',
         address: new Address(
             street: "9 rue Geoffroy l'Angevin",
             postal_code: '75004',
             city: 'Paris',
+            state: 'Île-de-France',
             country: 'France',
         ),
-        email: 'support@youdji.com',
+        email: 'support@exemple.com',
         phone: '069547XXXX',
         tax_number: 'FR88897962361',
         fields: [
@@ -41,7 +42,8 @@ $invoice = new PdfInvoice(
         ],
     ),
     buyer: new Buyer(
-        name: 'CHASR',
+        company: 'Company & Co',
+        name: 'Wile E. Coyote',
         address: new Address(
             street : '8 Allée Du Sequoia',
             postal_code : '77400',
@@ -49,13 +51,18 @@ $invoice = new PdfInvoice(
             country : 'France',
         ),
         shipping_address: new Address(
-            street : '8 Allée Du Sequoia',
+            company: 'Company & Co',
+            name : 'John Doe',
+            street : [
+                '8 Allée Du Sequoia',
+                'Apt 1.',
+            ],
             postal_code : '77400',
             city : 'Lagny-sur-Marne',
             country : 'France',
         ),
         tax_number: 'FR15948344072',
-        email: 'heloise@chasr.io',
+        email: 'john.doe@exemple.io',
     ),
     items: [
         new PdfInvoiceItem(

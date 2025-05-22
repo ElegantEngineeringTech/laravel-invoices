@@ -1,9 +1,10 @@
- @if ($address->company)
+ @if ($address->company && $address->name)
      <p class="pb-1 text-xs"><strong>{{ $address->company }}</strong></p>
- @endif
-
- @if ($address->name)
      <p class="pb-1 text-xs">{{ $address->name }}</p>
+ @elseif($address->company)
+     <p class="pb-1 text-xs"><strong>{{ $address->company }}</strong></p>
+ @elseif ($address->name)
+     <p class="pb-1 text-xs"><strong>{{ $address->name }}</strong></p>
  @endif
 
  @if (is_array($address->street))
