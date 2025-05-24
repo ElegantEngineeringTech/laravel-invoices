@@ -14,6 +14,7 @@ use Elegantly\Invoices\InvoiceDiscount;
 use Elegantly\Invoices\Support\Buyer;
 use Elegantly\Invoices\Support\Seller;
 use Illuminate\Http\Response;
+use Illuminate\Mail\Attachment;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\HeaderUtils;
@@ -191,6 +192,13 @@ class PdfInvoice
             'Content-Disposition' => HeaderUtils::makeDisposition('attachment', $filename, Str::ascii($filename)),
             'Content-Length' => mb_strlen($output ?? ''),
         ]);
+    }
+
+    public function toMailAttachment(?string $filename = null): Attachment
+    {
+        return Attachment::fromData(fn () => $this->getPdfOutput())
+            ->as($filename ?? $this->getFilename())
+            ->withMime('application/pdf');
     }
 
     public function view(): \Illuminate\Contracts\View\View

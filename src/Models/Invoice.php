@@ -454,9 +454,7 @@ class Invoice extends Model implements Attachable
      */
     public function toMailAttachment(): Attachment
     {
-        return Attachment::fromData(fn () => $this->toPdfInvoice()->getPdfOutput())
-            ->as($this->toPdfInvoice()->getFilename())
-            ->withMime('application/pdf');
+        return $this->toPdfInvoice()->toMailAttachment();
     }
 
     /**

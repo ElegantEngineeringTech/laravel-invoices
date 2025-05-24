@@ -26,7 +26,17 @@ class PdfInvoiceItem
         public ?string $quantity_unit = null,
         public ?string $description = null,
     ) {
-        $this->currency = $currency instanceof Currency ? $currency : Currency::of($currency ?? config()->string('invoices.default_currency'));
+        if ($currency instanceof Currency) {
+            $this->currency = $currency;
+        } elseif ($currency) {
+            $this->currency = Currency::of($currency);
+        } elseif ($unit_price) {
+            $this->currency = $unit_price->getCurrency();
+        } elseif ($unit_tax) {
+            $this->currency = $unit_tax->getCurrency();
+        } else {
+            $this->currency = Currency::of(config()->string('invoices.default_currency'));
+        }
 
         if ($tax_percentage && ($tax_percentage > 100 || $tax_percentage < 0)) {
             throw new Exception("The tax_percentage parameter must be an integer between 0 and 100. {$tax_percentage} given.");
