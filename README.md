@@ -27,11 +27,11 @@ Try out [the interactive demo](https://elegantly.dev/laravel-invoices) to explor
     -   [Rendering the Invoice as a view](#rendering-the-invoice-as-a-view)
     -   [Rendering the Invoice within a View](#rendering-the-invoice-within-a-view)
     -   [Adding Taxes](#adding-taxes)
-    -   [Tax by Percentage](#tax-by-percentage)
-    -   [Tax as a Fixed Amount](#tax-as-a-fixed-amount)
+        -   [Tax by Percentage](#tax-by-percentage)
+        -   [Tax as a Fixed Amount](#tax-as-a-fixed-amount)
     -   [Adding Discounts](#adding-discounts)
-    -   [Discount by Percentage](#discount-by-percentage)
-    -   [Discount as a Fixed Amount](#discount-as-a-fixed-amount)
+        -   [Discount by Percentage](#discount-by-percentage)
+        -   [Discount as a Fixed Amount](#discount-as-a-fixed-amount)
     -   [Customization](#customization)
         -   [Customizing Fonts](#customizing-fonts)
         -   [Customizing the Invoice Template](#customizing-the-invoice-template)
@@ -450,7 +450,7 @@ This approach allows for seamless integration of the invoice into a dynamic and 
 
 Taxes are applied to individual `PdfInvoiceItem` item. You can define them either as a percentage or a fixed amount.
 
-### Tax by Percentage
+#### Tax by Percentage
 
 To add a tax as a percentage, set the `tax_percentage` property on the `PdfInvoiceItem`. This value should be a float between 0 and 100.
 
@@ -464,7 +464,7 @@ new PdfInvoiceItem(
 ),
 ```
 
-### Tax as a Fixed Amount
+#### Tax as a Fixed Amount
 
 To apply a tax as a specific monetary amount, set the `unit_tax` property on the `PdfInvoiceItem`.
 
@@ -485,7 +485,7 @@ Discounts are represented by the `InvoiceDiscount` class and are applied to the 
 -   You can add multiple discounts to a single invoice.
 -   Discounts can be specified as a fixed amount (`amount_off`) or a percentage (`percent_off`). If both are provided for the same discount, the `amount_off` value takes precedence.
 
-### Discount by Percentage
+#### Discount by Percentage
 
 To apply a discount as a percentage, set the `percent_off` property.
 
@@ -506,7 +506,7 @@ $pdfInvoice = new PdfInvoice(
 );
 ```
 
-### Discount as a Fixed Amount
+#### Discount as a Fixed Amount
 
 To apply a discount as a fixed amount, set the `amount_off` property.
 
