@@ -15,35 +15,44 @@ Try out [the interactive demo](https://elegantly.dev/laravel-invoices) to explor
 
 ## Table of Contents
 
-1. [Requirements](#requirements)
-2. [Installation](#installation)
-3. [The PdfInvoice Class](#the-pdfinvoice-class)
-
-    - [Full exemple](#full-exemple)
-    - [Custom Fields](#custom-fields)
-    - [Seller & Buyer](#seller--buyer)
-    - [Shipping Address](#shipping-address)
-    - [Logo](#logo)
-    - [Invoice Items](#invoice-items)
-    - [Tax](#tax)
-    - [Discounts](#discounts)
-    - [Customizing the Template](#customizing-the-template)
-    - [Customizing the PDF Font](#customizing-the-pdf-font)
-    - [Rendering the Invoice as a PDF](#rendering-the-invoice-as-a-pdf)
-    - [Rendering the Invoice in a View](#rendering-the-invoice-in-a-view)
-    - [Creating an Invoice Builder with Livewire](#creating-an-invoice-builder-with-livewire)
-
-4. [The Invoice Eloquent Model](#the-invoice-eloquent-model)
-    - [Basic Usage](#basic-usage)
-    - [Serial Numbers](#serial-numbers)
-        - [Unique Serial Numbers](#unique-serial-numbers)
-        - [Serial Numbers with Multiple Prefixes and Series](#serial-numbers-with-multiple-prefixes-and-series)
-        - [Customizing the Serial Number Format](#customizing-the-serial-number-format)
-    - [Displaying a PDF](#displaying-a-pdf)
-        - [Customizing the PDF](#customizing-the-pdf)
-        - [Dynamic Logo](#dynamic-logo)
-        - [Displaying Your Invoice as a PDF](#displaying-your-invoice-as-a-pdf)
-        - [Attaching Your Invoice to an Email](#attaching-your-invoice-to-an-email)
+-   [Requirements](#requirements)
+-   [Installation](#installation)
+-   [The `PdfInvoice` Class](#the-pdfinvoice-class)
+    -   [Full Example](#full-example)
+    -   [Rendering the Invoice as a PDF](#rendering-the-invoice-as-a-pdf)
+    -   [Storing the PDF in a file](#storing-the-pdf-in-a-file)
+    -   [Downloading the Invoice as a PDF](#downloading-the-invoice-as-a-pdf)
+        -   [From a controller](#from-a-controller)
+        -   [From a Livewire component](#from-a-livewire-component)
+    -   [Rendering the Invoice as a view](#rendering-the-invoice-as-a-view)
+    -   [Rendering the Invoice within a View](#rendering-the-invoice-within-a-view)
+    -   [Adding Taxes](#adding-taxes)
+    -   [Tax by Percentage](#tax-by-percentage)
+    -   [Tax as a Fixed Amount](#tax-as-a-fixed-amount)
+    -   [Adding Discounts](#adding-discounts)
+    -   [Discount by Percentage](#discount-by-percentage)
+    -   [Discount as a Fixed Amount](#discount-as-a-fixed-amount)
+    -   [Customization](#customization)
+        -   [Customizing Fonts](#customizing-fonts)
+        -   [Customizing the Invoice Template](#customizing-the-invoice-template)
+-   [The `Invoice` Eloquent Model](#the-invoice-eloquent-model)
+    -   [Complete Example](#complete-example)
+    -   [Generating Unique Serial Numbers](#generating-unique-serial-numbers)
+    -   [Using Multiple Prefixes and Series for Serial Numbers](#using-multiple-prefixes-and-series-for-serial-numbers)
+    -   [Customizing the Serial Number Format](#customizing-the-serial-number-format)
+    -   [Converting an `Invoice` Model to a `PdfInvoice`](#converting-an-invoice-model-to-a-pdfinvoice)
+    -   [Display, Download, and Store Invoices](#display-download-and-store-invoices)
+    -   [Attaching Invoices to Mailables](#attaching-invoices-to-mailables)
+    -   [Attaching Invoices to Notifications](#attaching-invoices-to-notifications)
+    -   [Customizing PDF Output from the Model](#customizing-pdf-output-from-the-model)
+    -   [Casting `state` and `type` to Enums](#casting-state-and-type-to-enums)
+    -   [Using a Dynamic Logo](#using-a-dynamic-logo)
+-   [Testing](#testing)
+-   [Changelog](#changelog)
+-   [Contributing](#contributing)
+-   [Security Vulnerabilities](#security-vulnerabilities)
+-   [Credits](#credits)
+-   [License](#license)
 
 ## Requirements
 
@@ -518,13 +527,13 @@ $pdfInvoice = new PdfInvoice(
 );
 ```
 
-## Customization
+### Customization
 
-### Customizing Fonts
+#### Customizing Fonts
 
 See the [Dompdf font guide](https://github.com/dompdf/dompdf).
 
-### Customizing the Invoice Template
+#### Customizing the Invoice Template
 
 To customize the invoice template, first publish the package's views:
 
