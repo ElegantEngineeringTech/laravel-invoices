@@ -34,7 +34,7 @@ $invoice = new PdfInvoice(
             state: 'Île-de-France',
             country: 'France',
         ),
-        email: 'support@exemple.com',
+        email: 'support@example.com',
         phone: '069547XXXX',
         tax_number: 'FR88897962361',
         fields: [
@@ -62,7 +62,7 @@ $invoice = new PdfInvoice(
             country : 'France',
         ),
         tax_number: 'FR15948344072',
-        email: 'john.doe@exemple.io',
+        email: 'john.doe@example.com',
     ),
     items: [
         new PdfInvoiceItem(

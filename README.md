@@ -9,7 +9,7 @@ This package provides a robust, easy-to-use system for managing invoices within 
 
 ![laravel-invoices](https://repository-images.githubusercontent.com/527661364/f98e92f9-62a6-48a1-a7b1-1a587b92a430)
 
-## Demo
+## Interactive Demo
 
 Try out [the interactive demo](https://elegantly.dev/laravel-invoices) to explore package capabilities.
 
@@ -199,18 +199,18 @@ return [
 ];
 ```
 
-## PDF Invoice
+## The `PdfInvoice` Class
 
-This package provides a powerfull standalone `PdfInvoice` class, it can:
+This package provides a powerful, standalone `PdfInvoice` class. Its main functionalities include the ability to:
 
--   Display your invoice in a PDF
--   Display your invoice in a view
+-   Display your invoice as a PDF document.
+-   Render your invoice within a Blade view.
 
-The `PdfInvoice` is also integrated into the Invoice Eloquent Model so you can easily display a Invoice model into a PDF.
+The `PdfInvoice` class is also integrated with the `Invoice` Eloquent Model, allowing you to easily convert an `Invoice` model instance into its PDF representation.
 
-You can even use this package exclusively for the `PdfInvoice` class if that suits your needs.
+You can even use this package exclusively for the `PdfInvoice` class if you don't require database storage for your invoices.
 
-### Full exemple
+### Full Example
 
 ```php
 use \Elegantly\Invoices\Pdf\PdfInvoice;
@@ -299,7 +299,7 @@ $pdfInvoice = new PdfInvoice(
 );
 ```
 
-### Rendering the Invoice as a Pdf
+### Rendering the Invoice as a PDF
 
 ```php
 namespace App\Http\Controllers;
@@ -345,11 +345,11 @@ class InvoiceController extends Controller
 }
 ```
 
-### Download the Invoice as a PDF
+### Downloading the Invoice as a PDF
 
 #### From a controller
 
-To download the pdf, simply return the `download` method.
+To download the PDF, simply return the `download` method.
 
 ```php
 namespace App\Http\Controllers;
@@ -377,7 +377,7 @@ class InvoiceController extends Controller
 
 #### From a Livewire component
 
-To download the pdf from your Livewire component, your can use the `streamDownload` method like this:
+To download the PDF from a Livewire component, use the `streamDownload` method as shown below:
 
 ```php
 namespace App\Http\Controllers;
@@ -419,32 +419,31 @@ class InvoiceController extends Controller
 }
 ```
 
-### Rendering the Invoice into a view
+### Rendering the Invoice within a View
 
-You can render your invoice within a larger view, enabling you to create an "invoice builder" experience similar to the [interactive demo](https://elegantly.devlaravel-invoices).
+You can embed the invoice within a larger Blade view to create interfaces like an "invoice builder," similar to the [interactive demo](https://elegantly.devlaravel-invoices).
 
-To achieve this, include the main part of the invoice in your view as shown below:
+To do this, include the main invoice partial in your view as shown below:
 
-```blade
+```php
 <div class="aspect-[210/297] bg-white shadow-md">
     @include('invoices::default.invoice', ['invoice' => $invoice])
 </div>
 ```
 
-This approach allows you to seamlessly integrate the invoice into a dynamic and customizable user interface.
+This approach allows for seamless integration of the invoice into a dynamic and customizable user interface.
 
 > [!NOTE]  
-> The default template is styled using Tailwind-compatible syntax, making it seamlessly compatible with websites that use Tailwind.  
-> If you don’t use Tailwind, the styling may not render as intended.
+> The default template uses Tailwind CSS for styling. This ensures seamless integration with websites already using Tailwind.
+> If your project doesn't use Tailwind, the invoice styling may not appear as intended.
 
-### Adding a tax
+### Adding Taxes
 
-Taxes are added individually to each `PdfInvoiceItem` and both percentage or amount are supported.
+Taxes are applied to individual `PdfInvoiceItem` item. You can define them either as a percentage or a fixed amount.
 
-### Tax percentage
+### Tax by Percentage
 
-To add a tax represented as a percentage, simply specify the `tax_percentage` property.
-The value should be a float between 0 and 100.
+To add a tax as a percentage, set the `tax_percentage` property on the `PdfInvoiceItem`. This value should be a float between 0 and 100.
 
 ```php
 use \Elegantly\Invoices\Pdf\PdfInvoiceItem;
@@ -456,9 +455,9 @@ new PdfInvoiceItem(
 ),
 ```
 
-### Tax amount
+### Tax as a Fixed Amount
 
-To add a tax represented as an amount, simply specify the `unit_tax` property.
+To apply a tax as a specific monetary amount, set the `unit_tax` property on the `PdfInvoiceItem`.
 
 ```php
 use \Elegantly\Invoices\Pdf\PdfInvoiceItem;
@@ -470,15 +469,16 @@ new PdfInvoiceItem(
 ),
 ```
 
-### Adding a discount
+### Adding Discounts
 
--   Discounts are represented by the `InvoiceDiscount` class and are added to `PdfInvoice`. They can't be attached to `PdfInvoiceItem` at the moment.
--   You can add multiple discounts.
--   Both `amount_off` and `percent_off` with `amount_off` having the priority.
+Discounts are represented by the `InvoiceDiscount` class and are applied to the entire `PdfInvoice`. They cannot be attached to individual `PdfInvoiceItem`s at this time.
 
-### Discount as a percentage
+-   You can add multiple discounts to a single invoice.
+-   Discounts can be specified as a fixed amount (`amount_off`) or a percentage (`percent_off`). If both are provided for the same discount, the `amount_off` value takes precedence.
 
-To add a discount represented as a percentage, simply specify the `percent_off` property.
+### Discount by Percentage
+
+To apply a discount as a percentage, set the `percent_off` property.
 
 ```php
 use \Elegantly\Invoices\Pdf\PdfInvoice;
@@ -497,9 +497,9 @@ $pdfInvoice = new PdfInvoice(
 );
 ```
 
-### Discount as an amount
+### Discount as a Fixed Amount
 
-To add a discount represented as an amount, simply specify the `amount_off` property.
+To apply a discount as a fixed amount, set the `amount_off` property.
 
 ```php
 use \Elegantly\Invoices\Pdf\PdfInvoice;
@@ -520,24 +520,27 @@ $pdfInvoice = new PdfInvoice(
 
 ## Customization
 
-## Customizing the Font
+### Customizing Fonts
 
 See the [Dompdf font guide](https://github.com/dompdf/dompdf).
 
-## Customizing the Template
+### Customizing the Invoice Template
 
-To customize the invoice template, first publish the views using:
+To customize the invoice template, first publish the package's views:
 
 ```bash
 php artisan vendor:publish --tag="invoices-views"
 ```
 
-Then modify the blade files to your liking.
+After publishing, you can modify the Blade files in `resources/views/vendor/invoices/` to suit your needs.
 
 > [!NOTE]
-> If you add new CSS clas, don't forget to define them in the `style.blade.php` file.
+> If you introduce new CSS classes in your custom template, ensure you define their styles in the style.blade.php file.
 
-Alternatively, you can create a completely custom template by editing the config file like this:
+Alternatively, to use a completely different custom template, you can specify its path in the configuration file:
+
+> [!WARNING]
+> Your custom template file must be in `resources/views/vendor/invoices`
 
 ```php
 return [
@@ -549,7 +552,7 @@ return [
         /**
          * The template used to render the PDF
          */
-        'template' => 'default.layout',
+        'template' => 'my-custom.layout',
 
         'template_data' => [
             /**
@@ -563,33 +566,30 @@ return [
 ];
 ```
 
-> [!WARNING]
-> Your custom template file must be in `resources/views/vendor/invoices`
-
 Ensure that your custom template follows the same structure and conventions as the default one to maintain compatibility with various use cases.
 
-## The Invoice Eloquent Model
+## The `Invoice` Eloquent Model
 
-The `Invoice`Model design is very similar to the `PdfInvoice`one.
+The design of the `Invoice` Eloquent Model closely mirrors that of the `PdfInvoice` class.
 
-It provides a powerfull way:
+This model provides powerful features for:
 
--   to genereate unique and complex serial number
--   to attach your invoice to any model
--   to join your invoice to a email
+-   Generating unique and complex serial numbers.
+-   Attaching your invoice to any other Eloquent model.
+-   Easily including your invoice as an attachment in emails.
 
 > [!NOTE]
-> Don't forget to publish and run the migrations
+> Remember to publish and run the database migrations
 
-### Full exemple
+### Complete Example
 
-Here is a complete exemple of how you can create and store an invoice.
+The following example demonstrates how to create and store an invoice.
 
-We will consider the following architecture:
+For this illustration, let's assume the following application structure:
 
--   Teams have users
--   Teams have invoices
--   Invoices are attached to offers
+-   `Team` models have `User` models.
+-   `Team` models can have multiple `Invoice` models.
+-   `Invoice` models can be attached to `Offer` models.
 
 ```php
 use App\Models\Team;
@@ -676,7 +676,7 @@ Serial numbers are generated sequentially, with each new serial number based on 
 
 By default, the previous invoice is determined based on criteria such as prefix, series, year, and month for accurate, scoped numbering.
 
-### Multiple Prefixes and Series for Serial Numbers
+### Using Multiple Prefixes and Series for Serial Numbers
 
 In more complex applications, you may need to use different prefixes and/or series for your invoices.
 
@@ -723,7 +723,7 @@ $invoice->save();
 $invoice->serial_number; // IN-000100-24010001
 ```
 
-### From Invoice to PdfInvoice
+### Converting an `Invoice` Model to a `PdfInvoice`
 
 You can obtained a `PdfInvoice` class from your `Invoice` model by calling the `toPdfInvoice` method:
 
@@ -733,9 +733,9 @@ $invoice = Invoice::first();
 $pdfInvoice = $invoice->toPdfInvoice();
 ```
 
-### Displaying/Downloading/Storing Your Invoice as a PDF
+### Display, Download, and Store Invoices
 
-You can stream the `PdfInvoice` instance as a response, or download it:
+You can then stream the `PdfInvoice` instance directly or initiate a download:
 
 ```php
 namespace App\Http\Controllers;
@@ -780,9 +780,9 @@ class InvoiceController extends Controller
 }
 ```
 
-### Mailable Attachment
+### Attaching Invoices to Mailables
 
-You can easily attach an invoice to your `Mailable` like this:
+You can easily attach an invoice to your `Mailable` as follows:
 
 ```php
 namespace App\Mail;
@@ -813,9 +813,9 @@ class PaymentInvoice extends Mailable
 }
 ```
 
-### Notification Attachment
+### Attaching Invoices to Notifications
 
-You can easily attach an invoice to your notification like this:
+You can easily attach an invoice to your `Notification` as follows:
 
 ```php
 namespace App\Mail;
@@ -844,11 +844,13 @@ class PaymentInvoice extends Notification implements ShouldQueue
 }
 ```
 
-### Customizing the PDF
+### Customizing PDF Output from the Model
 
-To customize how your model is converted to a `PdfInvoice`, follow these steps:
+To customize how your `Invoice` model is converted into a `PdfInvoice` object, follow these steps:
 
-1. **Create a Custom Model**: Define your own `\App\Models\Invoice` class and ensure it extends the base `\Elegantly\Invoices\Models\Invoice` class.
+1.  **Create a Custom Invoice Model**:
+
+Define your own `App\Models\Invoice` class and ensure it extends the base `Elegantly\Invoices\Models\Invoice`.
 
 ```php
 namespace App\Models;
@@ -859,7 +861,9 @@ class Invoice extends \Elegantly\Invoices\Models\Invoice
 }
 ```
 
-2. **Override the `toPdfInvoice` Method**: Implement your specific logic within the `toPdfInvoice` method to control the customization.
+2.  **Override the `toPdfInvoice` Method**:
+
+In your custom `Invoice` model, override the `toPdfInvoice` method. This is where you'll implement your specific logic to construct and return the `PdfInvoice` object with your desired customizations.
 
 ```php
 namespace App\Models;
@@ -871,17 +875,21 @@ class Invoice extends \Elegantly\Invoices\Models\Invoice
     function toPdfInvoice(): PdfInvoice
     {
         return new PdfInvoice(
-            // ...
+            // ... your custom PdfInvoice properties and configuration
         );
     }
 }
 ```
 
-3. **Update the Configuration File**: Publish the package configuration file and update the `model_invoice` key as shown below:
+3.  **Update the Package Configuration**:
+
+First, if you haven't already, publish the package's configuration file:
 
 ```bash
 php artisan vendor:publish --tag="invoices-config"
 ```
+
+Then, modify the `config/invoices.php` file to tell the package to use your custom model by updating the `model_invoice` key:
 
 ```php
 return [
@@ -893,15 +901,18 @@ return [
 ];
 ```
 
-### Casting states and types to Enums
+### Casting `state` and `type` to Enums
 
-By default, `type` and `state` properties are just strings and are not cast to an enum so you can use as many value as you need.
+By default, the `type` and `state` properties on the `Invoice` model are stored as strings. This approach offers flexibility, as it doesn't restrict you to predefined values and they are not automatically cast to Enum objects.
 
-However, you might want to cast those properties to your enums or use the provided ones.
+However, you might prefer to cast these properties to Enum objects for better type safety and code clarity. You can use your own custom Enums or the ones provided by this package (e.g., `Elegantly\Invoices\Enums\InvoiceState`, `Elegantly\Invoices\Enums\InvoiceType`).
 
-To do so, you will have to customize the `Invoice` model by:
+To enable Enum casting for these properties, follow these steps:
 
-1. Create your own Invoice class and extend `\Elegantly\Invoices\Models\Invoice`
+1.  **Create a Custom `Invoice` Model**:
+
+Define your own `App\Models\Invoice` class that extends `\Elegantly\Invoices\Models\Invoice`.
+In this custom model, override the `casts()` method to specify the Enum classes for the `type` and `state` attributes.
 
 ```php
 namespace App\Models;
@@ -914,7 +925,7 @@ class Invoice extends \Elegantly\Invoices\Models\Invoice
     protected function casts(): array
     {
         return [
-            ...parent::casts(),
+            ...parent::casts(), // Merge with parent casts for other potential attributes
             'type' => InvoiceType::class,
             'state' => InvoiceState::class,
         ];
@@ -922,13 +933,17 @@ class Invoice extends \Elegantly\Invoices\Models\Invoice
 }
 ```
 
-2. Publish the configs
+2.  **Publish Package Configuration**:
+
+If you haven't already, publish the package's configuration file:
 
 ```bash
 php artisan vendor:publish --tag="invoices-config"
 ```
 
-3. Update the `model_invoice` key in the config:
+3.  **Update Configuration to Use Your Custom Model**:
+
+Modify the `config/invoices.php` file and update the `model_invoice` key to point to your newly created custom `Invoice` model:
 
 ```php
 return [
@@ -940,41 +955,57 @@ return [
 ];
 ```
 
-### Dynamic Logo
+### Using a Dynamic Logo
 
-If you need to set the logo dynamically on the invoice, for example, when allowing users to upload their own logo, you can achieve this by overriding the `getLogo` method.
+In scenarios where the invoice logo needs to be set dynamically (for instance, allowing users to upload their own company logo), you can achieve this by overriding the `getLogo` method in your `Invoice` model.
 
-1. Create your own Invoice class and extend `\Elegantly\Invoices\Models\Invoice`
+Follow these steps:
 
-> [!NOTE]  
-> The returned value must be either a base64-encoded data URL or a path to a locally accessible file.
+1.  **Create a Custom `Invoice` Model**:
+
+Define your own `App\Models\Invoice` that extends `\Elegantly\Invoices\Models\Invoice` class.
+Inside this custom model, implement the `getLogo` method to return the path or data for your dynamic logo.
+
+> [!NOTE]
+> The `getLogo` method must return either a base64-encoded data URL (e.g., `data:image/png;base64,...`) or a local filesystem path to the logo image.
+
+Here's an example of how you might implement this:
 
 ```php
 namespace App\Models;
-
-use Elegantly\Invoices\Enums\InvoiceState;
-use Elegantly\Invoices\Enums\InvoiceType;
+.
+use Illuminate\Http\File;
 
 class Invoice extends \Elegantly\Invoices\Models\Invoice
 {
     public function getLogo(): ?string
     {
-        $file = new File(public_path('logo.png'));
-        $mime = $file->getMimeType();
-        $logo = "data:{$mime};base64," . base64_encode($file->getContent());
+        $logoPath = public_path('logo.png'); // Replace with your dynamic logic
 
-        return $logo;
+        if (!file_exists($logoPath)) {
+            return null; // Or a default logo
+        }
+
+        $file = new File($logoPath);
+        $mime = $file->getMimeType();
+        $logoData = "data:{$mime};base64," . base64_encode(file_get_contents($logoPath)); // Use file_get_contents for raw data
+
+        return $logoData;
     }
 }
 ```
 
-2. Publish the configs
+2.  **Publish Package Configuration**:
+
+If you haven't done so already, publish the package's configuration file:
 
 ```bash
 php artisan vendor:publish --tag="invoices-config"
 ```
 
-3. Update the `model_invoice` key in the config:
+3.  **Update Configuration to Use Your Custom Model**:
+
+Modify the `config/invoices.php` file and update the `model_invoice` key to point to your custom `Invoice` model:
 
 ```php
 return [
