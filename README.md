@@ -45,6 +45,7 @@ Try out [the interactive demo](https://elegantly.dev/laravel-invoices) to explor
     -   [Attaching Invoices to Mailables](#attaching-invoices-to-mailables)
     -   [Attaching Invoices to Notifications](#attaching-invoices-to-notifications)
     -   [Customizing PDF Output from the Model](#customizing-pdf-output-from-the-model)
+        -   [Using a Custom PdfInvoice Class](#using-a-custom-pdfinvoice-class)
     -   [Casting `state` and `type` to Enums](#casting-state-and-type-to-enums)
     -   [Using a Dynamic Logo](#using-a-dynamic-logo)
 -   [Testing](#testing)
@@ -909,6 +910,56 @@ return [
     // ...
 ];
 ```
+
+#### Using a Custom PdfInvoice Class
+
+You can extend the default PdfInvoice class provided by the package to customize its behavior, such as changing the generated filename or adding additional logic.
+
+1. Create Your Custom PdfInvoice Class
+
+```php
+class PdfInvoice extends \Elegantly\Invoices\Pdf\PdfInvoice
+{
+
+    public function __construct(
+        // your custom constructor
+    ){
+        // ...
+    }
+
+    public function getFilename(): string
+    {
+        return str($this->serial_number)
+            ->replace(['/', '\\'], '_')
+            ->append('.pdf')
+            ->value();
+    }
+}
+```
+
+In this example, we're overriding the `getFilename` method.
+
+2. Return Your Custom `PdfInvoice` from the Invoice Model
+
+Update your `Invoice` model to return an instance of your custom `PdfInvoice` class.
+
+```php
+namespace App\Models;
+
+use App\ValueObjects\PdfInvoice;
+
+class Invoice extends \Elegantly\Invoices\Models\Invoice
+{
+    function toPdfInvoice(): PdfInvoice
+    {
+        return new PdfInvoice(
+            // Pass any required data to your custom PdfInvoice constructor
+        );
+    }
+}
+```
+
+By overriding the `toPdfInvoice` method, you can inject your custom logic while preserving compatibility with the rest of the package.
 
 ### Casting `state` and `type` to Enums
 
