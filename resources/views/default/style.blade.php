@@ -384,6 +384,10 @@
         min-width: 7rem;
     }
 
+    .w-28 {
+        width: 7rem;
+    }
+
     .text-gray-500 {
         color: #6b7280;
     }
