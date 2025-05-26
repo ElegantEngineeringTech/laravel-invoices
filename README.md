@@ -32,6 +32,8 @@ Try out [the interactive demo](https://elegantly.dev/laravel-invoices) to explor
     -   [Adding Discounts](#adding-discounts)
         -   [Discount by Percentage](#discount-by-percentage)
         -   [Discount as a Fixed Amount](#discount-as-a-fixed-amount)
+    -   [Adding Payment Instructions](#adding-payment-instructions)
+        -   [QR Code Generation](#qr-code-generation)
     -   [Customization](#customization)
         -   [Customizing Fonts](#customizing-fonts)
         -   [Customizing the Invoice Template](#customizing-the-invoice-template)
@@ -527,6 +529,44 @@ $pdfInvoice = new PdfInvoice(
     ],
 );
 ```
+
+### Adding Payment Instructions
+
+You can include detailed payment instructions directly within the generated PDF invoice. This can be helpful for providing bank transfer details, QR codes for quick payments, and custom payment links.
+
+Here’s an example of how to add a payment instruction:
+
+```php
+use \Elegantly\Invoices\Pdf\PdfInvoice;
+use \Elegantly\Invoices\Support\PaymentInstruction;
+
+$pdfInvoice = new PdfInvoice(
+    // ...
+    paymentInstructions: [
+        new PaymentInstruction(
+            name: 'Bank Transfer',
+            description: 'Make a direct bank transfer using the details below.',
+            qrcode: 'data:image/png;base64,' . base64_encode(
+                file_get_contents(__DIR__.'/../resources/images/qrcode.png')
+            ),
+            fields: [
+                'Bank Name' => 'Acme Bank',
+                'Account Number' => '12345678',
+                'IBAN' => 'GB12ACME12345678123456',
+                'SWIFT/BIC' => 'ACMEGB2L',
+                'Reference' => 'INV-0032/001',
+                '<a href="#">Pay online</a>',
+            ],
+        ),
+    ]
+);
+```
+
+> **Note:** You can include HTML tags (e.g., links) within the `fields` array for interactive content.
+
+#### QR Code Generation
+
+To dynamically generate QR codes, I recommend using the [`chillerlan/php-qrcode`](https://github.com/chillerlan/php-qrcode) package. It provides a simple and flexible API for generating QR codes in various formats.
 
 ### Customization
 
