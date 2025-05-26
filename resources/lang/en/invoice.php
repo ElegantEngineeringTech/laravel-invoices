@@ -40,6 +40,6 @@ return [
         'credit' => 'Credit note',
         'proforma' => 'Proforma invoice',
     ],
-    
+
     'page' => 'Page',
 ];
