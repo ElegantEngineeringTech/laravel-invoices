@@ -11,6 +11,7 @@ use Elegantly\Invoices\Pdf\PdfInvoice;
 use Elegantly\Invoices\Pdf\PdfInvoiceItem;
 use Elegantly\Invoices\Support\Address;
 use Elegantly\Invoices\Support\Buyer;
+use Elegantly\Invoices\Support\PaymentInstruction;
 use Elegantly\Invoices\Support\Seller;
 use Illuminate\Support\Facades\Route;
 
@@ -179,7 +180,23 @@ $invoice = new PdfInvoice(
             percent_off: 20
         ),
     ],
-    tax_label: 'VAT (France)'
+    tax_label: 'VAT (France)',
+    description: 'A simple description',
+    paymentInstructions: [
+        new PaymentInstruction(
+            name: 'Bank Transfer',
+            description: 'Make a direct bank transfer using the details below',
+            qrcode: "data:image/png;base64,". base64_encode(file_get_contents(__DIR__ . "/../resources/images/qrcode.png")),
+            fields: [
+                'Bank Name' => 'Acme Bank',
+                'Account Number' => '12345678',
+                'IBAN' => 'GB12ACME12345678123456',
+                'SWIFT/BIC' => 'ACMEGB2L',
+                'Reference' => 'INV-0032/001',
+                '<a href="#">Pay online</a>'
+            ],
+        ),
+    ]
 );
 
 Route::get('/', function () use ($invoice) {

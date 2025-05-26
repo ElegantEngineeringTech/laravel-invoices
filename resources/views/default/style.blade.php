@@ -50,6 +50,7 @@
     }
 
     img {
+        display: block;
         vertical-align: middle;
         border-style: none;
     }
@@ -92,6 +93,11 @@
     video {
         max-width: 100%;
         height: auto;
+    }
+
+    a {
+        color: #1d4ed8;
+        text-decoration: none,
     }
 
     .font-normal {
@@ -163,6 +169,18 @@
         margin-bottom: 48px;
     }
 
+    .mt-12 {
+        margin-top: 48px;
+    }
+
+    .-ml-12 {
+        margin-left: -48px;
+    }
+
+    .-mr-12 {
+        margin-right: -48px;
+    }
+
     .p-0 {
         padding: 0;
     }
@@ -175,6 +193,16 @@
     .pl-0,
     .px-0 {
         padding-left: 0;
+    }
+
+    .py-0.5,
+    .pt-0.5 {
+        padding-top: 2px;
+    }
+
+    .py-0.5,
+    .pb-0.5 {
+        padding-bottom: 2px;
     }
 
     .pb-1 {
@@ -216,12 +244,80 @@
         padding-top: 0.5rem;
     }
 
+    .pt-5,
+    .p-5 {
+        padding-top: 1.25rem;
+    }
+
+    .pb-5,
+    .p-5 {
+        padding-bottom: 1.25rem;
+    }
+
+    .pl-5,
+    .p-5 {
+        padding-left: 1.25rem;
+    }
+
+    .pr-5,
+    .p-5 {
+        padding-right: 1.25rem;
+    }
+
+    .pt-6,
+    .py-6,
+    .p-6 {
+        padding-top: 1.5rem;
+    }
+
+    .pb-6,
+    .py-6,
+    .p-6 {
+        padding-bottom: 1.5rem;
+    }
+
+    .pl-6,
+    .px-6,
+    .p-6 {
+        padding-left: 1.5rem;
+    }
+
+    .pr-6,
+    .px-6,
+    .p-6 {
+        padding-right: 1.5rem;
+    }
+
+    .px-12,
+    .pl-12,
+    .p-12 {
+        padding-left: 48px;
+    }
+
+    .px-12,
+    .pr-12,
+    .p-12 {
+        padding-right: 48px;
+    }
+
     .mb-1 {
         margin-bottom: 4px;
     }
 
     .mt-1 {
         margin-top: 4px;
+    }
+
+    .mb-2 {
+        margin-bottom: 8px;
+    }
+
+    .mb-3 {
+        margin-bottom: 0.75rem;
+    }
+
+    .mt-3 {
+        margin-top: 0.75rem;
     }
 
     .mb-5 {
@@ -284,8 +380,24 @@
         top: 0;
     }
 
+    .min-w-28 {
+        min-width: 7rem;
+    }
+
     .text-gray-500 {
         color: #6b7280;
+    }
+
+    .bg-white {
+        background-color: #fff;
+    }
+
+    .bg-zinc-50 {
+        background-color: #fafafa
+    }
+
+    .bg-zinc-100 {
+        background-color: #f4f4f5;
     }
 
     .dompdf-page:after {

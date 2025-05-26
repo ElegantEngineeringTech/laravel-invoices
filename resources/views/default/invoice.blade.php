@@ -235,7 +235,67 @@
     </table>
 
     @if ($invoice->description)
-        <p class="mb-1 text-sm"><strong>{{ __('invoices::invoice.description') }}</strong></p>
+        <p class="mb-2 text-sm">
+            <strong> {{ __('invoices::invoice.description') }} </strong>
+        </p>
         <p class="whitespace-pre-line text-xs">{!! $invoice->description !!}</p>
     @endif
+
+    @if ($invoice->paymentInstructions)
+        <div class="mt-12">
+            @foreach ($invoice->paymentInstructions as $paymentInstruction)
+                <div @class([
+                    'border-b' => !$loop->last,
+                    '-ml-12 -mr-12 px-12 bg-zinc-100 py-6',
+                ])>
+
+                    <table class="w-full">
+                        <tbody>
+                            <tr>
+                                <td class="w-full p-0 align-top">
+                                    @if ($paymentInstruction->name)
+                                        <p class="mb-1 text-xs">
+                                            <strong>{!! $paymentInstruction->name !!}</strong>
+                                        </p>
+                                    @endif
+
+                                    @if ($paymentInstruction->description)
+                                        <p class="mb-3 text-xs">
+                                            {!! $paymentInstruction->description !!}
+                                        </p>
+                                    @endif
+
+                                    <table>
+                                        <tbody>
+                                            @foreach ($paymentInstruction->fields as $key => $value)
+                                                <tr>
+                                                    @if (is_string($key))
+                                                        <td class="py-1 pr-5 text-xs">{{ $key }}</td>
+                                                        <td class="py-1 pl-2 text-xs text-gray-500">
+                                                            {!! $value !!}
+                                                        </td>
+                                                    @else
+                                                        <td class="py-1 pr-5 text-xs" colspan="2">
+                                                            {!! $value !!}
+                                                        </td>
+                                                    @endif
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </td>
+                                @if ($paymentInstruction->qrcode)
+                                    <td class="min-w-28 p-0 align-top">
+                                        <img src="{{ $paymentInstruction->qrcode }}" class="bg-white">
+                                    </td>
+                                @endif
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            @endforeach
+        </div>
+    @endif
+
+
 </div>

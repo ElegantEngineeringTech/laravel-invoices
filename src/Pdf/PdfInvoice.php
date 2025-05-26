@@ -12,6 +12,7 @@ use Elegantly\Invoices\Enums\InvoiceState;
 use Elegantly\Invoices\Enums\InvoiceType;
 use Elegantly\Invoices\InvoiceDiscount;
 use Elegantly\Invoices\Support\Buyer;
+use Elegantly\Invoices\Support\PaymentInstruction;
 use Elegantly\Invoices\Support\Seller;
 use Illuminate\Http\Response;
 use Illuminate\Mail\Attachment;
@@ -33,6 +34,7 @@ class PdfInvoice
      * @param  array<string, mixed>  $fields  Additianl fileds to display in the header
      * @param  PdfInvoiceItem[]  $items
      * @param  InvoiceDiscount[]  $discounts
+     * @param  PaymentInstruction[]  $paymentInstructions
      * @param  ?string  $logo  A local file path. The file must be accessible using file_get_contents.
      * @param  array<string, mixed>  $templateData
      */
@@ -52,6 +54,8 @@ class PdfInvoice
         public ?string $description = null,
         public ?string $tax_label = null,
         public array $discounts = [],
+
+        public array $paymentInstructions = [],
 
         ?string $template = null,
         public array $templateData = [],
