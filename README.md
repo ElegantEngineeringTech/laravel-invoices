@@ -163,7 +163,7 @@ return [
     'pdf' => [
 
         'paper' => [
-            'paper' => 'a4',
+            'size' => 'a4',
             'orientation' => 'portrait',
         ],
 
