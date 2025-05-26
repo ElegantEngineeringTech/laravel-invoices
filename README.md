@@ -230,6 +230,7 @@ use \Elegantly\Invoices\Pdf\PdfInvoiceItem;
 use \Elegantly\Invoices\Support\Seller;
 use \Elegantly\Invoices\Support\Buyer;
 use \Elegantly\Invoices\Support\Address;
+use \Elegantly\Invoices\Support\PaymentInstruction;
 use \Elegantly\Invoices\InvoiceDiscount;
 use Brick\Money\Money;
 
@@ -302,6 +303,23 @@ $pdfInvoice = new PdfInvoice(
             code: "SUMMER",
             percent_off: 50,
         )
+    ],
+    paymentInstructions: [
+        new PaymentInstruction(
+            name: 'Bank Transfer',
+            description: 'Make a direct bank transfer using the details below.',
+            qrcode: 'data:image/png;base64,' . base64_encode(
+                file_get_contents(__DIR__.'/../resources/images/qrcode.png')
+            ),
+            fields: [
+                'Bank Name' => 'Acme Bank',
+                'Account Number' => '12345678',
+                'IBAN' => 'GB12ACME12345678123456',
+                'SWIFT/BIC' => 'ACMEGB2L',
+                'Reference' => 'INV-0032/001',
+                '<a href="#">Pay online</a>',
+            ],
+        ),
     ],
     logo: public_path('/images/logo.png'), // local path or base64 string
     template: "default.layout", // use the default template or use your own
