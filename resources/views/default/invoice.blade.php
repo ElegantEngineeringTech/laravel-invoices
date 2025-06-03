@@ -184,27 +184,43 @@
                 {{-- empty space --}}
                 <td class="py-2 pr-2"></td>
                 <td class="border-b p-2 text-xs" colspan="3">
-                    {{ __('invoices::invoice.subtotal_amount') }}</td>
+                    {{ __('invoices::invoice.subtotal_amount') }}
+                </td>
                 <td class="whitespace-nowrap border-b py-2 pl-2 text-right text-xs">
                     {{ $invoice->formatMoney($invoice->subTotalAmount()) }}
                 </td>
             </tr>
 
-            @foreach ($invoice->discounts as $discount)
+            @if ($invoice->discounts)
+                @foreach ($invoice->discounts as $discount)
+                    <tr>
+                        {{-- empty space --}}
+                        <td class="py-2 pr-2"></td>
+                        <td class="border-b p-2 text-xs" colspan="3">
+                            {{ __($discount->name) ?? __('invoices::invoice.discount_name') }}
+                            @if ($discount->percent_off)
+                                ({{ $discount->formatPercentage($discount->percent_off) }})
+                            @endif
+                        </td>
+                        <td class="whitespace-nowrap border-b py-2 pl-2 text-right text-xs">
+                            {{ $invoice->formatMoney($discount->computeDiscountAmountOn($invoice->subTotalAmount())?->multipliedBy(-1)) }}
+                        </td>
+                    </tr>
+                @endforeach
+
                 <tr>
                     {{-- empty space --}}
                     <td class="py-2 pr-2"></td>
                     <td class="border-b p-2 text-xs" colspan="3">
-                        {{ __($discount->name) ?? __('invoices::invoice.discount_name') }}
-                        @if ($discount->percent_off)
-                            ({{ $discount->formatPercentage($discount->percent_off) }})
-                        @endif
+                        {{ __('invoices::invoice.subtotal_discounted_amount') }}
                     </td>
                     <td class="whitespace-nowrap border-b py-2 pl-2 text-right text-xs">
-                        {{ $invoice->formatMoney($discount->computeDiscountAmountOn($invoice->subTotalAmount())?->multipliedBy(-1)) }}
+                        {{ $invoice->formatMoney($invoice->subTotalDiscountedAmount()) }}
                     </td>
                 </tr>
-            @endforeach
+            @endif
+
+
 
             @if ($hasTaxes)
                 <tr>

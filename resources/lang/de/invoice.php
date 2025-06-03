@@ -18,6 +18,7 @@ return [
     'tax' => 'Steuer',
     'tax_label' => 'Steuer',
     'subtotal_amount' => 'Zwischensumme',
+    'subtotal_discounted_amount' => 'Zwischensumme nach Rabatt',
     'amount' => 'Betrag',
     'unit_price' => 'Einzelpreis',
     'quantity' => 'Menge',

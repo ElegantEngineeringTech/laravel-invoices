@@ -59,7 +59,7 @@ class PdfInvoiceItem
         }
 
         if ($this->tax_percentage) {
-            return $this->subTotalAmount()->multipliedBy($this->tax_percentage / 100, roundingMode: RoundingMode::HALF_EVEN);
+            return $this->subTotalAmount()->multipliedBy($this->tax_percentage / 100.0, roundingMode: RoundingMode::HALF_EVEN);
         }
 
         return Money::ofMinor(0, $this->currency);

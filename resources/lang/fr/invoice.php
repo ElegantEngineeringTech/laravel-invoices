@@ -18,6 +18,7 @@ return [
     'tax' => 'Tax',
     'tax_label' => 'Tax',
     'subtotal_amount' => 'Sous-total',
+    'subtotal_discounted_amount' => 'Sous-total après remise',
     'amount' => 'Montant',
     'unit_price' => 'Prix unitaire',
     'quantity' => 'Qté',

@@ -34,8 +34,8 @@ class InvoiceDiscount implements Arrayable, JsonSerializable
             return $this->amount_off;
         }
 
-        if (! is_null($this->percent_off)) {
-            return $amout->multipliedBy($this->percent_off / 100, RoundingMode::HALF_CEILING);
+        if ($this->percent_off !== null) {
+            return $amout->multipliedBy($this->percent_off / 100.0, RoundingMode::HALF_CEILING);
         }
 
         return Money::of(0, $amout->getCurrency());

@@ -18,6 +18,7 @@ return [
     'tax' => 'Imposto',
     'tax_label' => 'Imposto',
     'subtotal_amount' => 'Subtotal',
+    'subtotal_discounted_amount' => 'Subtotal após o desconto',
     'amount' => 'Montante',
     'unit_price' => 'Preço unitário',
     'quantity' => 'Qtd.',

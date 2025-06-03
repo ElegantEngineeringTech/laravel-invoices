@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Elegantly\Invoices\Pdf;
 
+use Brick\Math\RoundingMode;
 use Brick\Money\Money;
 use Carbon\Carbon;
 use Dompdf\Dompdf;
@@ -101,40 +102,75 @@ class PdfInvoice
         );
     }
 
-    public function totalTaxAmount(): Money
-    {
-        return array_reduce(
-            $this->items,
-            fn ($total, $item) => $total->plus($item->totalTaxAmount()),
-            Money::of(0, $this->getCurrency())
-        );
-    }
-
     public function totalDiscountAmount(): Money
     {
         if (! $this->discounts) {
             return Money::of(0, $this->getCurrency());
         }
 
-        $subtotal = $this->subTotalAmount();
+        $amount = $this->subTotalAmount();
 
         return array_reduce(
             $this->discounts,
-            function ($total, $discount) use ($subtotal) {
-                return $total->plus($discount->computeDiscountAmountOn($subtotal));
+            function ($total, $discount) use ($amount) {
+                return $total->plus($discount->computeDiscountAmountOn($amount));
             },
-            Money::of(0, $subtotal->getCurrency()));
+            Money::of(0, $amount->getCurrency())
+        );
+    }
+
+    public function subTotalDiscountedAmount(): Money
+    {
+        return $this->subTotalAmount()->minus($this->totalDiscountAmount());
+    }
+
+    /**
+     * After discount and taxes
+     */
+    public function totalTaxAmount(): Money
+    {
+        $totalDiscount = $this->totalDiscountAmount();
+
+        /**
+         * Taxes must be calculated on the discounted subtotal.
+         * Since discounts apply at the invoice level and taxes at the item level,
+         * we allocate the discount across items before computing taxes.
+         */
+        $allocatedDiscounts = $totalDiscount->allocate(...array_map(
+            fn ($item) => $item->subTotalAmount()->getMinorAmount()->toInt(),
+            $this->items
+        ));
+
+        $totalTaxAmount = Money::of(0, $this->getCurrency());
+
+        foreach ($this->items as $index => $item) {
+
+            if ($item->unit_tax) {
+                /**
+                 * When unit_tax is defined, the amount is considered right
+                 * and the discount is not apply
+                 */
+                $itemTaxAmount = $item->unit_tax->multipliedBy($item->quantity);
+            } elseif ($item->tax_percentage) {
+                $itemDiscount = $allocatedDiscounts[$index];
+
+                $itemTaxAmount = $item->subTotalAmount()
+                    ->minus($itemDiscount)
+                    ->multipliedBy($item->tax_percentage / 100.0, roundingMode: RoundingMode::HALF_EVEN);
+            } else {
+                $itemTaxAmount = Money::of(0, $totalTaxAmount->getCurrency());
+            }
+
+            $totalTaxAmount = $totalTaxAmount->plus($itemTaxAmount);
+
+        }
+
+        return $totalTaxAmount;
     }
 
     public function totalAmount(): Money
     {
-        $total = array_reduce(
-            $this->items,
-            fn ($total, $item) => $total->plus($item->totalAmount()),
-            Money::of(0, $this->getCurrency())
-        );
-
-        return $total->minus($this->totalDiscountAmount());
+        return $this->subTotalDiscountedAmount()->plus($this->totalTaxAmount());
     }
 
     /**
