@@ -137,7 +137,7 @@ class PdfInvoice
          * we allocate the discount across items before computing taxes.
          */
         $allocatedDiscounts = $totalDiscount->allocate(...array_map(
-            fn ($item) => $item->subTotalAmount()->getMinorAmount()->toInt(),
+            fn ($item) => $item->subTotalAmount()->abs()->getMinorAmount()->toInt(),
             $this->items
         ));
 
