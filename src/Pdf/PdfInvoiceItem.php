@@ -22,7 +22,7 @@ class PdfInvoiceItem
         public ?Money $unit_tax = null,
         public ?float $tax_percentage = null,
         null|string|Currency $currency = null,
-        public int $quantity = 1,
+        public int|float $quantity = 1,
         public ?string $quantity_unit = null,
         public ?string $description = null,
     ) {
@@ -49,13 +49,13 @@ class PdfInvoiceItem
             return Money::ofMinor(0, $this->currency);
         }
 
-        return $this->unit_price->multipliedBy($this->quantity);
+        return $this->unit_price->multipliedBy($this->quantity, RoundingMode::HALF_EVEN);
     }
 
     public function totalTaxAmount(): Money
     {
         if ($this->unit_tax) {
-            return $this->unit_tax->multipliedBy($this->quantity);
+            return $this->unit_tax->multipliedBy($this->quantity, RoundingMode::HALF_EVEN);
         }
 
         if ($this->tax_percentage) {
