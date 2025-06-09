@@ -71,6 +71,7 @@ $invoice = new PdfInvoice(
             description: 'Feb 20 – Mar 20, 2025',
             currency: 'EUR',
             unit_price: Money::of(97, 'EUR'),
+            quantity: 0.2,
             tax_percentage: 20,
         ),
         new PdfInvoiceItem(
