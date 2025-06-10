@@ -266,7 +266,7 @@ $pdfInvoice = new PdfInvoice(
         ),
         shipping_address: new Address( // (optional)
             street: [ // multiple lines street
-                '8405 Old James St.Rochester'
+                '8405 Old James St.Rochester',
                 'Apartment 1',
             ],
             city: 'New York',
