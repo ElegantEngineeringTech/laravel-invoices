@@ -2,7 +2,6 @@
     "preset": "laravel",
     "rules": {
         "declare_strict_types": true,
-        "explicit_string_variable": true,
-        "mb_str_functions": true
+        "explicit_string_variable": true
     }
 }

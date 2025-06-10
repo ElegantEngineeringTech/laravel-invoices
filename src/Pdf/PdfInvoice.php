@@ -230,7 +230,7 @@ class PdfInvoice
         return new Response($output, 200, [
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => HeaderUtils::makeDisposition('attachment', $filename, Str::ascii($filename)),
-            'Content-Length' => mb_strlen($output ?? ''),
+            'Content-Length' => strlen($output ?? ''),
         ]);
     }
 
