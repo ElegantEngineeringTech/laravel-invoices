@@ -88,10 +88,7 @@
         "laravel": {
             "providers": [
                 "Elegantly\\Invoices\\InvoiceServiceProvider"
-            ],
-            "aliases": {
-                "Invoice": "Elegantly\\Invoices\\Facades\\Invoice"
-            }
+            ]
         }
     },
     "minimum-stability": "dev",
