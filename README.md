@@ -323,7 +323,7 @@ $pdfInvoice = new PdfInvoice(
     ],
     logo: public_path('/images/logo.png'), // local path or base64 string
     template: "default.layout", // use the default template or use your own
-    templateData: [ // custom date to pass to the template
+    templateData: [ // custom data to pass to the template
         'color' => '#050038'
     ],
 );
