@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Elegantly\Invoices;
 
+use BackedEnum;
 use Elegantly\Invoices\Commands\DenormalizeInvoicesCommand;
-use Elegantly\Invoices\Enums\InvoiceType;
 use Exception;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
+
+use function Illuminate\Support\enum_value;
 
 class InvoiceServiceProvider extends PackageServiceProvider
 {
@@ -34,9 +36,10 @@ class InvoiceServiceProvider extends PackageServiceProvider
             ->hasMigration('migrate_serial_number_details_columns_to_invoices_table');
     }
 
-    public static function getSerialNumberPrefixConfiguration(null|string|InvoiceType $type): ?string
+    public static function getSerialNumberPrefixConfiguration(null|string|BackedEnum $type): ?string
     {
-        $value = $type instanceof InvoiceType ? $type->value : $type;
+        /** @var null|int|string */
+        $value = enum_value($type);
 
         /** @var string|array<string, string> $prefixes */
         $prefixes = config('invoices.serial_number.prefix', '');
@@ -48,9 +51,10 @@ class InvoiceServiceProvider extends PackageServiceProvider
         return $prefixes[$value] ?? null;
     }
 
-    public static function getSerialNumberFormatConfiguration(null|string|InvoiceType $type): string
+    public static function getSerialNumberFormatConfiguration(null|string|BackedEnum $type): string
     {
-        $value = $type instanceof InvoiceType ? $type->value : $type;
+        /** @var null|int|string */
+        $value = enum_value($type);
 
         /** @var string|array<string, string> $formats */
         $formats = config('invoices.serial_number.format') ?? '';

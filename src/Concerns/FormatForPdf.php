@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Elegantly\Invoices\Concerns;
 
 use Brick\Money\Money;
+use Illuminate\Support\Facades\App;
 use NumberFormatter;
 
 trait FormatForPdf
@@ -20,8 +21,10 @@ trait FormatForPdf
             return null;
         }
 
-        $formatter = new NumberFormatter($locale ?? app()->getLocale(), NumberFormatter::PERCENT);
+        $percentage = ($percentage > 1) ? ($percentage / 100) : $percentage;
 
-        return $formatter->format(($percentage > 1) ? ($percentage / 100) : $percentage);
+        $formatter = new NumberFormatter($locale ?? App::getLocale(), NumberFormatter::PERCENT);
+
+        return $formatter->format($percentage);
     }
 }

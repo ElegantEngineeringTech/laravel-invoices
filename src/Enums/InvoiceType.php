@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Elegantly\Invoices\Enums;
 
-enum InvoiceType: string
+use Elegantly\Invoices\Contracts\HasLabel;
+
+enum InvoiceType: string implements HasLabel
 {
     case Invoice = 'invoice';
     case Quote = 'quote';

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Elegantly\Invoices\Enums;
 
-enum InvoiceState: string
+use Elegantly\Invoices\Contracts\HasLabel;
+
+enum InvoiceState: string implements HasLabel
 {
     case Draft = 'draft';
     case Pending = 'pending';

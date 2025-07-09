@@ -7,6 +7,7 @@ namespace Elegantly\Invoices\Models;
 use Brick\Money\Money;
 use Carbon\Carbon;
 use Elegantly\Invoices\Casts\Discounts;
+use Elegantly\Invoices\Contracts\HasLabel;
 use Elegantly\Invoices\Database\Factories\InvoiceFactory;
 use Elegantly\Invoices\Enums\InvoiceState;
 use Elegantly\Invoices\Enums\InvoiceType;
@@ -465,12 +466,12 @@ class Invoice extends Model implements Attachable
         return null;
     }
 
-    public function getType(): string|InvoiceType
+    public function getType(): string|HasLabel
     {
         return InvoiceType::tryFrom($this->type) ?? $this->type;
     }
 
-    public function getState(): string|InvoiceState
+    public function getState(): string|HasLabel
     {
         return InvoiceState::tryFrom($this->state) ?? $this->state;
     }

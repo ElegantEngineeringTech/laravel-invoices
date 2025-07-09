@@ -4,10 +4,10 @@
             <tr>
                 <td class="p-0 align-top">
                     <h1 class="mb-1 text-2xl">
-                        <strong>{{ $invoice->type }}</strong>
+                        <strong>{{ $invoice->getTypeLabel() }}</strong>
                     </h1>
                     <p class="mb-5 text-sm">
-                        {{ $invoice->state }}
+                        {{ $invoice->getStateLabel() }}
                     </p>
 
                     <table class="w-full">

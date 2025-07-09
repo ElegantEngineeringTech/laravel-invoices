@@ -1027,6 +1027,41 @@ However, you might prefer to cast these properties to Enum objects for better ty
 
 To enable Enum casting for these properties, follow these steps:
 
+0.  **Create custom `InvoiceState` and `InvoiceType` Enums** (optional):
+
+If you're working with commonly used invoice states and types, you can use the enums provided by this package:
+
+-   `Elegantly\Invoices\Enums\InvoiceState`
+-   `Elegantly\Invoices\Enums\InvoiceType`
+
+For custom states or types, you can define your own enums.
+
+Make sure your custom enums implement the `Elegantly\Invoices\Contracts\HasLabel` contract, like so:
+
+```php
+namespace App\Enums;
+
+use Elegantly\Invoices\Contracts\HasLabel;
+
+enum InvoiceType: string implements HasLabel
+{
+    case Invoice = 'invoice';
+    case Quote = 'quote';
+    case Credit = 'credit';
+    case Proforma = 'proforma';
+
+    public function getLabel(): string
+    {
+        return match ($this) {
+            self::Invoice => __('invoices::invoice.types.invoice'),
+            self::Quote => __('invoices::invoice.types.quote'),
+            self::Credit => __('invoices::invoice.types.credit'),
+            self::Proforma => __('invoices::invoice.types.proforma'),
+        };
+    }
+}
+```
+
 1.  **Create a Custom `Invoice` Model**:
 
 Define your own `App\Models\Invoice` class that extends `\Elegantly\Invoices\Models\Invoice`.
@@ -1038,8 +1073,17 @@ namespace App\Models;
 use Elegantly\Invoices\Enums\InvoiceState;
 use Elegantly\Invoices\Enums\InvoiceType;
 
+/**
+ * @property InvoiceType $type
+ * @property InvoiceState $state
+ */
 class Invoice extends \Elegantly\Invoices\Models\Invoice
 {
+    protected $attributes = [
+        'type' => InvoiceType::Invoice->value,
+        'state' => InvoiceState::Draft->value,
+    ];
+
     protected function casts(): array
     {
         return [

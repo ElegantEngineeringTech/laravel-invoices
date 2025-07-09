@@ -9,6 +9,7 @@ use Brick\Money\Money;
 use Carbon\Carbon;
 use Dompdf\Dompdf;
 use Elegantly\Invoices\Concerns\FormatForPdf;
+use Elegantly\Invoices\Contracts\HasLabel;
 use Elegantly\Invoices\Enums\InvoiceState;
 use Elegantly\Invoices\Enums\InvoiceType;
 use Elegantly\Invoices\InvoiceDiscount;
@@ -25,10 +26,6 @@ class PdfInvoice
 {
     use FormatForPdf;
 
-    public string $type;
-
-    public string $state;
-
     public string $template;
 
     /**
@@ -40,8 +37,8 @@ class PdfInvoice
      * @param  array<string, mixed>  $templateData
      */
     public function __construct(
-        InvoiceType|string $type = InvoiceType::Invoice,
-        InvoiceState|string $state = InvoiceState::Draft,
+        public HasLabel|string $type = InvoiceType::Invoice,
+        public HasLabel|string $state = InvoiceState::Draft,
         public ?string $serial_number = null,
         public ?Carbon $created_at = null,
         public ?Carbon $due_at = null,
@@ -63,15 +60,22 @@ class PdfInvoice
 
         public ?string $logo = null,
     ) {
-        $this->type = $type instanceof InvoiceType ? $type->getLabel() : $type;
-        $this->state = $state instanceof InvoiceState ? $state->getLabel() : $state;
-
         // @phpstan-ignore-next-line
         $this->logo = $logo ?? config('invoices.pdf.logo') ?? config('invoices.default_logo');
         // @phpstan-ignore-next-line
         $this->template = sprintf('invoices::%s', $template ?? config('invoices.pdf.template') ?? config('invoices.default_template'));
         // @phpstan-ignore-next-line
         $this->templateData = config('invoices.pdf.template_data') ?? [];
+    }
+
+    public function getTypeLabel(): ?string
+    {
+        return $this->type instanceof HasLabel ? $this->type->getLabel() : $this->type;
+    }
+
+    public function getStateLabel(): ?string
+    {
+        return $this->state instanceof HasLabel ? $this->state->getLabel() : $this->state;
     }
 
     public function getFilename(): string
