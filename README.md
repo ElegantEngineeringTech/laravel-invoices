@@ -1091,7 +1091,7 @@ Here's an example of how you might implement this:
 
 ```php
 namespace App\Models;
-.
+
 use Illuminate\Http\File;
 
 class Invoice extends \Elegantly\Invoices\Models\Invoice
