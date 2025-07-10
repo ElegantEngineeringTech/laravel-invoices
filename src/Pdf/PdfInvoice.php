@@ -133,6 +133,10 @@ class PdfInvoice
      */
     public function totalTaxAmount(): Money
     {
+        if (empty($this->items)) {
+            return Money::of(0, $this->getCurrency());
+        }
+
         $totalDiscount = $this->totalDiscountAmount();
 
         /**
