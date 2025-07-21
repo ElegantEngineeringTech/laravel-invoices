@@ -133,33 +133,23 @@ class PdfInvoice
      */
     public function totalTaxAmount(): Money
     {
-        if (empty($this->items)) {
-            return Money::of(0, $this->getCurrency());
-        }
-
         $totalDiscount = $this->totalDiscountAmount();
 
         /**
-         * Taxes must be calculated on the discounted subtotal.
-         * Since discounts apply at the invoice level and taxes at the item level,
-         * we allocate the discount across items before computing taxes.
+         * Taxes must be calculated based on the discounted subtotal.
+         * Since discounts are applied at the invoice level, but taxes are calculated at the item level,
+         * we allocate the total discount proportionally across individual items before computing taxes.
          */
         $ratios = array_map(
             fn ($item) => $item->subTotalAmount()->abs()->getMinorAmount()->toInt(),
             $this->items
         );
-        // Check if all ratios are zero
-        $hasNonZeroRatios = collect($ratios)->filter(fn($ratio) => $ratio > 0)->isNotEmpty();
 
-        if ($hasNonZeroRatios) {
-            // Normal allocation when we have non-zero ratios
-            $allocatedDiscounts = $totalDiscount->allocate(...$ratios);
-        } else {
-            // All items have zero price - return zero amounts for each item
-            $allocatedDiscounts = collect($ratios)->map(function() use ($totalDiscount) {
-                return Money::of('0.00', $totalDiscount->getCurrency());
-            })->toArray();
+        if (array_sum($ratios) === 0) {
+            return Money::of(0, $this->getCurrency());
         }
+
+        $allocatedDiscounts = $totalDiscount->allocate(...$ratios);
 
         $totalTaxAmount = Money::of(0, $this->getCurrency());
 
@@ -167,16 +157,17 @@ class PdfInvoice
 
             if ($item->unit_tax) {
                 /**
-                 * When unit_tax is defined, the amount is considered right
-                 * and the discount is not apply
+                 * When unit_tax is defined, the amount is considered correct
                  */
                 $itemTaxAmount = $item->unit_tax->multipliedBy($item->quantity);
             } elseif ($item->tax_percentage) {
+
                 $itemDiscount = $allocatedDiscounts[$index];
 
                 $itemTaxAmount = $item->subTotalAmount()
                     ->minus($itemDiscount)
                     ->multipliedBy($item->tax_percentage / 100.0, roundingMode: RoundingMode::HALF_EVEN);
+
             } else {
                 $itemTaxAmount = Money::of(0, $totalTaxAmount->getCurrency());
             }
