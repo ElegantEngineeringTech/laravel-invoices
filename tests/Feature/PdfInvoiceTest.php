@@ -45,6 +45,10 @@ it('computes the right amounts', function (
     expect($pdfInvoice->totalTaxAmount()->getAmount()->toFloat())->toEqual($totalTaxAmount);
     expect($pdfInvoice->totalAmount()->getAmount()->toFloat())->toEqual($totalAmount);
 })->with([
+    [[], 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    [[['unit_price' => 0.0]], 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    [[['unit_price' => 0.0]], 10.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    [[['unit_price' => 0.0]], 10.0, 10.0, 0.0, 0.0, 0.0, 0.0],
     [[['unit_price' => 100.0]], 0.0, 0.0, 100.0, 0.0, 0.0, 100.0],
     [[['unit_price' => 100.0, 'quantity' => 2]], 0.0, 0.0, 200.0, 0.0, 0.0, 200.0],
     [[['unit_price' => 100.0, 'quantity' => 0.1]], 0.0, 0.0, 10.0, 0.0, 0.0, 10.0],
