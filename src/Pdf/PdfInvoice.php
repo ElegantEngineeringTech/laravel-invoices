@@ -144,10 +144,22 @@ class PdfInvoice
          * Since discounts apply at the invoice level and taxes at the item level,
          * we allocate the discount across items before computing taxes.
          */
-        $allocatedDiscounts = $totalDiscount->allocate(...array_map(
+        $ratios = array_map(
             fn ($item) => $item->subTotalAmount()->abs()->getMinorAmount()->toInt(),
             $this->items
-        ));
+        );
+        // Check if all ratios are zero
+        $hasNonZeroRatios = collect($ratios)->filter(fn($ratio) => $ratio > 0)->isNotEmpty();
+
+        if ($hasNonZeroRatios) {
+            // Normal allocation when we have non-zero ratios
+            $allocatedDiscounts = $totalDiscount->allocate(...$ratios);
+        } else {
+            // All items have zero price - return zero amounts for each item
+            $allocatedDiscounts = collect($ratios)->map(function() use ($totalDiscount) {
+                return Money::of('0.00', $totalDiscount->getCurrency());
+            })->toArray();
+        }
 
         $totalTaxAmount = Money::of(0, $this->getCurrency());
 
