@@ -197,7 +197,7 @@
                         {{-- empty space --}}
                         <td class="py-2 pr-2"></td>
                         <td class="border-b p-2 text-xs" colspan="3">
-                            {{ __($discount->name) ?? __('invoices::invoice.discount_name') }}
+                            {{ __($discount->name ?? $discount->code) ?? __('invoices::invoice.discount_name') }}
                             @if ($discount->percent_off)
                                 ({{ $discount->formatPercentage($discount->percent_off) }})
                             @endif
