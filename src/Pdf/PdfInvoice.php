@@ -65,7 +65,7 @@ class PdfInvoice
         // @phpstan-ignore-next-line
         $this->template = sprintf('invoices::%s', $template ?? config('invoices.pdf.template') ?? config('invoices.default_template'));
         // @phpstan-ignore-next-line
-        $this->templateData = config('invoices.pdf.template_data') ?? [];
+        $this->templateData = $templateData ?: config('invoices.pdf.template_data') ?: [];
     }
 
     public function getTypeLabel(): ?string
