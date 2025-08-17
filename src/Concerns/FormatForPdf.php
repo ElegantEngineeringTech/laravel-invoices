@@ -21,7 +21,7 @@ trait FormatForPdf
             return null;
         }
 
-        $percentage = ($percentage > 1) ? ($percentage / 100) : $percentage;
+        $percentage = ($percentage > 0) ? ($percentage / 100) : $percentage;
 
         $formatter = new NumberFormatter($locale ?? App::getLocale(), NumberFormatter::PERCENT);
 
