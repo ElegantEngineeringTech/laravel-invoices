@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Carbon\Carbon;
+use Carbon\CarbonInterface;
 use Elegantly\Invoices\Enums\InvoiceType;
 use Elegantly\Invoices\Models\Invoice;
 use Elegantly\Invoices\Models\InvoiceItem;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\Collection;
 
 it('can set the right serial number year and month from a date', function (
     ?string $format,
-    ?Carbon $date,
+    ?CarbonInterface $date,
     ?int $expectedYear,
     ?int $expectedMonth,
 ) {

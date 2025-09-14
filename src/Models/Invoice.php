@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Elegantly\Invoices\Models;
 
 use Brick\Money\Money;
-use Carbon\Carbon;
+use Carbon\CarbonInterface;
 use Elegantly\Invoices\Casts\Discounts;
 use Elegantly\Invoices\Contracts\HasLabel;
 use Elegantly\Invoices\Database\Factories\InvoiceFactory;
@@ -38,11 +38,11 @@ use Illuminate\Mail\Attachment;
  * @property ?Invoice $credit
  * @property string $type
  * @property string $state
- * @property ?Carbon $state_set_at
+ * @property ?CarbonInterface $state_set_at
  * @property string $description
  * @property ?array<string, mixed> $seller_information
  * @property ?array<string, mixed> $buyer_information
- * @property ?Carbon $due_at
+ * @property ?CarbonInterface $due_at
  * @property ?string $tax_type
  * @property ?string $tax_exempt
  * @property Collection<int, InvoiceItem> $items
@@ -55,8 +55,8 @@ use Illuminate\Mail\Attachment;
  * @property ?Model $invoiceable
  * @property ?int $invoiceable_id
  * @property ?string $invoiceable_type
- * @property Carbon $created_at
- * @property Carbon $updated_at
+ * @property CarbonInterface $created_at
+ * @property CarbonInterface $updated_at
  * @property InvoiceDiscount[] $discounts
  * @property ?array<array-key, mixed> $metadata
  * @property ?Money $subtotal_amount

@@ -6,7 +6,7 @@ namespace Elegantly\Invoices\Pdf;
 
 use Brick\Math\RoundingMode;
 use Brick\Money\Money;
-use Carbon\Carbon;
+use Carbon\CarbonInterface;
 use Dompdf\Dompdf;
 use Elegantly\Invoices\Concerns\FormatForPdf;
 use Elegantly\Invoices\Contracts\HasLabel;
@@ -40,9 +40,9 @@ class PdfInvoice
         public HasLabel|string $type = InvoiceType::Invoice,
         public HasLabel|string $state = InvoiceState::Draft,
         public ?string $serial_number = null,
-        public ?Carbon $created_at = null,
-        public ?Carbon $due_at = null,
-        public ?Carbon $paid_at = null,
+        public ?CarbonInterface $created_at = null,
+        public ?CarbonInterface $due_at = null,
+        public ?CarbonInterface $paid_at = null,
         public array $fields = [],
 
         public Seller $seller = new Seller,

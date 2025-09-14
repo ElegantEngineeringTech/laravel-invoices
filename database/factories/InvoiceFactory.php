@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Elegantly\Invoices\Database\Factories;
 
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Elegantly\Invoices\Enums\InvoiceState;
 use Elegantly\Invoices\Enums\InvoiceType;
 use Elegantly\Invoices\Models\Invoice;
@@ -23,7 +23,7 @@ class InvoiceFactory extends Factory
     public function definition()
     {
         $created_at = fake()->dateTime(
-            max: Carbon::create(2024, 12, 31)
+            max: CarbonImmutable::create(2024, 12, 31)
         );
 
         return [

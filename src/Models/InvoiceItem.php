@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Elegantly\Invoices\Models;
 
 use Brick\Money\Money;
-use Carbon\Carbon;
+use Carbon\CarbonInterface;
 use Elegantly\Invoices\Database\Factories\InvoiceItemFactory;
 use Elegantly\Invoices\Pdf\PdfInvoiceItem;
 use Elegantly\Money\MoneyCast;
@@ -27,8 +27,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property ?string $description
  * @property ?ArrayObject<array-key, mixed> $metadata
  * @property int $invoice_id
- * @property Carbon $created_at
- * @property Carbon $updated_at
+ * @property CarbonInterface $created_at
+ * @property CarbonInterface $updated_at
  */
 class InvoiceItem extends Model
 {
