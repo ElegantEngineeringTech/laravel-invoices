@@ -42,6 +42,8 @@ Try out [the interactive demo](https://elegantly.dev/laravel-invoices) to explor
     -   [Generating Unique Serial Numbers](#generating-unique-serial-numbers)
     -   [Using Multiple Prefixes and Series for Serial Numbers](#using-multiple-prefixes-and-series-for-serial-numbers)
     -   [Customizing the Serial Number Format](#customizing-the-serial-number-format)
+    -   [Storing the Logo](#storing-the-logo)
+    -   [Storing a Dynamic Logo](#storing-a-dynamic-logo)
     -   [Converting an `Invoice` Model to a `PdfInvoice`](#converting-an-invoice-model-to-a-pdfinvoice)
     -   [Display, Download, and Store Invoices](#display-download-and-store-invoices)
     -   [Attaching Invoices to Mailables](#attaching-invoices-to-mailables)
@@ -49,7 +51,6 @@ Try out [the interactive demo](https://elegantly.dev/laravel-invoices) to explor
     -   [Customizing PDF Output from the Model](#customizing-pdf-output-from-the-model)
         -   [Using a Custom PdfInvoice Class](#using-a-custom-pdfinvoice-class)
     -   [Casting `state` and `type` to Enums](#casting-state-and-type-to-enums)
-    -   [Using a Dynamic Logo](#using-a-dynamic-logo)
 -   [Testing](#testing)
 -   [Changelog](#changelog)
 -   [Contributing](#contributing)
@@ -143,6 +144,7 @@ return [
     'date_format' => 'Y-m-d',
 
     'default_seller' => [
+        'company' => null,
         'name' => null,
         'address' => [
             'street' => null,
@@ -154,7 +156,9 @@ return [
         'email' => null,
         'phone' => null,
         'tax_number' => null,
-        'company_number' => null,
+        'fields' => [
+            //
+        ],
     ],
 
     /**
@@ -657,7 +661,7 @@ For this illustration, let's assume the following application structure:
 
 -   `Team` models have `User` models.
 -   `Team` models can have multiple `Invoice` models.
--   `Invoice` models can be attached to `Offer` models.
+-   `Invoice` models can be attached to `Order` models.
 
 ```php
 use App\Models\Team;
@@ -672,40 +676,40 @@ $customer = Team::find(1);
 $order = Order::find(2);
 
 $invoice = new Invoice(
-    'type'=> "invoice",
-    'state'=> "paid",
-    'seller_information'=> config('invoices.default_seller'),
-    'buyer_information'=>[
-        'company'=> "Doe Corporation" // (optional)
-        'name'=> 'John Doe', // (optional)
-        'address'=> [
-            'street'=> '8405 Old James St.Rochester',
-            'city'=> 'New York',
-            'postal_code'=> '14609',
-            'state'=> 'NY',
-            'country'=> 'United States',
+    'type' => "invoice",
+    'state' => "paid",
+    'seller_information' => config('invoices.default_seller'),
+    'buyer_information' =>[
+        'company' => "Doe Corporation" // (optional)
+        'name' => 'John Doe', // (optional)
+        'address' => [
+            'street' => '8405 Old James St.Rochester',
+            'city' => 'New York',
+            'postal_code' => '14609',
+            'state' => 'NY',
+            'country' => 'United States',
         ],
-        'shipping_address'=> [ // (optional)
-            'street'=> [ // multiple lines street
+        'shipping_address' => [ // (optional)
+            'street' => [ // multiple lines street
                 '8405 Old James St.Rochester',
                 'Apartment 1',
             ],
-            'city'=> 'New York',
-            'postal_code'=> '14609',
-            'state'=> 'NY',
-            'country'=> 'United States',
+            'city' => 'New York',
+            'postal_code' => '14609',
+            'state' => 'NY',
+            'country' => 'United States',
         ]
-        'email'=> 'john.doe@example.com',
-        'fields'=> [
+        'email' => 'john.doe@example.com',
+        'fields' => [
             // Custom fields to display with the buyer
             "foo" => "bar"
         ]
     ],
-    'description'=> "An invoice description",
-    'due_at'=> now(),
-    'paid_at'=> now(),
-    'tax_type'=> "eu_VAT_FR",
-    'tax_exempt'=> null,
+    'description' => "An invoice description",
+    'due_at' => now(),
+    'paid_at' => now(),
+    'tax_type' => "eu_VAT_FR",
+    'tax_exempt' => null,
 );
 
 // Learn more about the serial number in the next section
@@ -714,7 +718,11 @@ $invoice->configureSerialNumber(
     serie: $customer->id,
     year: now()->format('Y'),
     month: now()->format('m')
-)
+);
+
+// Optional
+// Learn more about the logo in the next section
+$invoice->setLogoFromConfig();
 
 $invoice->buyer()->associate($customer); // optionnally associate the invoice to any model
 $invoice->invoiceable()->associate($order); // optionnally associate the invoice to any model
@@ -758,11 +766,12 @@ When creating an invoice, you can dynamically specify the prefix and series with
 
 ```php
 use Elegantly\Invoices\Models\Invoice;
+
 $invoice = new Invoice();
 
 $invoice->configureSerialNumber(
     prefix: "ORG",
-    serie: $buyer_id,
+    serie: $buyerId,
 );
 ```
 
@@ -775,6 +784,7 @@ The format you choose will determine the types of information you need to provid
 Below is an example of the most complex serial number format you can create with this package:
 
 ```php
+use Elegantly\Invoices\Models\Invoice;
 
 $invoice = new Invoice();
 
@@ -789,6 +799,50 @@ $invoice->configureSerialNumber(
 $invoice->save();
 
 $invoice->serial_number; // IN-000100-24010001
+```
+
+### Storing the Logo
+
+By default, the PDF logo is loaded from the configuration defined in your config file.
+
+If you want the logo to remain consistent over time, even if the config changes, you can store it directly in the database:
+
+```php
+use Elegantly\Invoices\Models\Invoice;
+
+$invoice = new Invoice();
+
+// Store the current config logo in the database
+$invoice->setLogoFromConfig();
+
+// ...
+
+$invoice->save();
+```
+
+### Storing a Dynamic Logo
+
+If your application allows users to upload or select their own company logos, you can dynamically set the logo on each invoice by updating the `logo` attribute on the `Invoice` model.
+
+You can do this in several ways:
+
+```php
+use Elegantly\Invoices\Models\Invoice;
+
+$invoice = new Invoice();
+
+// Set the logo from an uploaded file (e.g., Illuminate\Http\UploadedFile)
+$invoice->setLogoFromFile($file);
+
+// Set the logo from a local filesystem path
+$invoice->setLogoFromPath($path);
+
+// Set the logo directly from raw file content (string or binary data)
+$invoice->logo = $rawFileContent;
+
+// ...
+
+$invoice->save();
 ```
 
 ### Converting an `Invoice` Model to a `PdfInvoice`
@@ -907,7 +961,7 @@ class PaymentInvoice extends Notification implements ShouldQueue
     public function toMail($notifiable)
     {
         return (new MailMessage)
-            ->attach($this->invoice->toMailAttachment());
+            ->attach($this->invoice);
     }
 }
 ```
@@ -1106,68 +1160,6 @@ php artisan vendor:publish --tag="invoices-config"
 3.  **Update Configuration to Use Your Custom Model**:
 
 Modify the `config/invoices.php` file and update the `model_invoice` key to point to your newly created custom `Invoice` model:
-
-```php
-return [
-    // ...
-
-    'model_invoice' => \App\Models\Invoice::class,
-
-    // ...
-];
-```
-
-### Using a Dynamic Logo
-
-In scenarios where the invoice logo needs to be set dynamically (for instance, allowing users to upload their own company logo), you can achieve this by overriding the `getLogo` method in your `Invoice` model.
-
-Follow these steps:
-
-1.  **Create a Custom `Invoice` Model**:
-
-Define your own `App\Models\Invoice` that extends `\Elegantly\Invoices\Models\Invoice` class.
-Inside this custom model, implement the `getLogo` method to return the path or data for your dynamic logo.
-
-> [!NOTE]
-> The `getLogo` method must return either a base64-encoded data URL (e.g., `data:image/png;base64,...`) or a local filesystem path to the logo image.
-
-Here's an example of how you might implement this:
-
-```php
-namespace App\Models;
-
-use Illuminate\Http\File;
-
-class Invoice extends \Elegantly\Invoices\Models\Invoice
-{
-    public function getLogo(): ?string
-    {
-        $logoPath = public_path('logo.png'); // Replace with your dynamic logic
-
-        if (!file_exists($logoPath)) {
-            return null; // Or a default logo
-        }
-
-        $file = new File($logoPath);
-        $mime = $file->getMimeType();
-        $logoData = "data:{$mime};base64," . base64_encode(file_get_contents($logoPath)); // Use file_get_contents for raw data
-
-        return $logoData;
-    }
-}
-```
-
-2.  **Publish Package Configuration**:
-
-If you haven't done so already, publish the package's configuration file:
-
-```bash
-php artisan vendor:publish --tag="invoices-config"
-```
-
-3.  **Update Configuration to Use Your Custom Model**:
-
-Modify the `config/invoices.php` file and update the `model_invoice` key to point to your custom `Invoice` model:
 
 ```php
 return [

@@ -16,13 +16,14 @@ use Elegantly\Invoices\InvoiceDiscount;
 use Elegantly\Invoices\Support\Buyer;
 use Elegantly\Invoices\Support\PaymentInstruction;
 use Elegantly\Invoices\Support\Seller;
+use Illuminate\Contracts\Mail\Attachable;
 use Illuminate\Http\Response;
 use Illuminate\Mail\Attachment;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\HeaderUtils;
 
-class PdfInvoice
+class PdfInvoice implements Attachable
 {
     use FormatForPdf;
 

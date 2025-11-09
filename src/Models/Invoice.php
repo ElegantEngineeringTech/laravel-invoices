@@ -19,6 +19,7 @@ use Elegantly\Invoices\Support\Buyer;
 use Elegantly\Invoices\Support\Seller;
 use Elegantly\Money\MoneyCast;
 use Exception;
+use finfo;
 use Illuminate\Contracts\Mail\Attachable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -28,6 +29,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Http\File;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Mail\Attachment;
 
 /**
@@ -71,6 +74,7 @@ use Illuminate\Mail\Attachment;
  * @property ?int $serial_number_year
  * @property ?int $serial_number_month
  * @property int $serial_number_count
+ * @property ?string $logo Binary format
  */
 class Invoice extends Model implements Attachable
 {
@@ -459,10 +463,48 @@ class Invoice extends Model implements Attachable
     }
 
     /**
+     * Store the default logo in database
+     */
+    public function setLogoFromConfig(): static
+    {
+        /** @var ?string */
+        $path = config('invoices.pdf.logo');
+
+        if ($path) {
+            return $this->setLogoFromPath($path);
+        }
+
+        return $this;
+    }
+
+    public function setLogoFromFile(File|UploadedFile $file): static
+    {
+        $this->logo = $file->getContent();
+
+        return $this;
+    }
+
+    public function setLogoFromPath(string $path): static
+    {
+        if ($file = file_get_contents($path)) {
+            $this->logo = $file;
+        }
+
+        return $this;
+    }
+
+    /**
      * @return string|null A base64 encoded data url or a path to a local file
      */
     public function getLogo(): ?string
     {
+        if ($this->logo) {
+            $finfo = new finfo(FILEINFO_MIME_TYPE);
+            $mimeType = $finfo->buffer($this->logo);
+
+            return "data:{$mimeType};base64,".base64_encode($this->logo);
+        }
+
         return null;
     }
 
