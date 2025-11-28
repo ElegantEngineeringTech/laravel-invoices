@@ -16,12 +16,14 @@ use Elegantly\Invoices\InvoiceServiceProvider;
 use Elegantly\Invoices\Pdf\PdfInvoice;
 use Elegantly\Invoices\SerialNumberGenerator;
 use Elegantly\Invoices\Support\Buyer;
+use Elegantly\Invoices\Support\PaymentInstruction;
 use Elegantly\Invoices\Support\Seller;
 use Elegantly\Money\MoneyCast;
 use Exception;
 use finfo;
 use Illuminate\Contracts\Mail\Attachable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\AsCollection;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -32,6 +34,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Http\File;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Mail\Attachment;
+use Illuminate\Support\Collection as SupportCollection;
 
 /**
  * @property int $id
@@ -75,6 +78,7 @@ use Illuminate\Mail\Attachment;
  * @property ?int $serial_number_month
  * @property int $serial_number_count
  * @property ?string $logo Binary format
+ * @property ?SupportCollection<int, PaymentInstruction> $payment_instructions
  */
 class Invoice extends Model implements Attachable
 {
@@ -106,6 +110,7 @@ class Invoice extends Model implements Attachable
             'discount_amount' => MoneyCast::class.':currency',
             'tax_amount' => MoneyCast::class.':currency',
             'total_amount' => MoneyCast::class.':currency',
+            'payment_instructions' => AsCollection::of(PaymentInstruction::class),
         ];
     }
 
@@ -533,6 +538,7 @@ class Invoice extends Model implements Attachable
             tax_label: $this->getTaxLabel(),
             discounts: $this->getDiscounts(),
             logo: $this->getLogo(),
+            paymentInstructions: $this->payment_instructions?->all() ?? [],
         );
     }
 }
