@@ -49,17 +49,29 @@ class PdfInvoiceItem
             return Money::ofMinor(0, $this->currency);
         }
 
-        return $this->unit_price->multipliedBy($this->quantity, RoundingMode::HALF_EVEN);
+        return $this->unit_price->multipliedBy(
+            $this->quantity,
+            // @phpstan-ignore-next-line
+            config('invoices.rounding_mode', RoundingMode::HALF_UP)
+        );
     }
 
     public function totalTaxAmount(): Money
     {
         if ($this->unit_tax) {
-            return $this->unit_tax->multipliedBy($this->quantity, RoundingMode::HALF_EVEN);
+            return $this->unit_tax->multipliedBy(
+                $this->quantity,
+                // @phpstan-ignore-next-line
+                config('invoices.rounding_mode', RoundingMode::HALF_UP)
+            );
         }
 
         if ($this->tax_percentage) {
-            return $this->subTotalAmount()->multipliedBy($this->tax_percentage / 100.0, roundingMode: RoundingMode::HALF_EVEN);
+            return $this->subTotalAmount()->multipliedBy(
+                $this->tax_percentage / 100.0,
+                // @phpstan-ignore-next-line
+                config('invoices.rounding_mode', RoundingMode::HALF_UP)
+            );
         }
 
         return Money::ofMinor(0, $this->currency);

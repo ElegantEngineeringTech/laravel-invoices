@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Brick\Math\RoundingMode;
 use Elegantly\Invoices\Enums\InvoiceType;
 use Elegantly\Invoices\InvoiceDiscount;
 use Elegantly\Invoices\Models\Invoice;
@@ -55,6 +56,8 @@ return [
     ],
 
     'date_format' => 'Y-m-d',
+
+    'rounding_mode' => RoundingMode::HALF_UP,
 
     'default_seller' => [
         'company' => null,

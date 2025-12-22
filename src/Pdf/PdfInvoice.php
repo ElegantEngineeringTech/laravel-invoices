@@ -167,7 +167,11 @@ class PdfInvoice implements Attachable
 
                 $itemTaxAmount = $item->subTotalAmount()
                     ->minus($itemDiscount)
-                    ->multipliedBy($item->tax_percentage / 100.0, roundingMode: RoundingMode::HALF_EVEN);
+                    ->multipliedBy(
+                        $item->tax_percentage / 100.0,
+                        // @phpstan-ignore-next-line
+                        config('invoices.rounding_mode', RoundingMode::HALF_UP)
+                    );
 
             } else {
                 $itemTaxAmount = Money::of(0, $totalTaxAmount->getCurrency());
