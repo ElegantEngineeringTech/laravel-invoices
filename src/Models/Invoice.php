@@ -192,7 +192,10 @@ class Invoice extends Model implements Attachable
      */
     public function parent(): BelongsTo
     {
-        return $this->belongsTo(Invoice::class);
+        /** @var class-string<Invoice> */
+        $model = config()->string('invoices.model_invoice');
+
+        return $this->belongsTo($model);
     }
 
     /**
@@ -200,7 +203,10 @@ class Invoice extends Model implements Attachable
      */
     public function quote(): HasOne
     {
-        return $this->hasOne(Invoice::class, 'parent_id')->where('type', InvoiceType::Quote);
+        /** @var class-string<Invoice> */
+        $model = config()->string('invoices.model_invoice');
+
+        return $this->hasOne($model, 'parent_id')->where('type', InvoiceType::Quote);
     }
 
     /**
@@ -210,7 +216,10 @@ class Invoice extends Model implements Attachable
      */
     public function credit(): HasOne
     {
-        return $this->hasOne(Invoice::class, 'parent_id')->where('type', InvoiceType::Credit);
+        /** @var class-string<Invoice> */
+        $model = config()->string('invoices.model_invoice');
+
+        return $this->hasOne($model, 'parent_id')->where('type', InvoiceType::Credit);
     }
 
     /**
@@ -218,7 +227,10 @@ class Invoice extends Model implements Attachable
      */
     public function children(): HasMany
     {
-        return $this->hasMany(Invoice::class, 'parent_id');
+        /** @var class-string<Invoice> */
+        $model = config()->string('invoices.model_invoice');
+
+        return $this->hasMany($model, 'parent_id');
     }
 
     /**
