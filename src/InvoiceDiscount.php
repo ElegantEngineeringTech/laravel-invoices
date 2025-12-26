@@ -28,21 +28,21 @@ class InvoiceDiscount implements Arrayable, JsonSerializable
         // code...
     }
 
-    public function computeDiscountAmountOn(Money $amout): Money
+    public function computeDiscountAmountOn(Money $amount): Money
     {
         if ($this->amount_off) {
             return $this->amount_off;
         }
 
         if ($this->percent_off !== null) {
-            return $amout->multipliedBy(
+            return $amount->multipliedBy(
                 $this->percent_off / 100.0,
                 // @phpstan-ignore-next-line
                 config('invoices.rounding_mode', RoundingMode::HALF_UP)
             );
         }
 
-        return Money::of(0, $amout->getCurrency());
+        return Money::of(0, $amount->getCurrency());
     }
 
     /**

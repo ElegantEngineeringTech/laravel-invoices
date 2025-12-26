@@ -509,9 +509,21 @@ class Invoice extends Model implements Attachable
 
     public function setLogoFromPath(string $path): static
     {
-        if ($file = file_get_contents($path)) {
-            $this->logo = $file;
+        if (!file_exists($path)) {
+            throw new \InvalidArgumentException("Logo file does not exist: {$path}");
         }
+
+        if (!is_readable($path)) {
+            throw new \InvalidArgumentException("Logo file is not readable: {$path}");
+        }
+
+        $file = file_get_contents($path);
+        
+        if ($file === false) {
+            throw new \RuntimeException("Failed to read logo file: {$path}");
+        }
+
+        $this->logo = $file;
 
         return $this;
     }
