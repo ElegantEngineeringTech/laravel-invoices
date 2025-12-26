@@ -204,11 +204,29 @@ class Invoice extends Model implements Attachable
     }
 
     /**
+     * @deprecated Use `credits` instead
+     *
      * @return HasOne<Invoice, $this>
      */
     public function credit(): HasOne
     {
         return $this->hasOne(Invoice::class, 'parent_id')->where('type', InvoiceType::Credit);
+    }
+
+    /**
+     * @return HasMany<Invoice, $this>
+     */
+    public function children(): HasMany
+    {
+        return $this->hasMany(Invoice::class, 'parent_id');
+    }
+
+    /**
+     * @return HasMany<Invoice, $this>
+     */
+    public function credits(): HasMany
+    {
+        return $this->children()->where('type', InvoiceType::Credit);
     }
 
     /**
