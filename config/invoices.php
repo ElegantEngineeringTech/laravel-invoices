@@ -110,8 +110,8 @@ return [
             'defaultFont' => 'Helvetica',
 
             // Custom font storage: Required if using Google Fonts
-            'fontDir' => storage_path('fonts'),
-            'fontCache' => storage_path('fonts'),
+            'fontDir' => storage_path('app/dompdf'),
+            'fontCache' => storage_path('app/dompdf'),
 
             // System paths for temporary file processing and security boundaries
             'tempDir' => sys_get_temp_dir(),
