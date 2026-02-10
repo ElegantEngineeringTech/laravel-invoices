@@ -1,7 +1,7 @@
 @php
     $color = data_get($invoice->templateData, 'color');
     $font = data_get($invoice->templateData, 'font');
-    $fonts = data_get($invoice->templateData, 'fonts');
+    $fonts = data_get($invoice->templateData, 'fonts', []);
 @endphp
 
 <!DOCTYPE html>
