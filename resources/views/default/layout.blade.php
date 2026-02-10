@@ -1,5 +1,7 @@
 @php
     $color = data_get($invoice->templateData, 'color');
+    $font = data_get($invoice->templateData, 'font');
+    $fonts = data_get($invoice->templateData, 'fonts');
 @endphp
 
 <!DOCTYPE html>
@@ -8,6 +10,18 @@
 <head>
     <title>{{ $invoice->serial_number }}</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+    @foreach ($fonts as $url)
+        <link href="{{ $url }}" rel="stylesheet">
+    @endforeach
+
+    @if ($font)
+        <style type="text/css">
+            body {
+                font-family: {{ $font }};
+            }
+        </style>
+    @endif
 
     @include('invoices::default.style')
 </head>

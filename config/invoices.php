@@ -105,9 +105,7 @@ return [
             'fontHeightRatio' => 0.8,
 
             /**
-             * The Google Font 'Arimo' is used in the default template over Helvetica because it supports more symbols
-             *
-             * Supported values are: 'DejaVu Sans', 'Helvetica', 'Courier', 'Times', 'Symbol', 'ZapfDingbats'
+             * Supported values are: 'DejaVu Sans', 'Helvetica', 'Courier', 'Times', 'Symbol', 'ZapfDingbats' and keys defined in pdf.fonts config.
              */
             'defaultFont' => 'Helvetica',
 
@@ -132,9 +130,24 @@ return [
 
         'template_data' => [
             /**
-             * The color displayed at the top of the PDF
+             * The color used for the PDF header/accent.
              */
             'color' => '#050038',
+
+            /**
+             * The CSS font-family name.
+             *
+             * Note: 'Arimo' is recommended as it provides superior symbol support
+             * compared to Helvetica, while maintaining a similar aesthetic.
+             */
+            'font' => null,
+
+            /**
+             * List of Google Font URLs to be imported into the document.
+             */
+            'fonts' => [
+                // 'https://fonts.googleapis.com/css2?family=Arimo:ital,wght@0,400..700;1,400..700&display=swap',
+            ],
         ],
 
     ],

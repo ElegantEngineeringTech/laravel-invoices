@@ -192,8 +192,9 @@ class PdfInvoice implements Attachable
     /**
      * @param  array<string, mixed>  $options
      * @param  array{ size?: string, orientation?: string }  $paper
+     * @param  array<string, mixed>  $data
      */
-    public function pdf(array $options = [], array $paper = []): Dompdf
+    public function pdf(array $options = [], array $paper = [], array $data = []): Dompdf
     {
 
         $pdf = new Dompdf(array_merge(
@@ -209,7 +210,7 @@ class PdfInvoice implements Attachable
             $paper['orientation'] ?? config('invoices.pdf.paper.orientation') ?? config('invoices.paper_options.orientation') ?? 'portrait'
         );
 
-        $html = $this->view()->render();
+        $html = $this->view($data)->render();
 
         $pdf->loadHtml($html);
 
@@ -257,9 +258,12 @@ class PdfInvoice implements Attachable
             ->withMime('application/pdf');
     }
 
-    public function view(): \Illuminate\Contracts\View\View
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public function view(array $data = []): \Illuminate\Contracts\View\View
     {
         // @phpstan-ignore-next-line
-        return view($this->template, ['invoice' => $this]);
+        return view($this->template, ['invoice' => $this], $data);
     }
 }
