@@ -15,55 +15,55 @@ Try out [the interactive demo](https://elegantly.dev/laravel-invoices) to explor
 
 ## Table of Contents
 
--   [Requirements](#requirements)
--   [Installation](#installation)
--   [The `PdfInvoice` Class](#the-pdfinvoice-class)
-    -   [Full Example](#full-example)
-    -   [Rendering the Invoice as a PDF](#rendering-the-invoice-as-a-pdf)
-    -   [Storing the PDF in a file](#storing-the-pdf-in-a-file)
-    -   [Downloading the Invoice as a PDF](#downloading-the-invoice-as-a-pdf)
-        -   [From a controller](#from-a-controller)
-        -   [From a Livewire component](#from-a-livewire-component)
-    -   [Rendering the Invoice as a view](#rendering-the-invoice-as-a-view)
-    -   [Rendering the Invoice within a View](#rendering-the-invoice-within-a-view)
-    -   [Adding Taxes](#adding-taxes)
-        -   [Tax by Percentage](#tax-by-percentage)
-        -   [Tax as a Fixed Amount](#tax-as-a-fixed-amount)
-    -   [Adding Discounts](#adding-discounts)
-        -   [Discount by Percentage](#discount-by-percentage)
-        -   [Discount as a Fixed Amount](#discount-as-a-fixed-amount)
-    -   [Adding Payment Instructions](#adding-payment-instructions)
-        -   [QR Code Generation](#qr-code-generation)
-    -   [Customization](#customization)
-        -   [Customizing Fonts](#customizing-fonts)
-        -   [Customizing the Invoice Template](#customizing-the-invoice-template)
--   [The `Invoice` Eloquent Model](#the-invoice-eloquent-model)
-    -   [Complete Example](#complete-example)
-    -   [Generating Unique Serial Numbers](#generating-unique-serial-numbers)
-    -   [Using Multiple Prefixes and Series for Serial Numbers](#using-multiple-prefixes-and-series-for-serial-numbers)
-    -   [Customizing the Serial Number Format](#customizing-the-serial-number-format)
-    -   [Storing the Logo](#storing-the-logo)
-    -   [Storing a Dynamic Logo](#storing-a-dynamic-logo)
-    -   [Converting an `Invoice` Model to a `PdfInvoice`](#converting-an-invoice-model-to-a-pdfinvoice)
-    -   [Display, Download, and Store Invoices](#display-download-and-store-invoices)
-    -   [Attaching Invoices to Mailables](#attaching-invoices-to-mailables)
-    -   [Attaching Invoices to Notifications](#attaching-invoices-to-notifications)
-    -   [Customizing PDF Output from the Model](#customizing-pdf-output-from-the-model)
-        -   [Using a Custom PdfInvoice Class](#using-a-custom-pdfinvoice-class)
-    -   [Casting `state` and `type` to Enums](#casting-state-and-type-to-enums)
--   [Testing](#testing)
--   [Changelog](#changelog)
--   [Contributing](#contributing)
--   [Security Vulnerabilities](#security-vulnerabilities)
--   [Credits](#credits)
--   [License](#license)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [The `PdfInvoice` Class](#the-pdfinvoice-class)
+    - [Full Example](#full-example)
+    - [Rendering the Invoice as a PDF](#rendering-the-invoice-as-a-pdf)
+    - [Storing the PDF in a file](#storing-the-pdf-in-a-file)
+    - [Downloading the Invoice as a PDF](#downloading-the-invoice-as-a-pdf)
+        - [From a controller](#from-a-controller)
+        - [From a Livewire component](#from-a-livewire-component)
+    - [Rendering the Invoice as a view](#rendering-the-invoice-as-a-view)
+    - [Rendering the Invoice within a View](#rendering-the-invoice-within-a-view)
+    - [Adding Taxes](#adding-taxes)
+        - [Tax by Percentage](#tax-by-percentage)
+        - [Tax as a Fixed Amount](#tax-as-a-fixed-amount)
+    - [Adding Discounts](#adding-discounts)
+        - [Discount by Percentage](#discount-by-percentage)
+        - [Discount as a Fixed Amount](#discount-as-a-fixed-amount)
+    - [Adding Payment Instructions](#adding-payment-instructions)
+        - [QR Code Generation](#qr-code-generation)
+    - [Customization](#customization)
+        - [Customizing Fonts](#customizing-fonts)
+        - [Customizing the Invoice Template](#customizing-the-invoice-template)
+- [The `Invoice` Eloquent Model](#the-invoice-eloquent-model)
+    - [Complete Example](#complete-example)
+    - [Generating Unique Serial Numbers](#generating-unique-serial-numbers)
+    - [Using Multiple Prefixes and Series for Serial Numbers](#using-multiple-prefixes-and-series-for-serial-numbers)
+    - [Customizing the Serial Number Format](#customizing-the-serial-number-format)
+    - [Storing the Logo](#storing-the-logo)
+    - [Storing a Dynamic Logo](#storing-a-dynamic-logo)
+    - [Converting an `Invoice` Model to a `PdfInvoice`](#converting-an-invoice-model-to-a-pdfinvoice)
+    - [Display, Download, and Store Invoices](#display-download-and-store-invoices)
+    - [Attaching Invoices to Mailables](#attaching-invoices-to-mailables)
+    - [Attaching Invoices to Notifications](#attaching-invoices-to-notifications)
+    - [Customizing PDF Output from the Model](#customizing-pdf-output-from-the-model)
+        - [Using a Custom PdfInvoice Class](#using-a-custom-pdfinvoice-class)
+    - [Casting `state` and `type` to Enums](#casting-state-and-type-to-enums)
+- [Testing](#testing)
+- [Changelog](#changelog)
+- [Contributing](#contributing)
+- [Security Vulnerabilities](#security-vulnerabilities)
+- [Credits](#credits)
+- [License](#license)
 
 ## Requirements
 
--   PHP 8.1+
--   Laravel 11.0+
--   `dompdf/dompdf` for PDF rendering
--   `elegantly/laravel-money` for money computation which use `brick\money` under the hood
+- PHP 8.1+
+- Laravel 11.0+
+- `dompdf/dompdf` for PDF rendering
+- `elegantly/laravel-money` for money computation which use `brick\money` under the hood
 
 ## Installation
 
@@ -219,8 +219,8 @@ return [
 
 This package provides a powerful, standalone `PdfInvoice` class. Its main functionalities include the ability to:
 
--   Display your invoice as a PDF document.
--   Render your invoice within a Blade view.
+- Display your invoice as a PDF document.
+- Render your invoice within a Blade view.
 
 The `PdfInvoice` class is also integrated with the `Invoice` Eloquent Model, allowing you to easily convert an `Invoice` model instance into its PDF representation.
 
@@ -507,8 +507,8 @@ new PdfInvoiceItem(
 
 Discounts are represented by the `InvoiceDiscount` class and are applied to the entire `PdfInvoice`. They cannot be attached to individual `PdfInvoiceItem`s at this time.
 
--   You can add multiple discounts to a single invoice.
--   Discounts can be specified as a fixed amount (`amount_off`) or a percentage (`percent_off`). If both are provided for the same discount, the `amount_off` value takes precedence.
+- You can add multiple discounts to a single invoice.
+- Discounts can be specified as a fixed amount (`amount_off`) or a percentage (`percent_off`). If both are provided for the same discount, the `amount_off` value takes precedence.
 
 #### Discount by Percentage
 
@@ -594,7 +594,7 @@ To dynamically generate QR codes, I recommend using the [`chillerlan/php-qrcode`
 
 #### Customizing Fonts
 
-See the [Dompdf font guide](https://github.com/dompdf/dompdf).
+See the [Dompdf font guide](https://github.com/dompdf/dompdf/wiki/About-Fonts-and-Character-Encoding).
 
 #### Customizing the Invoice Template
 
@@ -646,9 +646,9 @@ The design of the `Invoice` Eloquent Model closely mirrors that of the `PdfInvoi
 
 This model provides powerful features for:
 
--   Generating unique and complex serial numbers.
--   Attaching your invoice to any other Eloquent model.
--   Easily including your invoice as an attachment in emails.
+- Generating unique and complex serial numbers.
+- Attaching your invoice to any other Eloquent model.
+- Easily including your invoice as an attachment in emails.
 
 > [!NOTE]
 > Remember to publish and run the database migrations
@@ -659,9 +659,9 @@ The following example demonstrates how to create and store an invoice.
 
 For this illustration, let's assume the following application structure:
 
--   `Team` models have `User` models.
--   `Team` models can have multiple `Invoice` models.
--   `Invoice` models can be attached to `Order` models.
+- `Team` models have `User` models.
+- `Team` models can have multiple `Invoice` models.
+- `Invoice` models can be attached to `Order` models.
 
 ```php
 use App\Models\Team;
@@ -1085,8 +1085,8 @@ To enable Enum casting for these properties, follow these steps:
 
 If you're working with commonly used invoice states and types, you can use the enums provided by this package:
 
--   `Elegantly\Invoices\Enums\InvoiceState`
--   `Elegantly\Invoices\Enums\InvoiceType`
+- `Elegantly\Invoices\Enums\InvoiceState`
+- `Elegantly\Invoices\Enums\InvoiceType`
 
 For custom states or types, you can define your own enums.
 
@@ -1191,8 +1191,8 @@ Please review [our security policy](../../security/policy) on how to report secu
 
 ## Credits
 
--   [Quentin Gabriele](https://github.com/QuentinGab)
--   [All Contributors](../../contributors)
+- [Quentin Gabriele](https://github.com/QuentinGab)
+- [All Contributors](../../contributors)
 
 ## License
 

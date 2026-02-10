@@ -95,18 +95,29 @@ return [
          * @see Available options https://github.com/barryvdh/laravel-dompdf#configuration
          */
         'options' => [
+            // Required to load external CSS or images (e.g., from a URL or storage path)
             'isRemoteEnabled' => true,
+
+            // Security: Keep false unless you specifically need to execute PHP inside the PDF template
             'isPhpEnabled' => false,
-            'fontHeightRatio' => 1,
+
+            // Adjusts line-height rendering to prevent text from looking vertically "cramped"
+            'fontHeightRatio' => 0.8,
+
             /**
+             * The Google Font 'Arimo' is used in the default template over Helvetica because it supports more symbols
+             *
              * Supported values are: 'DejaVu Sans', 'Helvetica', 'Courier', 'Times', 'Symbol', 'ZapfDingbats'
              */
             'defaultFont' => 'Helvetica',
 
-            'fontDir' => storage_path('fonts'), // advised by dompdf (https://github.com/dompdf/dompdf/pull/782)
+            // Custom font storage: Required if using Google Fonts
+            'fontDir' => storage_path('fonts'),
             'fontCache' => storage_path('fonts'),
+
+            // System paths for temporary file processing and security boundaries
             'tempDir' => sys_get_temp_dir(),
-            'chroot' => realpath(base_path()),
+            'chroot' => realpath(base_path()), // Limits Dompdf's file access to the project root
         ],
 
         /**

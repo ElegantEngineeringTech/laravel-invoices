@@ -1,10 +1,12 @@
+<link href="https://fonts.googleapis.com/css2?family=Arimo:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
+
 <style type="text/css">
     @page {
         margin: 48px 48px 56px 48px;
     }
 
     body {
-        line-height: 1.5;
+        font-family: "Arimo", "Helvetica", sans-serif;
         margin: 0;
         line-height: inherit;
         color: #050038;
