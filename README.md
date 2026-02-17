@@ -89,10 +89,11 @@ php artisan vendor:publish --tag="invoices-config"
 This is the contents of the published config file:
 
 ```php
-use Elegantly\Invoices\Models\Invoice;
-use Elegantly\Invoices\InvoiceDiscount;
-use Elegantly\Invoices\Models\InvoiceItem;
+use Brick\Math\RoundingMode;
 use Elegantly\Invoices\Enums\InvoiceType;
+use Elegantly\Invoices\InvoiceDiscount;
+use Elegantly\Invoices\Models\Invoice;
+use Elegantly\Invoices\Models\InvoiceItem;
 
 return [
 
@@ -143,6 +144,8 @@ return [
 
     'date_format' => 'Y-m-d',
 
+    'rounding_mode' => RoundingMode::HALF_UP,
+
     'default_seller' => [
         'company' => null,
         'name' => null,
@@ -179,18 +182,27 @@ return [
          * @see Available options https://github.com/barryvdh/laravel-dompdf#configuration
          */
         'options' => [
+            // Required to load external CSS or images (e.g., from a URL or storage path)
             'isRemoteEnabled' => true,
+
+            // Security: Keep false unless you specifically need to execute PHP inside the PDF template
             'isPhpEnabled' => false,
-            'fontHeightRatio' => 1,
+
+            // Adjusts line-height rendering to prevent text from looking vertically "cramped"
+            'fontHeightRatio' => 0.8,
+
             /**
-             * Supported values are: 'DejaVu Sans', 'Helvetica', 'Courier', 'Times', 'Symbol', 'ZapfDingbats'
+             * Supported values are: 'DejaVu Sans', 'Helvetica', 'Courier', 'Times', 'Symbol', 'ZapfDingbats'.
              */
             'defaultFont' => 'Helvetica',
 
-            'fontDir' => storage_path('fonts'), // advised by dompdf (https://github.com/dompdf/dompdf/pull/782)
-            'fontCache' => storage_path('fonts'),
+            // Custom font storage: Required if using Google Fonts
+            'fontDir' => storage_path('app/dompdf'),
+            'fontCache' => storage_path('app/dompdf'),
+
+            // System paths for temporary file processing and security boundaries
             'tempDir' => sys_get_temp_dir(),
-            'chroot' => realpath(base_path()),
+            'chroot' => realpath(base_path()), // Limits Dompdf's file access to the project root
         ],
 
         /**
@@ -205,9 +217,24 @@ return [
 
         'template_data' => [
             /**
-             * The color displayed at the top of the PDF
+             * The color used for the PDF header/accent.
              */
             'color' => '#050038',
+
+            /**
+             * The CSS font-family name.
+             *
+             * Note: 'Arimo' is recommended as it provides superior symbol support
+             * compared to Helvetica, while maintaining a similar aesthetic.
+             */
+            'font' => null,
+
+            /**
+             * List of Google Font URLs to be imported into the document.
+             */
+            'fonts' => [
+                // 'https://fonts.googleapis.com/css2?family=Arimo:ital,wght@0,400..700;1,400..700&display=swap',
+            ],
         ],
 
     ],

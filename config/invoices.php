@@ -105,7 +105,7 @@ return [
             'fontHeightRatio' => 0.8,
 
             /**
-             * Supported values are: 'DejaVu Sans', 'Helvetica', 'Courier', 'Times', 'Symbol', 'ZapfDingbats' and keys defined in pdf.fonts config.
+             * Supported values are: 'DejaVu Sans', 'Helvetica', 'Courier', 'Times', 'Symbol', 'ZapfDingbats'.
              */
             'defaultFont' => 'Helvetica',
 
