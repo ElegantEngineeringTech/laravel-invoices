@@ -34,7 +34,8 @@ class InvoiceServiceProvider extends PackageServiceProvider
             ->hasMigration('add_denormalized_columns_to_invoices_table')
             ->hasMigration('add_serial_number_details_columns_to_invoices_table')
             ->hasMigration('migrate_serial_number_details_columns_to_invoices_table')
-            ->hasMigration('add_payment_instructions_to_invoices_table');
+            ->hasMigration('add_payment_instructions_to_invoices_table')
+            ->hasMigration('add_fields_column_to_invoices_table');
     }
 
     public static function getSerialNumberPrefixConfiguration(null|string|BackedEnum $type): ?string

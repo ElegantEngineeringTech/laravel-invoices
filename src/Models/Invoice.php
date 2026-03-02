@@ -45,6 +45,7 @@ use Illuminate\Support\Collection as SupportCollection;
  * @property string $type
  * @property string $state
  * @property ?CarbonInterface $state_set_at
+ * @property ?array $fields
  * @property string $description
  * @property ?array<string, mixed> $seller_information
  * @property ?array<string, mixed> $buyer_information
@@ -102,6 +103,7 @@ class Invoice extends Model implements Attachable
         return [
             'state_set_at' => 'datetime',
             'due_at' => 'datetime',
+            'fields' => 'array',
             'seller_information' => 'array',
             'buyer_information' => 'array',
             'metadata' => 'array',
@@ -573,6 +575,7 @@ class Invoice extends Model implements Attachable
             serial_number: $this->serial_number,
             due_at: $this->due_at,
             created_at: $this->created_at,
+            fields : $this->fields ?? [],
             buyer: Buyer::fromArray($this->buyer_information ?? []),
             seller: Seller::fromArray($this->seller_information ?? []),
             description: $this->description,
