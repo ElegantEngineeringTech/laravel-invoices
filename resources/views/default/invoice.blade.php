@@ -1,3 +1,7 @@
+@php
+    $dateFormat = config('invoices.date_format');
+@endphp
+
 <div>
     <table class="mb-8 w-full">
         <tbody>
@@ -25,7 +29,7 @@
                                     {{ __('invoices::invoice.created_at') }}
                                 </td>
                                 <td class="" width="100%">
-                                    {{ $invoice->created_at?->format(config('invoices.date_format')) }}
+                                    {{ $invoice->created_at?->format($dateFormat) }}
                                 </td>
                             </tr>
                             @if ($invoice->due_at)
@@ -34,7 +38,7 @@
                                         {{ __('invoices::invoice.due_at') }}
                                     </td>
                                     <td class="" width="100%">
-                                        {{ $invoice->due_at->format(config('invoices.date_format')) }}
+                                        {{ $invoice->due_at->format($dateFormat) }}
                                     </td>
                                 </tr>
                             @endif
@@ -43,8 +47,8 @@
                                     <td class="whitespace-nowrap pr-2">
                                         {{ __('invoices::invoice.paid_at') }}
                                     </td>
-                                    <td class="" width="100%">
-                                        {{ $invoice->paid_at->format(config('invoices.date_format')) }}
+                                    <td width="100%">
+                                        {{ $invoice->paid_at->format($dateFormat) }}
                                     </td>
                                 </tr>
                             @endif
@@ -52,9 +56,11 @@
                             @foreach ($invoice->fields as $key => $value)
                                 <tr class="text-xs">
                                     <td class="whitespace-nowrap pr-2">
-                                        {{ $key }}
+                                        @if (is_string($key))
+                                            {{ __($key) }}
+                                        @endif
                                     </td>
-                                    <td class="" width="100%">
+                                    <td width="100%">
                                         {{ $value }}
                                     </td>
                                 </tr>
@@ -227,7 +233,7 @@
                     {{-- empty space --}}
                     <td class="py-2 pr-2"></td>
                     <td class="border-b p-2 text-xs" colspan="3">
-                        {{ $invoice->tax_label ?? __('invoices::invoice.tax_label') }}
+                        {{ __($invoice->tax_label) ?? __('invoices::invoice.tax_label') }}
                     </td>
                     <td class="whitespace-nowrap border-b py-2 pl-2 text-right text-xs">
                         {{ $invoice->formatMoney($invoice->totalTaxAmount()) }}
@@ -286,7 +292,7 @@
                                             @foreach ($paymentInstruction->fields as $key => $value)
                                                 <tr>
                                                     @if (is_string($key))
-                                                        <td class="py-1 pr-5 text-xs">{{ $key }}</td>
+                                                        <td class="py-1 pr-5 text-xs">{{ __($key) }}</td>
                                                         <td class="py-1 pl-2 text-xs text-gray-500">
                                                             {!! $value !!}
                                                         </td>

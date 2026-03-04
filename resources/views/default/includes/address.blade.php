@@ -29,7 +29,7 @@
      @foreach ($address->fields as $key => $value)
          <p class="pb-1 text-xs">
              @if (is_string($key))
-                 {{ $key }}
+                 {{ __($key) }}
              @endif
              {{ $value }}
          </p>
