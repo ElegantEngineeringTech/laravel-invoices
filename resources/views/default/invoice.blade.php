@@ -277,13 +277,13 @@
                                 <td class="w-full p-0 align-top">
                                     @if ($paymentInstruction->name)
                                         <p class="mb-1 text-xs">
-                                            <strong>{!! $paymentInstruction->name !!}</strong>
+                                            <strong>{!! __($paymentInstruction->name) !!}</strong>
                                         </p>
                                     @endif
 
                                     @if ($paymentInstruction->description)
                                         <p class="mb-3 text-xs">
-                                            {!! $paymentInstruction->description !!}
+                                            {!! __($paymentInstruction->description) !!}
                                         </p>
                                     @endif
 
