@@ -144,7 +144,7 @@ return [
 
     'date_format' => 'Y-m-d',
 
-    'rounding_mode' => RoundingMode::HALF_UP,
+    'rounding_mode' => RoundingMode::HalfUp,
 
     'default_seller' => [
         'company' => null,

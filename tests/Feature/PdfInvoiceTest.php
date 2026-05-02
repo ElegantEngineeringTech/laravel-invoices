@@ -27,7 +27,7 @@ it('computes the right amounts', function (
         items: array_map(
             fn ($item) => new PdfInvoiceItem(
                 label: 'Item 1',
-                unit_price: Money::of($item['unit_price'], 'USD'),
+                unit_price: Money::of((string) $item['unit_price'], 'USD'),
                 quantity: $item['quantity'] ?? 1,
                 tax_percentage: $taxPercentage
             ),

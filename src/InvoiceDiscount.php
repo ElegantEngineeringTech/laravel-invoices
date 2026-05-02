@@ -36,9 +36,9 @@ class InvoiceDiscount implements Arrayable, JsonSerializable
 
         if ($this->percent_off !== null) {
             return $amount->multipliedBy(
-                $this->percent_off / 100.0,
+                (string) ($this->percent_off / 100.0),
                 // @phpstan-ignore-next-line
-                config('invoices.rounding_mode', RoundingMode::HALF_UP)
+                config('invoices.rounding_mode', RoundingMode::HalfUp)
             );
         }
 

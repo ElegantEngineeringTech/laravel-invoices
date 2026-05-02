@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Elegantly\Invoices\Pdf;
 
 use Brick\Math\RoundingMode;
+use Brick\Money\AllocationMode;
 use Brick\Money\Money;
 use Carbon\CarbonInterface;
 use Dompdf\Dompdf;
@@ -17,6 +18,7 @@ use Elegantly\Invoices\Support\Buyer;
 use Elegantly\Invoices\Support\PaymentInstruction;
 use Elegantly\Invoices\Support\Seller;
 use Illuminate\Contracts\Mail\Attachable;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\Response;
 use Illuminate\Mail\Attachment;
 use Illuminate\Support\Arr;
@@ -150,7 +152,7 @@ class PdfInvoice implements Attachable
             return Money::of(0, $this->getCurrency());
         }
 
-        $allocatedDiscounts = $totalDiscount->allocate(...$ratios);
+        $allocatedDiscounts = $totalDiscount->allocate($ratios, AllocationMode::FloorToFirst);
 
         $totalTaxAmount = Money::of(0, $this->getCurrency());
 
@@ -160,7 +162,7 @@ class PdfInvoice implements Attachable
                 /**
                  * When unit_tax is defined, the amount is considered correct
                  */
-                $itemTaxAmount = $item->unit_tax->multipliedBy($item->quantity);
+                $itemTaxAmount = $item->unit_tax->multipliedBy((string) $item->quantity);
             } elseif ($item->tax_percentage) {
 
                 $itemDiscount = $allocatedDiscounts[$index];
@@ -168,13 +170,13 @@ class PdfInvoice implements Attachable
                 $itemTaxAmount = $item->subTotalAmount()
                     ->minus($itemDiscount)
                     ->multipliedBy(
-                        $item->tax_percentage / 100.0,
+                        (string) ($item->tax_percentage / 100.0),
                         // @phpstan-ignore-next-line
-                        config('invoices.rounding_mode', RoundingMode::HALF_UP)
+                        config('invoices.rounding_mode', RoundingMode::HalfUp)
                     );
 
             } else {
-                $itemTaxAmount = Money::of(0, $totalTaxAmount->getCurrency());
+                $itemTaxAmount = Money::zero($totalTaxAmount->getCurrency());
             }
 
             $totalTaxAmount = $totalTaxAmount->plus($itemTaxAmount);
@@ -261,7 +263,7 @@ class PdfInvoice implements Attachable
     /**
      * @param  array<string, mixed>  $data
      */
-    public function view(array $data = []): \Illuminate\Contracts\View\View
+    public function view(array $data = []): View
     {
         // @phpstan-ignore-next-line
         return view($this->template, ['invoice' => $this], $data);

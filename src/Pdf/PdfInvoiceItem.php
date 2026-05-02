@@ -50,9 +50,9 @@ class PdfInvoiceItem
         }
 
         return $this->unit_price->multipliedBy(
-            $this->quantity,
+            (string) $this->quantity,
             // @phpstan-ignore-next-line
-            config('invoices.rounding_mode', RoundingMode::HALF_UP)
+            config('invoices.rounding_mode', RoundingMode::HalfUp)
         );
     }
 
@@ -60,17 +60,17 @@ class PdfInvoiceItem
     {
         if ($this->unit_tax) {
             return $this->unit_tax->multipliedBy(
-                $this->quantity,
+                (string) $this->quantity,
                 // @phpstan-ignore-next-line
-                config('invoices.rounding_mode', RoundingMode::HALF_UP)
+                config('invoices.rounding_mode', RoundingMode::HalfUp)
             );
         }
 
         if ($this->tax_percentage) {
             return $this->subTotalAmount()->multipliedBy(
-                $this->tax_percentage / 100.0,
+                (string) ($this->tax_percentage / 100.0),
                 // @phpstan-ignore-next-line
-                config('invoices.rounding_mode', RoundingMode::HALF_UP)
+                config('invoices.rounding_mode', RoundingMode::HalfUp)
             );
         }
 

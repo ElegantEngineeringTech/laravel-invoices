@@ -45,7 +45,7 @@ use Illuminate\Support\Collection as SupportCollection;
  * @property string $type
  * @property string $state
  * @property ?CarbonInterface $state_set_at
- * @property ?array $fields
+ * @property ?array<array-key, mixed> $fields
  * @property string $description
  * @property ?array<string, mixed> $seller_information
  * @property ?array<string, mixed> $buyer_information
