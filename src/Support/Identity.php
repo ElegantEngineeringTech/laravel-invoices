@@ -67,6 +67,6 @@ class Identity implements Arrayable, GOBLable
             'type' => $this->type,
             'code' => $this->code,
             ...$values,
-        ]);
+        ], fn ($value) => filled($value));
     }
 }

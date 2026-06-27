@@ -6,6 +6,7 @@ namespace Elegantly\Invoices\Models;
 
 use Brick\Money\Money;
 use Carbon\CarbonInterface;
+use Elegantly\Invoices\Contracts\GOBLable;
 use Elegantly\Invoices\Database\Factories\InvoiceItemFactory;
 use Elegantly\Invoices\Pdf\PdfInvoiceItem;
 use Elegantly\Money\MoneyCast;
@@ -30,7 +31,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property CarbonInterface $created_at
  * @property CarbonInterface $updated_at
  */
-class InvoiceItem extends Model
+class InvoiceItem extends Model implements GOBLable
 {
     /**
      * @use HasFactory<InvoiceItemFactory>
@@ -75,5 +76,28 @@ class InvoiceItem extends Model
             tax_percentage: $this->tax_percentage,
             currency: $this->currency,
         );
+    }
+
+    /**
+     * Convert the identity to its GOBL representation.
+     *
+     * @param  array<array-key, mixed>  $values
+     * @return array<array-key, mixed>
+     */
+    public function toGOBL(array $values = []): array
+    {
+        return array_filter(array_merge_recursive(
+            [
+                'quantity' => $this->quantity,
+                'item' => array_filter([
+                    'name' => $this->label,
+                    'description' => $this->description,
+                    'price' => $this->unit_price?->getAmount()->toString(),
+                    'currency' => $this->unit_price?->getCurrency()->getCurrencyCode(),
+                    'unit' => $this->quantity_unit,
+                ], fn ($value) => filled($value)),
+            ],
+            $values
+        ), fn ($value) => filled($value));
     }
 }

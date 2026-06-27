@@ -6,7 +6,6 @@ namespace Elegantly\Invoices\Models;
 
 use Brick\Money\Money;
 use Carbon\CarbonInterface;
-use Elegantly\Invoices\Casts\Discounts;
 use Elegantly\Invoices\Contracts\HasLabel;
 use Elegantly\Invoices\Database\Factories\InvoiceFactory;
 use Elegantly\Invoices\Enums\InvoiceState;
@@ -63,7 +62,7 @@ use Illuminate\Support\Collection as SupportCollection;
  * @property ?string $invoiceable_type
  * @property CarbonInterface $created_at
  * @property CarbonInterface $updated_at
- * @property InvoiceDiscount[] $discounts
+ * @property ?SupportCollection<int, InvoiceDiscount> $discounts
  * @property ?array<array-key, mixed> $metadata
  * @property ?Money $subtotal_amount
  * @property ?Money $discount_amount
@@ -106,7 +105,7 @@ class Invoice extends Model implements Attachable
             'seller_information' => InvoiceServiceProvider::getSellerClass(),
             'buyer_information' => InvoiceServiceProvider::getBuyerClass(),
             'metadata' => 'array',
-            'discounts' => Discounts::class,
+            'discounts' => AsCollection::of(InvoiceDiscount::class),
             'subtotal_amount' => MoneyCast::class.':currency',
             'discount_amount' => MoneyCast::class.':currency',
             'tax_amount' => MoneyCast::class.':currency',
@@ -408,7 +407,7 @@ class Invoice extends Model implements Attachable
      */
     public function getDiscounts(): array
     {
-        return $this->discounts;
+        return $this->discounts?->all() ?? [];
     }
 
     /**

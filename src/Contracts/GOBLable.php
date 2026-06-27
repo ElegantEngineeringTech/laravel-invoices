@@ -7,9 +7,10 @@ namespace Elegantly\Invoices\Contracts;
 interface GOBLable
 {
     /**
-     * Convert the object to its GOBL representation.
+     * Convert the identity to its GOBL representation.
      *
-     * @return array<string, mixed>
+     * @param  array<array-key, mixed>  $values
+     * @return array<array-key, mixed>
      */
-    public function toGOBL(): array;
+    public function toGOBL(array $values = []): array;
 }

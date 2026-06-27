@@ -71,6 +71,6 @@ class TaxId implements Arrayable, GOBLable
             'country' => $this->country,
             'code' => $this->code,
             ...$values,
-        ]);
+        ], fn ($value) => filled($value));
     }
 }

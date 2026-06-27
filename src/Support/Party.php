@@ -138,10 +138,13 @@ class Party implements Arrayable, Castable, GOBLable, Jsonable, JsonSerializable
         return array_filter(array_merge_recursive(
             [
                 'name' => $this->company ?? $this->name,
-                'identities' => array_map(fn ($value) => $value->toGOBL($identity), $this->identities),
+                'identities' => array_filter(
+                    array_map(fn ($value) => $value->toGOBL($identity), $this->identities),
+                    fn ($value) => filled($value)
+                ),
                 'addresses' => array_filter([
                     $this->address?->toGOBL($address),
-                ]),
+                ], fn ($value) => filled($value)),
                 'emails' => $this->email ? [
                     ['addr' => $this->email],
                 ] : null,
@@ -151,7 +154,7 @@ class Party implements Arrayable, Castable, GOBLable, Jsonable, JsonSerializable
                 'tax_id' => $this->tax_id?->toGOBL(),
             ],
             $values
-        ));
+        ), fn ($value) => filled($value));
     }
 
     public function jsonSerialize(): mixed

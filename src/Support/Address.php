@@ -96,6 +96,6 @@ class Address implements Arrayable, GOBLable
             'code' => $this->postal_code,
             'country' => $this->country,
             ...$values,
-        ]);
+        ], fn ($value) => filled($value));
     }
 }
