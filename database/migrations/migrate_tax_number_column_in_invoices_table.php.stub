@@ -16,8 +16,8 @@ return new class extends Migration
             ->select(['id', 'buyer_information', 'seller_information'])
             ->chunkById(500, function ($invoices) {
                 foreach ($invoices as $invoice) {
-                    $buyer_information = $invoice->buyer_information ? json_decode($buyer_information, true) : null;
-                    $seller_information = $invoice->seller_information ? json_decode($seller_information, true) : null;
+                    $buyer_information = $invoice->buyer_information ? json_decode($invoice->buyer_information, true) : null;
+                    $seller_information = $invoice->seller_information ? json_decode($invoice->seller_information, true) : null;
 
                     if ($buyer_information) {
                         $tax_number = data_get($buyer_information, 'tax_number');
@@ -63,8 +63,8 @@ return new class extends Migration
             ->select(['id', 'buyer_information', 'seller_information'])
             ->chunkById(500, function ($invoices) {
                 foreach ($invoices as $invoice) {
-                    $buyer_information = $invoice->buyer_information ? json_decode($buyer_information, true) : null;
-                    $seller_information = $invoice->seller_information ? json_decode($seller_information, true) : null;
+                    $buyer_information = $invoice->buyer_information ? json_decode($invoice->buyer_information, true) : null;
+                    $seller_information = $invoice->seller_information ? json_decode($invoice->seller_information, true) : null;
 
                     if ($buyer_information) {
                         $tax_id = data_get($buyer_information, 'tax_id');
