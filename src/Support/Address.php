@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Elegantly\Invoices\Support;
 
+use Elegantly\Invoices\Contracts\GOBLable;
 use Illuminate\Contracts\Support\Arrayable;
 
 /**
  * @implements Arrayable<string, null|string>
+ *
+ * @see https://docs.gobl.org/draft-0/org/address
  */
-class Address implements Arrayable
+class Address implements Arrayable, GOBLable
 {
     /**
      * @param  null|string|string[]  $street
@@ -76,6 +79,24 @@ class Address implements Arrayable
             'city' => $this->city,
             'country' => $this->country,
             'fields' => $this->fields,
+        ];
+    }
+
+    /**
+     * @return array{
+     *    street: null|string|string[],
+     *    locality: ?string,
+     *    code: ?string,
+     *    country: ?string,
+     * }
+     */
+    public function toGOBL(): array
+    {
+        return [
+            'street' => $this->street,
+            'locality' => $this->city,
+            'code' => $this->postal_code,
+            'country' => $this->country,
         ];
     }
 }

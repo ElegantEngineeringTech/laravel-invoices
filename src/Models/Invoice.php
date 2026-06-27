@@ -93,7 +93,7 @@ class Invoice extends Model implements Attachable
         'state' => InvoiceState::Draft->value,
     ];
 
-    protected $guarded = [];
+    protected $guarded = ['id'];
 
     /**
      * @return array<string, string>
