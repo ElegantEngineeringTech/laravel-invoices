@@ -118,6 +118,9 @@ class Party implements Arrayable, Castable, GOBLable, Jsonable, JsonSerializable
     /**
      * Convert the party to its GOBL representation.
      *
+     * @param  array<array-key, mixed>  $values
+     * @param  array<array-key, mixed>  $identity
+     * @param  array<array-key, mixed>  $address
      * @return array{
      *     name?: ?string,
      *     identities?: array<array-key, array{type?: null|string, code?: null|string}>,
@@ -127,22 +130,28 @@ class Party implements Arrayable, Castable, GOBLable, Jsonable, JsonSerializable
      *     tax_id?: array{country?: null|string, code?: null|string},
      * }
      */
-    public function toGOBL(): array
-    {
-        return array_filter([
-            'name' => $this->company ?? $this->name,
-            'identities' => array_map(fn ($value) => $value->toGOBL(), $this->identities),
-            'addresses' => array_filter([
-                $this->address?->toGOBL(),
-            ]),
-            'emails' => $this->email ? [
-                ['addr' => $this->email],
-            ] : null,
-            'telephones' => $this->phone ? [
-                ['num' => $this->phone],
-            ] : null,
-            'tax_id' => $this->tax_id?->toGOBL(),
-        ]);
+    public function toGOBL(
+        array $identity = [],
+        array $address = [],
+        array $values = []
+    ): array {
+        return array_filter(array_merge_recursive(
+            [
+                'name' => $this->company ?? $this->name,
+                'identities' => array_map(fn ($value) => $value->toGOBL($identity), $this->identities),
+                'addresses' => array_filter([
+                    $this->address?->toGOBL($address),
+                ]),
+                'emails' => $this->email ? [
+                    ['addr' => $this->email],
+                ] : null,
+                'telephones' => $this->phone ? [
+                    ['num' => $this->phone],
+                ] : null,
+                'tax_id' => $this->tax_id?->toGOBL(),
+            ],
+            $values
+        ));
     }
 
     public function jsonSerialize(): mixed

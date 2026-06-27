@@ -62,16 +62,15 @@ class TaxId implements Arrayable, GOBLable
     /**
      * Convert the identity to its GOBL representation.
      *
-     * @return array{
-     *    country?: null|string,
-     *    code?: null|string,
-     * }
+     * @param  array<array-key, mixed>  $values
+     * @return array<array-key, mixed>
      */
-    public function toGOBL(): array
+    public function toGOBL(array $values = []): array
     {
         return array_filter([
             'country' => $this->country,
             'code' => $this->code,
+            ...$values,
         ]);
     }
 }

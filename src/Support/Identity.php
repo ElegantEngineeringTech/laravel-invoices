@@ -58,16 +58,15 @@ class Identity implements Arrayable, GOBLable
     /**
      * Convert the identity to its GOBL representation.
      *
-     * @return array{
-     *    type: ?string,
-     *    code: ?string,
-     * }
+     * @param  array<array-key, mixed>  $values
+     * @return array<array-key, mixed>
      */
-    public function toGOBL(): array
+    public function toGOBL(array $values = []): array
     {
-        return [
+        return array_filter([
             'type' => $this->type,
             'code' => $this->code,
-        ];
+            ...$values,
+        ]);
     }
 }

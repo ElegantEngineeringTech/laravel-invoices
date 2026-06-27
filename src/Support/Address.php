@@ -85,20 +85,17 @@ class Address implements Arrayable, GOBLable
     /**
      * Convert the address to its GOBL representation.
      *
-     * @return array{
-     *    street: null|string,
-     *    locality: ?string,
-     *    code: ?string,
-     *    country: ?string,
-     * }
+     * @param  array<array-key, mixed>  $values
+     * @return array<array-key, mixed>
      */
-    public function toGOBL(): array
+    public function toGOBL(array $values = []): array
     {
-        return [
+        return array_filter([
             'street' => is_array($this->street) ? implode("\n", $this->street) : $this->street,
             'locality' => $this->city,
             'code' => $this->postal_code,
             'country' => $this->country,
-        ];
+            ...$values,
+        ]);
     }
 }
