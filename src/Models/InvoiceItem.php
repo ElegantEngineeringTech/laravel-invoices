@@ -88,7 +88,7 @@ class InvoiceItem extends Model implements GOBLable
     {
         return array_filter(array_merge_recursive(
             [
-                'quantity' => $this->quantity,
+                'quantity' => (string) $this->quantity,
                 'item' => array_filter([
                     'name' => $this->label,
                     'description' => $this->description,
