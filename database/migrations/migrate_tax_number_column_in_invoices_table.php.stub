@@ -73,7 +73,7 @@ return new class extends Migration
                             data_set(
                                 $buyer_information,
                                 'tax_number',
-                                implode('', [data_get($tax_id, 'country'), data_get($tax_id, 'code')])
+                                implode('', [data_get($tax_id, 'country'), data_get($tax_id, 'code')]) ?: null
                             );
                             data_forget($buyer_information, 'tax_id');
                         }
