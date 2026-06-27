@@ -135,12 +135,12 @@ class Party implements Arrayable, Castable, GOBLable, Jsonable, JsonSerializable
             'addresses' => array_filter([
                 $this->address?->toGOBL(),
             ]),
-            'emails' => array_filter([
-                $this->email,
-            ]),
-            'telephones' => array_filter([
-                $this->phone,
-            ]),
+            'emails' => $this->email ? [
+                ['addr' => $this->email],
+            ] : null,
+            'telephones' => $this->phone ? [
+                ['num' => $this->phone],
+            ] : null,
             'tax_id' => $this->tax_id?->toGOBL(),
         ]);
     }
