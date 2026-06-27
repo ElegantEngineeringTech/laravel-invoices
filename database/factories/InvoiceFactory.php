@@ -9,8 +9,8 @@ use Elegantly\Invoices\Enums\InvoiceState;
 use Elegantly\Invoices\Enums\InvoiceType;
 use Elegantly\Invoices\Models\Invoice;
 use Elegantly\Invoices\Support\Address;
-use Elegantly\Invoices\Support\Buyer;
-use Elegantly\Invoices\Support\Seller;
+use Elegantly\Invoices\Support\Party;
+use Elegantly\Invoices\Support\TaxId;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -35,8 +35,8 @@ class InvoiceFactory extends Factory
             'due_at' => fake()->dateTimeBetween($created_at, '+ 30 days'),
             'description' => fake()->sentence(),
             // @phpstan-ignore-next-line
-            'seller_information' => Seller::fromArray(config('invoices.default_seller')),
-            'buyer_information' => new Buyer(
+            'seller_information' => Party::fromArray(config('invoices.default_seller')),
+            'buyer_information' => new Party(
                 name : fake()->company(),
                 address : new Address(
                     street: fake()->streetName(),
@@ -46,7 +46,10 @@ class InvoiceFactory extends Factory
                 ),
                 email : fake()->email(),
                 phone : fake()->phoneNumber(),
-                tax_number : (string) fake()->numberBetween(12345678, 99999999),
+                tax_id: new TaxId(
+                    country: fake()->country(),
+                    code: (string) fake()->numberBetween(12345678, 99999999),
+                )
             ),
         ];
     }

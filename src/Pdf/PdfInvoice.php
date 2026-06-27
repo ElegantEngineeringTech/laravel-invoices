@@ -14,9 +14,8 @@ use Elegantly\Invoices\Contracts\HasLabel;
 use Elegantly\Invoices\Enums\InvoiceState;
 use Elegantly\Invoices\Enums\InvoiceType;
 use Elegantly\Invoices\InvoiceDiscount;
-use Elegantly\Invoices\Support\Buyer;
+use Elegantly\Invoices\Support\Party;
 use Elegantly\Invoices\Support\PaymentInstruction;
-use Elegantly\Invoices\Support\Seller;
 use Illuminate\Contracts\Mail\Attachable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Response;
@@ -48,8 +47,8 @@ class PdfInvoice implements Attachable
         public ?CarbonInterface $paid_at = null,
         public array $fields = [],
 
-        public Seller $seller = new Seller,
-        public Buyer $buyer = new Buyer,
+        public Party $seller = new Party,
+        public Party $buyer = new Party,
         public array $items = [],
 
         public ?string $description = null,

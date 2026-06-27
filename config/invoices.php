@@ -7,6 +7,10 @@ use Elegantly\Invoices\Enums\InvoiceType;
 use Elegantly\Invoices\InvoiceDiscount;
 use Elegantly\Invoices\Models\Invoice;
 use Elegantly\Invoices\Models\InvoiceItem;
+use Elegantly\Invoices\Support\Address;
+use Elegantly\Invoices\Support\Identity;
+use Elegantly\Invoices\Support\Party;
+use Elegantly\Invoices\Support\TaxId;
 
 return [
 
@@ -14,6 +18,13 @@ return [
     'model_invoice_item' => InvoiceItem::class,
 
     'discount_class' => InvoiceDiscount::class,
+
+    'party_class' => Party::class,
+
+    'identity_class' => Identity::class,
+
+    'address_class' => Address::class,
+    'tax_id_class' => TaxId::class,
 
     'cascade_invoice_delete_to_invoice_items' => true,
 
@@ -71,7 +82,7 @@ return [
         ],
         'email' => null,
         'phone' => null,
-        'tax_number' => null,
+        'tax_id' => null,
         'fields' => [
             //
         ],

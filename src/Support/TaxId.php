@@ -10,14 +10,14 @@ use Illuminate\Contracts\Support\Arrayable;
 /**
  * @implements Arrayable<string, null|string>
  *
- * @example ['type' => 'SIREN', 'code'=> '732829320']
+ * @example ['country' => 'FR', 'code'=> '732829320']
  *
- * @see https://docs.gobl.org/draft-0/org/identity
+ * @see https://docs.gobl.org/draft-0/tax/identity
  */
-class Identity implements Arrayable, GOBLable
+class TaxId implements Arrayable, GOBLable
 {
     public function __construct(
-        public ?string $type = null,
+        public ?string $country = null,
         public ?string $code = null,
     ) {
         // code...
@@ -25,7 +25,11 @@ class Identity implements Arrayable, GOBLable
 
     public function getLabel(): ?string
     {
-        return $this->type;
+        if ($this->country) {
+            return "{$this->country}{$this->code}";
+        }
+
+        return $this->code;
     }
 
     /**
@@ -35,7 +39,7 @@ class Identity implements Arrayable, GOBLable
     {
         return new self(
             // @phpstan-ignore-next-line
-            type: data_get($values, 'type'),
+            country: data_get($values, 'country'),
             // @phpstan-ignore-next-line
             code: data_get($values, 'code'),
         );
@@ -43,14 +47,14 @@ class Identity implements Arrayable, GOBLable
 
     /**
      * @return array{
-     *    type: ?string,
+     *    country: ?string,
      *    code: ?string,
      * }
      */
     public function toArray(): array
     {
         return [
-            'type' => $this->type,
+            'country' => $this->country,
             'code' => $this->code,
         ];
     }
@@ -59,15 +63,15 @@ class Identity implements Arrayable, GOBLable
      * Convert the identity to its GOBL representation.
      *
      * @return array{
-     *    type: ?string,
-     *    code: ?string,
+     *    country?: null|string,
+     *    code?: null|string,
      * }
      */
     public function toGOBL(): array
     {
-        return [
-            'type' => $this->type,
+        return array_filter([
+            'country' => $this->country,
             'code' => $this->code,
-        ];
+        ]);
     }
 }

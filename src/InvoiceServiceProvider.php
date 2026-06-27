@@ -6,6 +6,10 @@ namespace Elegantly\Invoices;
 
 use BackedEnum;
 use Elegantly\Invoices\Commands\DenormalizeInvoicesCommand;
+use Elegantly\Invoices\Support\Address;
+use Elegantly\Invoices\Support\Identity;
+use Elegantly\Invoices\Support\Party;
+use Elegantly\Invoices\Support\TaxId;
 use Exception;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
@@ -35,7 +39,8 @@ class InvoiceServiceProvider extends PackageServiceProvider
             ->hasMigration('add_serial_number_details_columns_to_invoices_table')
             ->hasMigration('migrate_serial_number_details_columns_to_invoices_table')
             ->hasMigration('add_payment_instructions_to_invoices_table')
-            ->hasMigration('add_fields_column_to_invoices_table');
+            ->hasMigration('add_fields_column_to_invoices_table')
+            ->hasMigration('migrate_tax_number_column_in_invoices_table');
     }
 
     public static function getSerialNumberPrefixConfiguration(null|string|BackedEnum $type): ?string
@@ -73,5 +78,59 @@ class InvoiceServiceProvider extends PackageServiceProvider
         }
 
         return $format;
+    }
+
+    /**
+     * @return class-string<Party>
+     */
+    public static function getPartyClass(): string
+    {
+        // @phpstan-ignore-next-line
+        return config('invoices.party_class') ?? Party::class;
+    }
+
+    /**
+     * @return class-string<Party>
+     */
+    public static function getBuyerClass(): string
+    {
+        // @phpstan-ignore-next-line
+        return config('invoices.buyer_class') ?? static::getPartyClass();
+    }
+
+    /**
+     * @return class-string<Party>
+     */
+    public static function getSellerClass(): string
+    {
+        // @phpstan-ignore-next-line
+        return config('invoices.seller_class') ?? static::getPartyClass();
+    }
+
+    /**
+     * @return class-string<Address>
+     */
+    public static function getAddressClass(): string
+    {
+        // @phpstan-ignore-next-line
+        return config('invoices.address_class') ?? Address::class;
+    }
+
+    /**
+     * @return class-string<Identity>
+     */
+    public static function getIdentityClass(): string
+    {
+        // @phpstan-ignore-next-line
+        return config('invoices.identity_class') ?? Identity::class;
+    }
+
+    /**
+     * @return class-string<TaxId>
+     */
+    public static function getTaxIdClass(): string
+    {
+        // @phpstan-ignore-next-line
+        return config('invoices.tax_id_class') ?? TaxId::class;
     }
 }

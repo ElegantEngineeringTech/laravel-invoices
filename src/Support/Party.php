@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Elegantly\Invoices\Support;
 
 use Elegantly\Invoices\Contracts\GOBLable;
+use Elegantly\Invoices\InvoiceServiceProvider;
 use Illuminate\Contracts\Database\Eloquent\Castable;
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
 use Illuminate\Contracts\Support\Arrayable;
@@ -28,7 +29,7 @@ class Party implements Arrayable, Castable, GOBLable, Jsonable, JsonSerializable
         public ?string $name = null,
         public ?Address $address = null,
         public ?Address $shipping_address = null,
-        public ?string $tax_number = null,
+        public ?TaxId $tax_id = null,
         public ?string $email = null,
         public ?string $phone = null,
         public array $identities = [],
@@ -42,23 +43,27 @@ class Party implements Arrayable, Castable, GOBLable, Jsonable, JsonSerializable
      */
     public static function fromArray(array $values): self
     {
+        $addressClass = InvoiceServiceProvider::getAddressClass();
+        $identityClass = InvoiceServiceProvider::getIdentityClass();
+        $taxIdClass = InvoiceServiceProvider::getTaxIdClass();
+
         return new self(
             // @phpstan-ignore-next-line
             company: data_get($values, 'company'),
             // @phpstan-ignore-next-line
             name: data_get($values, 'name'),
             // @phpstan-ignore-next-line
-            address: ($address = data_get($values, 'address')) ? Address::fromArray($address) : null,
+            address: ($address = data_get($values, 'address')) ? $addressClass::fromArray($address) : null,
             // @phpstan-ignore-next-line
-            shipping_address: ($shipping_address = data_get($values, 'shipping_address')) ? Address::fromArray($shipping_address) : null,
+            shipping_address: ($shipping_address = data_get($values, 'shipping_address')) ? $addressClass::fromArray($shipping_address) : null,
             // @phpstan-ignore-next-line
-            tax_number: data_get($values, 'tax_number'),
+            tax_id: ($taxId = data_get($values, 'tax_id')) ? $taxIdClass::fromArray($taxId) : null,
             // @phpstan-ignore-next-line
             email: data_get($values, 'email'),
             // @phpstan-ignore-next-line
             phone: data_get($values, 'phone'),
             // @phpstan-ignore-next-line
-            identities: array_map(fn ($value) => Identity::fromArray($value), data_get($values, 'identities') ?? []),
+            identities: array_map(fn ($value) => $identityClass::fromArray($value), data_get($values, 'identities') ?? []),
             // @phpstan-ignore-next-line
             fields: data_get($values, 'fields') ?? data_get($values, 'data') ?? [],
         );
@@ -88,7 +93,7 @@ class Party implements Arrayable, Castable, GOBLable, Jsonable, JsonSerializable
      *       country: ?string,
      *       fields: null|array<array-key, null|int|float|string>,
      *    },
-     *    tax_number: ?string,
+     *    tax_id: ?array{ country?: null|string, code?: null|string },
      *    email: ?string,
      *    phone: ?string,
      *    identities: array<array-key, array{ type: null|string, code: null|string }>,
@@ -102,7 +107,7 @@ class Party implements Arrayable, Castable, GOBLable, Jsonable, JsonSerializable
             'name' => $this->name,
             'address' => $this->address?->toArray(),
             'shipping_address' => $this->shipping_address?->toArray(),
-            'tax_number' => $this->tax_number,
+            'tax_id' => $this->tax_id?->toArray(),
             'email' => $this->email,
             'phone' => $this->phone,
             'identities' => array_map(fn ($value) => $value->toArray(), $this->identities),
@@ -110,6 +115,18 @@ class Party implements Arrayable, Castable, GOBLable, Jsonable, JsonSerializable
         ];
     }
 
+    /**
+     * Convert the party to its GOBL representation.
+     *
+     * @return array{
+     *     name?: ?string,
+     *     identities?: array<array-key, array{type?: null|string, code?: null|string}>,
+     *     addresses?: array<array-key, array{street?: null|string, locality?: null|string, code?: null|string, country?: null|string}>,
+     *     emails?: array<array-key, string>,
+     *     telephones?: array<array-key, string>,
+     *     tax_id?: array{country?: null|string, code?: null|string},
+     * }
+     */
     public function toGOBL(): array
     {
         return array_filter([
@@ -124,10 +141,7 @@ class Party implements Arrayable, Castable, GOBLable, Jsonable, JsonSerializable
             'telephones' => array_filter([
                 $this->phone,
             ]),
-            'tax_id' => array_filter([
-                'country' => $this->address?->country,
-                'code' => $this->tax_number,
-            ]),
+            'tax_id' => $this->tax_id?->toGOBL(),
         ]);
     }
 
@@ -138,18 +152,22 @@ class Party implements Arrayable, Castable, GOBLable, Jsonable, JsonSerializable
 
     public function toJson($options = 0)
     {
-        return json_encode($this->jsonSerialize(), $options);
+        return json_encode($this->jsonSerialize(), $options) ?: '';
     }
 
     /**
      * Get the caster class to use when casting from / to this cast target.
      *
      * @param  array<string, mixed>  $arguments
+     * @return CastsAttributes<null|Party, null|string>
      */
     public static function castUsing(array $arguments): CastsAttributes
     {
         $class = static::class;
 
+        /**
+         * @implements CastsAttributes<null|Party, null|string>
+         */
         return new class($class) implements CastsAttributes
         {
             public function __construct(
@@ -170,7 +188,7 @@ class Party implements Arrayable, Castable, GOBLable, Jsonable, JsonSerializable
             {
                 return match (true) {
                     $value === null => null,
-                    default => json_encode($value)
+                    default => json_encode($value) ?: null
                 };
             }
 

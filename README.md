@@ -158,7 +158,10 @@ return [
         ],
         'email' => null,
         'phone' => null,
-        'tax_number' => null,
+        'tax_id' => [
+            'country' => 'FR',
+            'code' => '123456789'
+        ],
         'fields' => [
             //
         ],
@@ -279,7 +282,10 @@ $pdfInvoice = new PdfInvoice(
             country: 'France',
         ),
         email: 'john.doe@example.com',
-        tax_number: 'FR123456789',
+        tax_id: new TaxId(
+            country: 'FR',
+            code: '123456789'
+        ),
         fields: [
             // Custom fields to display with the seller
             "foo" => "bar"

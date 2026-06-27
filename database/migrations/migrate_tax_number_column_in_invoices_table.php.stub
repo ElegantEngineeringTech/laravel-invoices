@@ -1,0 +1,107 @@
+<?php
+
+declare(strict_types=1);
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\DB;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        DB::table('invoices')
+            ->select(['id', 'buyer_information', 'seller_information'])
+            ->chunkById(500, function ($invoices) {
+                foreach ($invoices as $invoice) {
+                    $buyer_information = $invoice->buyer_information ? json_decode($buyer_information, true) : null;
+                    $seller_information = $invoice->seller_information ? json_decode($seller_information, true) : null;
+
+                    if ($buyer_information) {
+                        $tax_number = data_get($buyer_information, 'tax_number');
+
+                        if ($tax_number) {
+                            data_set($buyer_information, 'tax_id', [
+                                'code' => $tax_number,
+                            ]);
+                            data_forget($buyer_information, 'tax_number');
+                        }
+
+                    }
+
+                    if ($seller_information) {
+                        $tax_number = data_get($seller_information, 'tax_number');
+
+                        if ($tax_number) {
+                            data_set($seller_information, 'tax_id', [
+                                'code' => $tax_number,
+                            ]);
+                            data_forget($seller_information, 'tax_number');
+                        }
+
+                    }
+
+                    DB::table('invoices')
+                        ->where('id', $invoice->id)
+                        ->update([
+                            'buyer_information' => $buyer_information ? json_encode($buyer_information) : null,
+                            'seller_information' => $seller_information ? json_encode($seller_information) : null,
+                        ]);
+
+                }
+            });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        DB::table('invoices')
+            ->select(['id', 'buyer_information', 'seller_information'])
+            ->chunkById(500, function ($invoices) {
+                foreach ($invoices as $invoice) {
+                    $buyer_information = $invoice->buyer_information ? json_decode($buyer_information, true) : null;
+                    $seller_information = $invoice->seller_information ? json_decode($seller_information, true) : null;
+
+                    if ($buyer_information) {
+                        $tax_id = data_get($buyer_information, 'tax_id');
+
+                        if ($tax_id) {
+                            data_set(
+                                $buyer_information,
+                                'tax_number',
+                                implode('', [data_get($tax_id, 'country'), data_get($tax_id, 'code')])
+                            );
+                            data_forget($buyer_information, 'tax_id');
+                        }
+
+                    }
+
+                    if ($seller_information) {
+                        $tax_id = data_get($seller_information, 'tax_id');
+
+                        if ($tax_id) {
+                            data_set(
+                                $seller_information,
+                                'tax_number',
+                                implode('', [data_get($tax_id, 'country'), data_get($tax_id, 'code')])
+                            );
+                            data_forget($seller_information, 'tax_id');
+                        }
+
+                    }
+
+                    DB::table('invoices')
+                        ->where('id', $invoice->id)
+                        ->update([
+                            'buyer_information' => $buyer_information ? json_encode($buyer_information) : null,
+                            'seller_information' => $seller_information ? json_encode($seller_information) : null,
+                        ]);
+
+                }
+            });
+    }
+};

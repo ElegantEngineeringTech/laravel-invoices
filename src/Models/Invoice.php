@@ -15,9 +15,8 @@ use Elegantly\Invoices\InvoiceDiscount;
 use Elegantly\Invoices\InvoiceServiceProvider;
 use Elegantly\Invoices\Pdf\PdfInvoice;
 use Elegantly\Invoices\SerialNumberGenerator;
-use Elegantly\Invoices\Support\Buyer;
+use Elegantly\Invoices\Support\Party;
 use Elegantly\Invoices\Support\PaymentInstruction;
-use Elegantly\Invoices\Support\Seller;
 use Elegantly\Money\MoneyCast;
 use Exception;
 use finfo;
@@ -47,8 +46,8 @@ use Illuminate\Support\Collection as SupportCollection;
  * @property ?CarbonInterface $state_set_at
  * @property ?array<array-key, mixed> $fields
  * @property string $description
- * @property ?array<string, mixed> $seller_information
- * @property ?array<string, mixed> $buyer_information
+ * @property ?Party $seller_information
+ * @property ?Party $buyer_information
  * @property ?CarbonInterface $due_at
  * @property ?string $tax_type
  * @property ?string $tax_exempt
@@ -104,8 +103,8 @@ class Invoice extends Model implements Attachable
             'state_set_at' => 'datetime',
             'due_at' => 'datetime',
             'fields' => 'array',
-            'seller_information' => 'array',
-            'buyer_information' => 'array',
+            'seller_information' => InvoiceServiceProvider::getSellerClass(),
+            'buyer_information' => InvoiceServiceProvider::getBuyerClass(),
             'metadata' => 'array',
             'discounts' => Discounts::class,
             'subtotal_amount' => MoneyCast::class.':currency',
@@ -576,8 +575,8 @@ class Invoice extends Model implements Attachable
             due_at: $this->due_at,
             created_at: $this->created_at,
             fields : $this->fields ?? [],
-            buyer: Buyer::fromArray($this->buyer_information ?? []),
-            seller: Seller::fromArray($this->seller_information ?? []),
+            buyer: $this->buyer_information ?? new Party,
+            seller: $this->seller_information ?? new Party,
             description: $this->description,
             items: $this->items->values()->map(fn ($item) => $item->toPdfInvoiceItem())->all(),
             tax_label: $this->getTaxLabel(),

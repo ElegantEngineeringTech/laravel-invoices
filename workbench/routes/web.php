@@ -10,9 +10,10 @@ use Elegantly\Invoices\InvoiceDiscount;
 use Elegantly\Invoices\Pdf\PdfInvoice;
 use Elegantly\Invoices\Pdf\PdfInvoiceItem;
 use Elegantly\Invoices\Support\Address;
-use Elegantly\Invoices\Support\Buyer;
+use Elegantly\Invoices\Support\Identity;
+use Elegantly\Invoices\Support\Party;
 use Elegantly\Invoices\Support\PaymentInstruction;
-use Elegantly\Invoices\Support\Seller;
+use Elegantly\Invoices\Support\TaxId;
 use Illuminate\Support\Facades\Route;
 
 $invoice = new PdfInvoice(
@@ -26,7 +27,7 @@ $invoice = new PdfInvoice(
         'BDC' => 'BD01-7659',
     ],
     logo: 'https://avatars.githubusercontent.com/u/170185760?s=400&u=becdedf9606e6a80ea4831e8fc5cac301763368a&v=4',
-    seller: new Seller(
+    seller: new Party(
         company: 'Elegantly',
         address: new Address(
             street: "9 rue Geoffroy l'Angevin",
@@ -37,12 +38,21 @@ $invoice = new PdfInvoice(
         ),
         email: 'support@example.com',
         phone: '069547XXXX',
-        tax_number: 'FR88897962361',
+        tax_id: new TaxId(
+            country: 'FR',
+            code: '88897962361'
+        ),
+        identities: [
+            new Identity(
+                type: 'SIREN',
+                code: '897962361'
+            ),
+        ],
         fields: [
-            'SIREN' => '897962361',
+            'a custom field',
         ],
     ),
-    buyer: new Buyer(
+    buyer: new Party(
         company: 'Company & Co',
         name: 'Wile E. Coyote',
         address: new Address(
@@ -62,7 +72,10 @@ $invoice = new PdfInvoice(
             city : 'Lagny-sur-Marne',
             country : 'France',
         ),
-        tax_number: 'FR15948344072',
+        tax_id: new TaxId(
+            country: 'FR',
+            code: '15948344072'
+        ),
         email: 'john.doe@example.com',
     ),
     items: [

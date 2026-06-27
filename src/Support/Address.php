@@ -83,8 +83,10 @@ class Address implements Arrayable, GOBLable
     }
 
     /**
+     * Convert the address to its GOBL representation.
+     *
      * @return array{
-     *    street: null|string|string[],
+     *    street: null|string,
      *    locality: ?string,
      *    code: ?string,
      *    country: ?string,
@@ -93,7 +95,7 @@ class Address implements Arrayable, GOBLable
     public function toGOBL(): array
     {
         return [
-            'street' => $this->street,
+            'street' => is_array($this->street) ? implode("\n", $this->street) : $this->street,
             'locality' => $this->city,
             'code' => $this->postal_code,
             'country' => $this->country,

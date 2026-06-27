@@ -16,11 +16,21 @@
 @if ($party->email)
     <p class="pb-1 text-xs">{{ $party->email }}</p>
 @endif
+
 @if ($party->phone)
     <p class="pb-1 text-xs">{{ $party->phone }}</p>
 @endif
-@if ($party->tax_number)
-    <p class="pb-1 text-xs">{{ $party->tax_number }}</p>
+
+@if ($party->tax_id)
+    <p class="pb-1 text-xs">{{ $party->tax_id->getLabel() }}</p>
+@endif
+
+@if ($party->identities)
+    @foreach ($party->identities as $identity)
+        <p class="pb-1 text-xs">
+            {{ $identity->getLabel() }} {{ $identity->code }}
+        </p>
+    @endforeach
 @endif
 
 @if ($party->fields)
