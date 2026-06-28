@@ -182,6 +182,9 @@ class Party implements Arrayable, Castable, GOBLable, Jsonable, JsonSerializable
          */
         return new class($class) implements CastsAttributes
         {
+            /**
+             * @param  class-string<Party>  $class
+             */
             public function __construct(
                 private string $class,
             ) {}
