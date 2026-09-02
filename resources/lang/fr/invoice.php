@@ -8,26 +8,6 @@ return [
     | Invoice Language Lines
     |--------------------------------------------------------------------------
     */
-    'invoice' => 'Facture',
-    'serial_number' => 'Numéro de facture',
-    'due_at' => 'Due le',
-    'created_at' => 'Créée le',
-    'paid_at' => 'Payée le',
-    'description' => 'Description',
-    'total_amount' => 'Total',
-    'tax' => 'Tax',
-    'tax_label' => 'Tax',
-    'subtotal_amount' => 'Sous-total',
-    'subtotal_discounted_amount' => 'Sous-total après remise',
-    'amount' => 'Montant',
-    'unit_price' => 'Prix unitaire',
-    'quantity' => 'Qté',
-    'discount_name' => 'Remise',
-
-    'from' => 'De',
-    'to' => 'Pour',
-    'shipping_to' => 'Livré à',
-
     'states' => [
         'draft' => 'Brouillon',
         'pending' => 'En attente',
@@ -42,5 +22,30 @@ return [
         'proforma' => 'Facture Proforma',
     ],
 
-    'page' => 'Page',
+    'pdf' => [
+        'page' => 'Page',
+        'serial_number' => 'Numéro de facture',
+        'due_at' => 'Due le',
+        'created_at' => 'Créée le',
+        'paid_at' => 'Payée le',
+        'description' => 'Description',
+        'from' => 'De',
+        'to' => 'Pour',
+        'shipping_to' => 'Livré à',
+        'items' => [
+            'label' => 'Description',
+            'quantity' => 'Qté',
+            'unit_price' => 'Prix unitaire',
+            'tax' => 'Tax',
+            'discount' => 'Remise',
+            'amount' => 'Montant',
+        ],
+        'summary' => [
+            'tax' => 'Tax',
+            'subtotal' => 'Sous-total',
+            'discount' => 'Remise',
+            'discounted' => 'Sous-total après remise',
+            'total' => 'Total',
+        ],
+    ],
 ];

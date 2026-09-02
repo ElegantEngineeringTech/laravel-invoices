@@ -1,0 +1,98 @@
+<?php
+
+declare(strict_types=1);
+
+use Brick\Money\Money;
+use Elegantly\Invoices\InvoiceTax;
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\DB;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        $query = DB::table('invoices');
+
+        $query->chunkById(100, function ($invoices) {
+            foreach ($invoices as $invoice) {
+
+                $items = DB::table('invoices_items')
+                    ->where('invoice_id', $invoice->id)
+                    ->where(function ($query) {
+                        return $query
+                            ->where('tax_percentage', '!=', null)
+                            ->orWhere('unit_tax', '!=', null);
+                    })
+                    ->get();
+
+                foreach ($items as $item) {
+
+                    $amount = null;
+                    $percentage = null;
+
+                    if ($item->unit_tax && $item->tax_percentage) {
+
+                        $amount = Money::ofMinor($item->unit_tax, $item->currency)
+                            ->multipliedBy($item->quantity);
+
+                        $percentage = $item->tax_percentage;
+
+                    } elseif ($item->unit_price) {
+
+                        if ($item->unit_tax) {
+
+                            $amount = Money::ofMinor($item->unit_tax, $item->currency)
+                                ->multipliedBy($item->quantity);
+
+                            $percentage = $item->unit_tax / $item->unit_price * 100;
+
+                        } elseif ($item->tax_percentage) {
+
+                            $amount = Money::ofMinor($item->unit_price, $item->currency)
+                                ->multipliedBy($item->quantity)
+                                ->multipliedBy($item->tax_percentage / 100);
+
+                            $percentage = $item->tax_percentage;
+
+                        }
+
+                    }
+
+                    if ($amount && $percentage) {
+                        $taxes = [
+                            new InvoiceTax(
+                                type: $invoice->tax_type,
+                                taxability: $invoice->tax_exempt,
+                                amount: $amount,
+                                percentage: $percentage,
+                            ),
+                        ];
+                    } else {
+                        $taxes = null;
+                    }
+
+                    DB::table('invoices_items')
+                        ->where('id', $item->id)
+                        ->update([
+                            'taxes' => $taxes,
+                            'tax_percentage' => null,
+                            'unit_tax' => null,
+                        ]);
+
+                }
+
+            }
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        //
+    }
+};

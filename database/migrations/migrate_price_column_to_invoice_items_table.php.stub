@@ -1,0 +1,41 @@
+<?php
+
+declare(strict_types=1);
+
+use Brick\Money\Money;
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\DB;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        $query = DB::table('invoice_items')
+            ->where('unit_price', '!=', null)
+            ->where('currency', '!=', null);
+
+        $query->chunkById(100, function ($items) {
+            foreach ($items as $item) {
+                DB::table('invoice_items')
+                    ->where('id', $item->id)
+                    ->update([
+                        'price' => Money::ofMinor($item->unit_price, $item->currency)
+                            ->multipliedBy($item->quantity)
+                            ->getMinorAmount()
+                            ->toInt(),
+                    ]);
+            }
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        //
+    }
+};

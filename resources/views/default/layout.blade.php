@@ -1,4 +1,6 @@
 @php
+    use function Elegantly\Invoices\money;
+
     $color = data_get($invoice->templateData, 'color');
     $font = data_get($invoice->templateData, 'font');
     $fonts = data_get($invoice->templateData, 'fonts', []);
@@ -37,10 +39,10 @@
             <tbody>
                 <tr class="text-xs text-gray-500">
                     <td class="">
-                        {{ $invoice->serial_number }} • {{ $invoice->formatMoney($invoice->totalAmount()) }}
+                        {{ $invoice->serial_number }} • {{ money($invoice->total_amount) }}
                     </td>
                     <td class="text-right">
-                        <p class="dompdf-page p-2">{{ __('invoices::invoice.page') }} </p>
+                        <p class="dompdf-page p-2">{{ __('invoices::invoice.pdf.page') }} </p>
                     </td>
                 </tr>
             </tbody>

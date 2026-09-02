@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use Brick\Money\Money;
 use Carbon\Carbon;
+use Elegantly\Invoices\Collections\InvoiceDiscountCollection;
+use Elegantly\Invoices\Collections\PdfInvoiceItemCollection;
 use Elegantly\Invoices\Enums\InvoiceState;
 use Elegantly\Invoices\Enums\InvoiceType;
 use Elegantly\Invoices\InvoiceDiscount;
@@ -15,6 +17,11 @@ use Elegantly\Invoices\Support\Party;
 use Elegantly\Invoices\Support\PaymentInstruction;
 use Elegantly\Invoices\Support\TaxId;
 use Illuminate\Support\Facades\Route;
+
+$discount = new InvoiceDiscount(
+    code: 'ANJE',
+    percentage: 10,
+);
 
 $invoice = new PdfInvoice(
     type: InvoiceType::Invoice,
@@ -78,123 +85,15 @@ $invoice = new PdfInvoice(
         ),
         email: 'john.doe@example.com',
     ),
-    items: [
+    items: new PdfInvoiceItemCollection([
         new PdfInvoiceItem(
             label: 'Casting Pro',
-            description: 'Feb 20 – Mar 20, 2025',
-            currency: 'EUR',
-            unit_price: Money::of(97, 'EUR'),
-            quantity: 0.2,
-            tax_percentage: 20,
+            description: 'Jan 1 – Jan 30',
+            unit_price: Money::of(100, 'EUR'),
+            quantity: 1,
+            discounts: new InvoiceDiscountCollection([clone $discount]),
         ),
-        new PdfInvoiceItem(
-            label: 'Casting Pro',
-            description: 'Feb 20 – Mar 20, 2025',
-            currency: 'EUR',
-            unit_price: Money::of(97, 'EUR'),
-            tax_percentage: 20,
-        ),
-        new PdfInvoiceItem(
-            label: 'Casting Pro',
-            description: 'Feb 20 – Mar 20, 2025',
-            currency: 'EUR',
-            unit_price: Money::of(97, 'EUR'),
-            tax_percentage: 20,
-        ),
-
-        new PdfInvoiceItem(
-            label: 'Casting Pro',
-            description: 'Feb 20 – Mar 20, 2025',
-            currency: 'EUR',
-            unit_price: Money::of(97, 'EUR'),
-            tax_percentage: 20,
-        ),
-        new PdfInvoiceItem(
-            label: 'Casting Pro',
-            description: 'Feb 20 – Mar 20, 2025',
-            currency: 'EUR',
-            unit_price: Money::of(97, 'EUR'),
-            tax_percentage: 20,
-        ),
-        new PdfInvoiceItem(
-            label: 'Casting Pro',
-            description: 'Feb 20 – Mar 20, 2025',
-            currency: 'EUR',
-            unit_price: Money::of(97, 'EUR'),
-            tax_percentage: 20,
-        ),
-        new PdfInvoiceItem(
-            label: 'Casting Pro',
-            description: 'Feb 20 – Mar 20, 2025',
-            currency: 'EUR',
-            unit_price: Money::of(97, 'EUR'),
-            tax_percentage: 20,
-        ),
-        new PdfInvoiceItem(
-            label: 'Casting Pro',
-            description: 'Feb 20 – Mar 20, 2025',
-            currency: 'EUR',
-            unit_price: Money::of(97, 'EUR'),
-            tax_percentage: 20,
-        ),
-        new PdfInvoiceItem(
-            label: 'Casting Pro',
-            description: 'Feb 20 – Mar 20, 2025',
-            currency: 'EUR',
-            unit_price: Money::of(97, 'EUR'),
-            tax_percentage: 20,
-        ),
-        new PdfInvoiceItem(
-            label: 'Casting Pro',
-            description: 'Feb 20 – Mar 20, 2025',
-            currency: 'EUR',
-            unit_price: Money::of(97, 'EUR'),
-            tax_percentage: 20,
-        ),
-        new PdfInvoiceItem(
-            label: 'Casting Pro',
-            description: 'Feb 20 – Mar 20, 2025',
-            currency: 'EUR',
-            unit_price: Money::of(97, 'EUR'),
-            tax_percentage: 20,
-        ),
-        new PdfInvoiceItem(
-            label: 'Casting Pro',
-            description: 'Feb 20 – Mar 20, 2025',
-            currency: 'EUR',
-            unit_price: Money::of(97, 'EUR'),
-            tax_percentage: 20,
-        ),
-        new PdfInvoiceItem(
-            label: 'Casting Pro',
-            description: 'Feb 20 – Mar 20, 2025',
-            currency: 'EUR',
-            unit_price: Money::of(97, 'EUR'),
-            tax_percentage: 20,
-        ),
-        new PdfInvoiceItem(
-            label: 'Casting Pro',
-            description: 'Feb 20 – Mar 20, 2025',
-            currency: 'EUR',
-            unit_price: Money::of(97, 'EUR'),
-            tax_percentage: 20,
-        ),
-        new PdfInvoiceItem(
-            label: 'Casting Pro',
-            description: 'Feb 20 – Mar 20, 2025',
-            currency: 'EUR',
-            unit_price: Money::of(97, 'EUR'),
-            tax_percentage: 20,
-        ),
-    ],
-    discounts: [
-        new InvoiceDiscount(
-            name: 'Discount',
-            code: 'AEX45',
-            percent_off: 20
-        ),
-    ],
-    tax_label: 'VAT (France)',
+    ]),
     description: 'A simple description',
     paymentInstructions: [
         new PaymentInstruction(
@@ -215,10 +114,10 @@ $invoice = new PdfInvoice(
 
 Route::get('/', function () use ($invoice) {
     return view('demo', [
-        'invoice' => $invoice,
+        'invoice' => $invoice->denormalize(),
     ]);
 });
 
 Route::get('/pdf', function () use ($invoice) {
-    return $invoice->stream();
+    return $invoice->denormalize()->stream();
 });

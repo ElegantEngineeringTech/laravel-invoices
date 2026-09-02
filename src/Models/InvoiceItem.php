@@ -4,33 +4,45 @@ declare(strict_types=1);
 
 namespace Elegantly\Invoices\Models;
 
+use Brick\Math\RoundingMode;
 use Brick\Money\Money;
 use Carbon\CarbonInterface;
+use Elegantly\Invoices\Collections\Eloquent\InvoiceItemCollection;
+use Elegantly\Invoices\Collections\InvoiceDiscountCollection;
+use Elegantly\Invoices\Collections\InvoiceTaxCollection;
 use Elegantly\Invoices\Contracts\GOBLable;
 use Elegantly\Invoices\Database\Factories\InvoiceItemFactory;
+use Elegantly\Invoices\InvoiceDiscount;
+use Elegantly\Invoices\InvoiceServiceProvider;
+use Elegantly\Invoices\InvoiceTax;
 use Elegantly\Invoices\Pdf\PdfInvoiceItem;
 use Elegantly\Money\MoneyCast;
-use Illuminate\Database\Eloquent\Casts\ArrayObject;
-use Illuminate\Database\Eloquent\Casts\AsArrayObject;
+use Illuminate\Database\Eloquent\Attributes\CollectedBy;
+use Illuminate\Database\Eloquent\Casts\AsCollection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @property int $id
- * @property ?Money $unit_price
- * @property ?Money $unit_tax
- * @property ?float $tax_percentage between 0 and 100
- * @property ?string $currency
- * @property ?int $quantity
- * @property ?string $quantity_unit
+ * @property int $invoice_id
  * @property ?string $label
  * @property ?string $description
- * @property ?ArrayObject<array-key, mixed> $metadata
- * @property int $invoice_id
+ * @property ?string $currency
+ * @property ?Money $unit_price
+ * @property ?Money $price_subtotal
+ * @property ?Money $price_discount
+ * @property ?Money $price_tax
+ * @property ?Money $price
+ * @property int $quantity
+ * @property ?string $quantity_unit
+ * @property ?InvoiceTaxCollection $taxes
+ * @property ?InvoiceDiscountCollection $discounts
+ * @property ?array<array-key, mixed> $metadata
  * @property CarbonInterface $created_at
  * @property CarbonInterface $updated_at
  */
+#[CollectedBy(InvoiceItemCollection::class)]
 class InvoiceItem extends Model implements GOBLable
 {
     /**
@@ -38,7 +50,13 @@ class InvoiceItem extends Model implements GOBLable
      */
     use HasFactory;
 
-    protected $guarded = [];
+    protected $guarded = ['id'];
+
+    protected $attributes = [
+        'quantity' => 1,
+        'taxes' => '[]',
+        'discounts' => '[]',
+    ];
 
     /**
      * @return array<string, string>
@@ -46,10 +64,14 @@ class InvoiceItem extends Model implements GOBLable
     protected function casts(): array
     {
         return [
-            'unit_price' => MoneyCast::class.':currency',
-            'unit_tax' => MoneyCast::class.':currency',
-            'metadata' => AsArrayObject::class,
-            'tax_percentage' => 'float',
+            'unit_price' => MoneyCast::of('currency'),
+            'price_subtotal' => MoneyCast::of('currency'),
+            'price_discount' => MoneyCast::of('currency'),
+            'price_tax' => MoneyCast::of('currency'),
+            'price' => MoneyCast::of('currency'),
+            'taxes' => AsCollection::using(InvoiceTaxCollection::class, InvoiceTax::class),
+            'discounts' => AsCollection::using(InvoiceDiscountCollection::class, InvoiceDiscount::class),
+            'metadata' => 'array',
         ];
     }
 
@@ -58,23 +80,88 @@ class InvoiceItem extends Model implements GOBLable
      */
     public function invoice(): BelongsTo
     {
-        /** @var class-string<Invoice> */
-        $model = config()->string('invoices.model_invoice');
+        return $this->belongsTo(InvoiceServiceProvider::getInvoiceClass());
+    }
 
-        return $this->belongsTo($model);
+    public function denormalizeUnitPrice(): static
+    {
+        if ($this->unit_price === null) {
+            $this->unit_price = $this->price_subtotal?->dividedBy(
+                $this->quantity,
+                InvoiceServiceProvider::getRoundingMode()
+            );
+        }
+
+        return $this;
+    }
+
+    public function denormalizePriceSubtotal(): static
+    {
+        if ($this->price_subtotal === null) {
+            $this->price_subtotal = $this->unit_price?->multipliedBy(
+                $this->quantity,
+                InvoiceServiceProvider::getRoundingMode()
+            );
+        }
+
+        return $this;
+    }
+
+    public function denormalizePriceDiscount(): static
+    {
+        if ($this->price_discount === null) {
+            $this->price_discount = $this->discounts?->denormalize($this)->amount();
+        }
+
+        return $this;
+    }
+
+    public function denormalizePriceTax(): static
+    {
+        if ($this->price_tax === null) {
+            $this->price_tax = $this->taxes?->denormalize($this)->amount();
+        }
+
+        return $this;
+    }
+
+    public function denormalizePrice(): static
+    {
+        if ($this->price === null) {
+
+            $this->price = $this->price_subtotal?->minus($this->price_discount ?? 0)->plus($this->price_tax ?? 0);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Once set manually, prices are not updated
+     */
+    public function denormalize(): static
+    {
+        return $this
+            ->denormalizeUnitPrice()
+            ->denormalizePriceSubtotal()
+            ->denormalizePriceDiscount()
+            ->denormalizePriceTax()
+            ->denormalizePrice();
     }
 
     public function toPdfInvoiceItem(): PdfInvoiceItem
     {
         return new PdfInvoiceItem(
             label: $this->label,
-            quantity: $this->quantity ?? 1,
+            unit_price: $this->unit_price,
+            price_subtotal: $this->price_subtotal,
+            price_discount: $this->price_discount,
+            price_tax: $this->price_tax,
+            price: $this->price,
+            quantity: $this->quantity,
             quantity_unit: $this->quantity_unit,
             description: $this->description,
-            unit_price: $this->unit_price,
-            unit_tax: $this->unit_tax,
-            tax_percentage: $this->tax_percentage,
-            currency: $this->currency,
+            discounts: $this->discounts?->clone() ?? new InvoiceDiscountCollection,
+            taxes: $this->taxes?->clone() ?? new InvoiceTaxCollection,
         );
     }
 

@@ -4,81 +4,93 @@ declare(strict_types=1);
 
 namespace Elegantly\Invoices\Pdf;
 
-use Brick\Math\RoundingMode;
-use Brick\Money\Currency;
 use Brick\Money\Money;
+use Elegantly\Invoices\Collections\InvoiceDiscountCollection;
+use Elegantly\Invoices\Collections\InvoiceTaxCollection;
 use Elegantly\Invoices\Concerns\FormatForPdf;
-use Exception;
+use Elegantly\Invoices\InvoiceServiceProvider;
 
 class PdfInvoiceItem
 {
     use FormatForPdf;
 
-    public Currency $currency;
-
     public function __construct(
         public ?string $label = null,
         public ?Money $unit_price = null,
-        public ?Money $unit_tax = null,
-        public ?float $tax_percentage = null,
-        null|string|Currency $currency = null,
+        public ?Money $price_subtotal = null,
+        public ?Money $price_discount = null,
+        public ?Money $price_tax = null,
+        public ?Money $price = null,
         public int|float $quantity = 1,
         public ?string $quantity_unit = null,
         public ?string $description = null,
+        public InvoiceDiscountCollection $discounts = new InvoiceDiscountCollection,
+        public InvoiceTaxCollection $taxes = new InvoiceTaxCollection,
     ) {
-        if ($currency instanceof Currency) {
-            $this->currency = $currency;
-        } elseif ($currency) {
-            $this->currency = Currency::of($currency);
-        } elseif ($unit_price) {
-            $this->currency = $unit_price->getCurrency();
-        } elseif ($unit_tax) {
-            $this->currency = $unit_tax->getCurrency();
-        } else {
-            $this->currency = Currency::of(config()->string('invoices.default_currency'));
-        }
-
-        if ($tax_percentage && ($tax_percentage > 100 || $tax_percentage < 0)) {
-            throw new Exception("The tax_percentage parameter must be an integer between 0 and 100. {$tax_percentage} given.");
-        }
+        $this->denormalize();
     }
 
-    public function subTotalAmount(): Money
+    public function denormalizeUnitPrice(): static
     {
         if ($this->unit_price === null) {
-            return Money::ofMinor(0, $this->currency);
-        }
-
-        return $this->unit_price->multipliedBy(
-            (string) $this->quantity,
-            // @phpstan-ignore-next-line
-            config('invoices.rounding_mode', RoundingMode::HalfUp)
-        );
-    }
-
-    public function totalTaxAmount(): Money
-    {
-        if ($this->unit_tax) {
-            return $this->unit_tax->multipliedBy(
+            $this->unit_price = $this->price_subtotal?->dividedBy(
                 (string) $this->quantity,
-                // @phpstan-ignore-next-line
-                config('invoices.rounding_mode', RoundingMode::HalfUp)
+                InvoiceServiceProvider::getRoundingMode()
             );
         }
 
-        if ($this->tax_percentage) {
-            return $this->subTotalAmount()->multipliedBy(
-                (string) ($this->tax_percentage / 100.0),
-                // @phpstan-ignore-next-line
-                config('invoices.rounding_mode', RoundingMode::HalfUp)
-            );
-        }
-
-        return Money::ofMinor(0, $this->currency);
+        return $this;
     }
 
-    public function totalAmount(): Money
+    public function denormalizePriceSubtotal(): static
     {
-        return $this->subTotalAmount()->plus($this->totalTaxAmount());
+        if ($this->price_subtotal === null) {
+            $this->price_subtotal = $this->unit_price?->multipliedBy(
+                (string) $this->quantity,
+                InvoiceServiceProvider::getRoundingMode()
+            );
+        }
+
+        return $this;
+    }
+
+    public function denormalizePriceDiscount(): static
+    {
+        if ($this->price_discount === null) {
+            $this->price_discount = $this->discounts->denormalize($this)->amount();
+        }
+
+        return $this;
+    }
+
+    public function denormalizePriceTax(): static
+    {
+        if ($this->price_tax === null) {
+            $this->price_tax = $this->taxes->denormalize($this)->amount();
+        }
+
+        return $this;
+    }
+
+    public function denormalizePrice(): static
+    {
+        if ($this->price === null) {
+            $this->price = $this->price_subtotal?->minus($this->price_discount ?? 0)->plus($this->price_tax ?? 0);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Once set manually, prices are not updated
+     */
+    public function denormalize(): static
+    {
+        return $this
+            ->denormalizeUnitPrice()
+            ->denormalizePriceSubtotal()
+            ->denormalizePriceDiscount()
+            ->denormalizePriceTax()
+            ->denormalizePrice();
     }
 }

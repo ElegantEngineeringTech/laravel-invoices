@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace Elegantly\Invoices;
 
 use BackedEnum;
+use Brick\Math\RoundingMode;
 use Elegantly\Invoices\Commands\DenormalizeInvoicesCommand;
+use Elegantly\Invoices\Models\Invoice;
+use Elegantly\Invoices\Models\InvoiceItem;
 use Elegantly\Invoices\Support\Address;
 use Elegantly\Invoices\Support\Identity;
 use Elegantly\Invoices\Support\Party;
@@ -48,6 +51,10 @@ class InvoiceServiceProvider extends PackageServiceProvider
         /** @var null|int|string */
         $value = enum_value($type);
 
+        if ($value === null) {
+            return null;
+        }
+
         /** @var string|array<string, string> $prefixes */
         $prefixes = config('invoices.serial_number.prefix', '');
 
@@ -62,6 +69,10 @@ class InvoiceServiceProvider extends PackageServiceProvider
     {
         /** @var null|int|string */
         $value = enum_value($type);
+
+        if ($value === null) {
+            throw new Exception("No serial number format defined in config for type: {$value}.");
+        }
 
         /** @var string|array<string, string> $formats */
         $formats = config('invoices.serial_number.format') ?? '';
@@ -132,5 +143,29 @@ class InvoiceServiceProvider extends PackageServiceProvider
     {
         // @phpstan-ignore-next-line
         return config('invoices.tax_id_class') ?? TaxId::class;
+    }
+
+    /**
+     * @return class-string<Invoice>
+     */
+    public static function getInvoiceClass(): string
+    {
+        // @phpstan-ignore-next-line
+        return config('invoices.model_invoice') ?? Invoice::class;
+    }
+
+    /**
+     * @return class-string<InvoiceItem>
+     */
+    public static function getInvoiceItemClass(): string
+    {
+        // @phpstan-ignore-next-line
+        return config('invoices.model_invoice_item') ?? InvoiceItem::class;
+    }
+
+    public static function getRoundingMode(): RoundingMode
+    {
+        // @phpstan-ignore-next-line
+        return config('invoices.rounding_mode') ?? RoundingMode::HalfUp;
     }
 }

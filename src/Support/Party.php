@@ -193,6 +193,7 @@ class Party implements Arrayable, Castable, GOBLable, Jsonable, JsonSerializable
             {
                 return match (true) {
                     is_array($value) => $this->class::fromArray($value),
+                    // @phpstan-ignore-next-line
                     is_string($value) => $this->class::fromArray(json_decode($value, true)),
                     default => null
                 };
