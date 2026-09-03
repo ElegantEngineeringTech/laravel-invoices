@@ -1,0 +1,13 @@
+<?php
+
+declare(strict_types=1);
+
+return [
+    'states' => ['draft' => 'Rascunho', 'pending' => 'Pendente', 'paid' => 'Paga', 'refunded' => 'Reembolsada'],
+    'types' => ['invoice' => 'Nota fiscal', 'quote' => 'Orçamento', 'credit' => 'Nota de crédito', 'proforma' => 'Nota fiscal proforma'],
+    'pdf' => [
+        'page' => 'Página', 'serial_number' => 'Número da nota fiscal', 'due_at' => 'Vencimento', 'created_at' => 'Criada em', 'paid_at' => 'Paga em', 'description' => 'Descrição', 'from' => 'De', 'to' => 'Para', 'shipping_to' => 'Entregar em',
+        'items' => ['label' => 'Descrição', 'quantity' => 'Qtd.', 'unit_price' => 'Preço unitário', 'tax' => 'Imposto', 'discount' => 'Desconto', 'amount' => 'Valor'],
+        'summary' => ['tax' => 'Imposto', 'subtotal' => 'Subtotal', 'discount' => 'Desconto', 'discounted' => 'Subtotal após desconto', 'total' => 'Total'],
+    ],
+];

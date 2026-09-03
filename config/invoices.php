@@ -66,7 +66,7 @@ return [
 
     ],
 
-    'date_format' => 'Y-m-d',
+    'date_format' => 'YYYY-MM-DD',
 
     'rounding_mode' => RoundingMode::HalfUp,
 

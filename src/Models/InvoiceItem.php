@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Elegantly\Invoices\Models;
 
-use Brick\Math\RoundingMode;
 use Brick\Money\Money;
 use Carbon\CarbonInterface;
 use Elegantly\Invoices\Collections\Eloquent\InvoiceItemCollection;

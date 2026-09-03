@@ -53,7 +53,7 @@
                                         {{ __('invoices::invoice.pdf.paid_at') }}
                                     </td>
                                     <td width="100%">
-                                        {{ $invoice->paid_at->format($dateFormat) }}
+                                        {{ $invoice->paid_at->isoFormat($dateFormat) }}
                                     </td>
                                 </tr>
                             @endif
@@ -239,7 +239,7 @@
                         {{ __($invoice->tax_label) ?? __('invoices::invoice.pdf.summary.tax') }}
                     </td>
                     <td class="whitespace-nowrap border-b py-2 pl-2 text-right text-xs">
-                        {{ $invoice->formatMoney($invoice->totalTaxAmount()) }}
+                        {{ money($invoice->totalTaxAmount()) }}
                     </td>
                 </tr>
             @endif
