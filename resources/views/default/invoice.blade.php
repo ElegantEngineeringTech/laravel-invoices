@@ -3,6 +3,7 @@
 
     $dateFormat = config('invoices.date_format');
     $discounts = $invoice->getDiscounts();
+    $taxes = $invoice->getTaxes();
 @endphp
 
 <div>
@@ -134,11 +135,11 @@
                 </th>
 
                 <th class="whitespace-nowrap border-b p-2 text-left text-xs font-normal">
-                    {{ __('invoices::invoice.pdf.items.tax') }}
+                    {{ __('invoices::invoice.pdf.items.discount') }}
                 </th>
 
                 <th class="whitespace-nowrap border-b p-2 text-left text-xs font-normal">
-                    {{ __('invoices::invoice.pdf.items.discount') }}
+                    {{ __('invoices::invoice.pdf.items.tax') }}
                 </th>
 
                 <th class="whitespace-nowrap border-b py-2 pl-2 text-right text-xs font-normal">
@@ -148,9 +149,6 @@
         </thead>
         <tbody>
             @foreach ($invoice->items as $item)
-                @php
-                @endphp
-
                 <tr>
                     <td @class(['align-top py-2 pr-2', 'border-b' => !$loop->last])>
                         <p class="text-xs"><strong>{{ $item->label }}</strong></p>
@@ -169,10 +167,18 @@
 
                     <td class="whitespace-nowrap border-b p-2 align-top text-xs">
                         <p>{{ money($item->price_discount) }}</p>
+                        @foreach ($item->discounts as $discount)
+                            <span class="inline-block size-1 rounded-full"
+                                style="background: {{ $discount->color }}"></span>
+                        @endforeach
                     </td>
 
                     <td class="whitespace-nowrap border-b p-2 align-top text-xs">
                         <p>{{ money($item->price_tax) }}</p>
+                        @foreach ($item->taxes as $tax)
+                            <span class="inline-block size-1 rounded-full"
+                                style="background: {{ $tax->color }}"></span>
+                        @endforeach
                     </td>
 
                     <td class="whitespace-nowrap border-b py-2 pl-2 text-right align-top text-xs">
@@ -209,11 +215,14 @@
                             @endif
 
                             @if ($discount->percentage)
-                                ({{ $discount->percentage }})
+                                ({{ Number::percentage($discount->percentage) }})
                             @endif
+
+                            <span class="inline-block size-1 rounded-full align-top"
+                                style="background: {{ $discount->color }}"></span>
                         </td>
                         <td class="whitespace-nowrap border-b py-2 pl-2 text-right text-xs">
-                            {{ money($invoice->discount_amount) }}
+                            {{ money($discount->amount) }}
                         </td>
                     </tr>
                 @endforeach
@@ -231,17 +240,35 @@
             @endif
 
 
-            @if (false && $invoice->tax_amount)
-                <tr>
-                    {{-- empty space --}}
-                    <td class="py-2 pr-2"></td>
-                    <td class="border-b p-2 text-xs" colspan="4">
-                        {{ __($invoice->tax_label) ?? __('invoices::invoice.pdf.summary.tax') }}
-                    </td>
-                    <td class="whitespace-nowrap border-b py-2 pl-2 text-right text-xs">
-                        {{ money($invoice->totalTaxAmount()) }}
-                    </td>
-                </tr>
+            @if ($taxes->isNotEmpty())
+                @foreach ($taxes as $tax)
+                    <tr class="text-gray-500">
+                        {{-- empty space --}}
+                        <td class="py-2 pr-2"></td>
+                        <td class="border-b p-2 text-xs" colspan="4">
+                            @if ($tax->label)
+                                {{ $tax->label }}
+                            @else
+                                {{ __('invoices::invoice.pdf.summary.tax') }}
+                            @endif
+
+                            @if ($tax->type)
+                                {{ $tax->type }}
+                            @endif
+
+                            @if ($tax->percentage)
+                                ({{ Number::percentage($tax->percentage) }})
+                            @endif
+
+                            <span class="inline-block size-1 rounded-full align-top"
+                                style="background: {{ $tax->color }}"></span>
+                        </td>
+                        <td class="whitespace-nowrap border-b py-2 pl-2 text-right text-xs">
+                            {{ money($tax->amount) }}
+                        </td>
+                    </tr>
+                @endforeach
+
             @endif
 
             <tr>

@@ -29,6 +29,8 @@ class InvoiceTax implements Arrayable, Jsonable, JsonSerializable
 
     public ?string $label = null;
 
+    public ?string $color = null;
+
     /**
      * @param  string|array{
      *      type?: null|string,
@@ -37,6 +39,7 @@ class InvoiceTax implements Arrayable, Jsonable, JsonSerializable
      *      currency?: null|string,
      *      percentage?: null|float,
      *      label?: null|string,
+     *      color?: null|float,
      * }  $type
      */
     public function __construct(
@@ -45,6 +48,7 @@ class InvoiceTax implements Arrayable, Jsonable, JsonSerializable
         ?Money $amount = null,
         ?float $percentage = null,
         ?string $label = null,
+        ?string $color = null,
     ) {
         if (is_array($type)) {
 
@@ -52,6 +56,7 @@ class InvoiceTax implements Arrayable, Jsonable, JsonSerializable
             $this->taxability = $type['taxability'] ?? null;
             $this->percentage = $type['percentage'] ?? null;
             $this->label = $type['label'] ?? null;
+            $this->color = $code['color'] ?? null;
 
             $amount = $type['amount'] ?? null;
             $currency = $type['currency'] ?? null;
@@ -68,6 +73,7 @@ class InvoiceTax implements Arrayable, Jsonable, JsonSerializable
             $this->amount = $amount;
             $this->percentage = $percentage;
             $this->label = $label;
+            $this->color = $color;
         }
     }
 
@@ -79,6 +85,7 @@ class InvoiceTax implements Arrayable, Jsonable, JsonSerializable
      *      currency: ?string,
      *      percentage: ?float,
      *      label: ?string,
+     *      color: null|string,
      * }
      */
     public function toArray(): array
@@ -101,6 +108,7 @@ class InvoiceTax implements Arrayable, Jsonable, JsonSerializable
      *      currency: ?string,
      *      percentage: ?float,
      *      label: ?string,
+     *      color: null|string,
      * }
      */
     public function jsonSerialize(): array
@@ -121,6 +129,7 @@ class InvoiceTax implements Arrayable, Jsonable, JsonSerializable
      *      currency: ?string,
      *      percentage: ?float,
      *      label: ?string,
+     *      color: null|string,
      * }
      */
     public function toLivewire()
@@ -136,6 +145,7 @@ class InvoiceTax implements Arrayable, Jsonable, JsonSerializable
      *      currency: ?string,
      *      percentage: ?float,
      *      label: ?string,
+     *      color: null|string,
      * } $value
      */
     // @phpstan-ignore-next-line

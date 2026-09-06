@@ -82,9 +82,9 @@ class InvoiceItem extends Model implements GOBLable
         return $this->belongsTo(InvoiceServiceProvider::getInvoiceClass());
     }
 
-    public function denormalizeUnitPrice(): static
+    public function denormalizeUnitPrice(bool $force = false): static
     {
-        if ($this->unit_price === null) {
+        if ($this->unit_price === null || $force) {
             $this->unit_price = $this->price_subtotal?->dividedBy(
                 $this->quantity,
                 InvoiceServiceProvider::getRoundingMode()
@@ -94,9 +94,9 @@ class InvoiceItem extends Model implements GOBLable
         return $this;
     }
 
-    public function denormalizePriceSubtotal(): static
+    public function denormalizePriceSubtotal(bool $force = false): static
     {
-        if ($this->price_subtotal === null) {
+        if ($this->price_subtotal === null || $force) {
             $this->price_subtotal = $this->unit_price?->multipliedBy(
                 $this->quantity,
                 InvoiceServiceProvider::getRoundingMode()
@@ -106,27 +106,27 @@ class InvoiceItem extends Model implements GOBLable
         return $this;
     }
 
-    public function denormalizePriceDiscount(): static
+    public function denormalizePriceDiscount(bool $force = false): static
     {
-        if ($this->price_discount === null) {
-            $this->price_discount = $this->discounts?->denormalize($this)->amount();
+        if ($this->price_discount === null || $force) {
+            $this->price_discount = $this->discounts?->denormalize($this, $force)->amount();
         }
 
         return $this;
     }
 
-    public function denormalizePriceTax(): static
+    public function denormalizePriceTax(bool $force = false): static
     {
-        if ($this->price_tax === null) {
-            $this->price_tax = $this->taxes?->denormalize($this)->amount();
+        if ($this->price_tax === null || $force) {
+            $this->price_tax = $this->taxes?->denormalize($this, $force)->amount();
         }
 
         return $this;
     }
 
-    public function denormalizePrice(): static
+    public function denormalizePrice(bool $force = false): static
     {
-        if ($this->price === null) {
+        if ($this->price === null || $force) {
 
             $this->price = $this->price_subtotal?->minus($this->price_discount ?? 0)->plus($this->price_tax ?? 0);
         }
@@ -137,14 +137,14 @@ class InvoiceItem extends Model implements GOBLable
     /**
      * Once set manually, prices are not updated
      */
-    public function denormalize(): static
+    public function denormalize(bool $force = false): static
     {
         return $this
-            ->denormalizeUnitPrice()
-            ->denormalizePriceSubtotal()
-            ->denormalizePriceDiscount()
-            ->denormalizePriceTax()
-            ->denormalizePrice();
+            ->denormalizeUnitPrice($force)
+            ->denormalizePriceSubtotal($force)
+            ->denormalizePriceDiscount($force)
+            ->denormalizePriceTax($force)
+            ->denormalizePrice($force);
     }
 
     public function toPdfInvoiceItem(): PdfInvoiceItem

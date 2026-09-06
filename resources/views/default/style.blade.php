@@ -99,6 +99,14 @@
         text-decoration: none,
     }
 
+    .block {
+        display: block;
+    }
+
+    .inline-block {
+        display: inline-block;
+    }
+
     .font-normal {
         font-weight: normal;
     }
@@ -133,6 +141,10 @@
 
     .align-top {
         vertical-align: top;
+    }
+
+    .align-text-top {
+        vertical-align: text-top;
     }
 
     .whitespace-nowrap {
@@ -385,6 +397,21 @@
 
     .w-28 {
         width: 7rem;
+    }
+
+    .size-4 {
+        width: 16px;
+        height: 16px;
+    }
+
+    .size-2 {
+        width: 8px;
+        height: 8px;
+    }
+
+    .size-1 {
+        width: 4px;
+        height: 4px;
     }
 
     .text-gray-500 {

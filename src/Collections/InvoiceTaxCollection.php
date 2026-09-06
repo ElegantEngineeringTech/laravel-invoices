@@ -29,38 +29,53 @@ class InvoiceTaxCollection extends Collection
         return $this->map(fn ($item) => clone $item);
     }
 
-    public function denormalize(InvoiceItem|PdfInvoiceItem $item): static
-    {
+    public function denormalize(
+        InvoiceItem|PdfInvoiceItem $item,
+        bool $force = false
+    ): static {
 
-        $this->each(function ($tax) use ($item) {
-            if ($item->price_subtotal === null || $item->price_discount === null) {
-                return;
-            }
+        if ($item->price_subtotal === null || $item->price_discount === null) {
+            return $this;
+        }
 
-            $subtotal = $item->price_subtotal->minus(
-                $item->price_discount,
-                InvoiceServiceProvider::getRoundingMode()
-            );
+        $subtotal = $item->price_subtotal->minus(
+            $item->price_discount,
+            InvoiceServiceProvider::getRoundingMode()
+        );
 
-            if ($tax->amount === null && $tax->percentage) {
+        foreach ($this->items as $tax) {
+
+            if (
+                $tax->percentage !== null &&
+                ($tax->amount === null || $force)
+            ) {
+
                 $tax->amount = $subtotal->multipliedBy(
                     (string) ($tax->percentage / 100),
                     InvoiceServiceProvider::getRoundingMode()
                 );
             }
 
-            if ($tax->percentage === null && $tax->amount) {
-                $tax->percentage = $tax->amount
-                    ->getMinorAmount()
-                    ->multipliedBy(100)
-                    ->dividedBy(
-                        $subtotal->getMinorAmount(),
-                        scale: 2,
-                        roundingMode: InvoiceServiceProvider::getRoundingMode()
-                    )
-                    ->toFloat();
+            if (
+                $tax->amount &&
+                ($tax->percentage === null || $force)
+            ) {
+                if ($subtotal->isZero()) {
+                    $tax->percentage = 0.0;
+                } else {
+                    $tax->percentage = $tax->amount
+                        ->getAmount()
+                        ->multipliedBy(100)
+                        ->dividedBy(
+                            $subtotal->getAmount(),
+                            scale: 2,
+                            roundingMode: InvoiceServiceProvider::getRoundingMode()
+                        )
+                        ->toFloat();
+                }
+
             }
-        });
+        }
 
         return $this;
     }

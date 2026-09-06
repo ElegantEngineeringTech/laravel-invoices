@@ -15,10 +15,10 @@ class PdfInvoiceItemCollection extends Collection
 {
     use SumMoney;
 
-    public function denormalize(): static
+    public function denormalize(bool $force = false): static
     {
-        return $this->each(function ($item) {
-            $item->denormalize();
+        return $this->each(function ($item) use ($force) {
+            $item->denormalize($force);
         });
     }
 }

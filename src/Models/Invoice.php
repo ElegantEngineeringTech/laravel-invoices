@@ -376,9 +376,9 @@ class Invoice extends Model implements Attachable
      *
      * To set values manually, set them in items
      */
-    public function denormalize(): static
+    public function denormalize(bool $force = false): static
     {
-        $this->items->denormalize();
+        $this->items->denormalize($force);
 
         $this->subtotal_amount = $this->items->sumMoney('price_subtotal');
         $this->discount_amount = $this->items->sumMoney('price_discount');

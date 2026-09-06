@@ -5,10 +5,12 @@ declare(strict_types=1);
 use Brick\Money\Money;
 use Carbon\Carbon;
 use Elegantly\Invoices\Collections\InvoiceDiscountCollection;
+use Elegantly\Invoices\Collections\InvoiceTaxCollection;
 use Elegantly\Invoices\Collections\PdfInvoiceItemCollection;
 use Elegantly\Invoices\Enums\InvoiceState;
 use Elegantly\Invoices\Enums\InvoiceType;
 use Elegantly\Invoices\InvoiceDiscount;
+use Elegantly\Invoices\InvoiceTax;
 use Elegantly\Invoices\Pdf\PdfInvoice;
 use Elegantly\Invoices\Pdf\PdfInvoiceItem;
 use Elegantly\Invoices\Support\Address;
@@ -18,9 +20,20 @@ use Elegantly\Invoices\Support\PaymentInstruction;
 use Elegantly\Invoices\Support\TaxId;
 use Illuminate\Support\Facades\Route;
 
-$discount = new InvoiceDiscount(
-    code: 'ANJE',
+$discount10 = new InvoiceDiscount(
+    code: 'CODE10',
     percentage: 10,
+);
+
+$discount20 = new InvoiceDiscount(
+    code: 'CODE20',
+    percentage: 20,
+);
+
+$tax20 = new InvoiceTax(
+    type: 'vat',
+    taxability: 'standard',
+    percentage: 20,
 );
 
 $invoice = new PdfInvoice(
@@ -89,9 +102,18 @@ $invoice = new PdfInvoice(
         new PdfInvoiceItem(
             label: 'Casting Pro',
             description: 'Jan 1 – Jan 30',
-            unit_price: Money::of(100, 'EUR'),
+            unit_price: Money::of(50, 'EUR'),
             quantity: 1,
-            discounts: new InvoiceDiscountCollection([clone $discount]),
+            discounts: new InvoiceDiscountCollection([$discount10])->clone(),
+            taxes: new InvoiceTaxCollection([$tax20])->clone(),
+        ),
+        new PdfInvoiceItem(
+            label: 'Casting Pro',
+            description: 'Feb 1 – Feb 18',
+            unit_price: Money::of(50, 'EUR'),
+            quantity: 1,
+            discounts: new InvoiceDiscountCollection([$discount10, $discount20])->clone(),
+            taxes: new InvoiceTaxCollection([$tax20])->clone(),
         ),
     ]),
     description: 'A simple description',

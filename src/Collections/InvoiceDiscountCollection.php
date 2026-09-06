@@ -29,33 +29,49 @@ class InvoiceDiscountCollection extends Collection
         return $this->map(fn ($item) => clone $item);
     }
 
-    public function denormalize(InvoiceItem|PdfInvoiceItem $item): static
-    {
+    public function denormalize(
+        InvoiceItem|PdfInvoiceItem $item,
+        bool $force = false,
+    ): static {
+        if ($item->price_subtotal === null) {
+            return $this;
+        }
 
-        $this->each(function ($discount) use ($item) {
-            if ($item->price_subtotal === null) {
-                return;
-            }
+        $subtotal = $item->price_subtotal;
 
-            if ($discount->amount === null && $discount->percentage) {
-                $discount->amount = $item->price_subtotal->multipliedBy(
+        foreach ($this->items as $discount) {
+
+            if (
+                $discount->percentage !== null &&
+                ($discount->amount === null || $force)
+            ) {
+                $discount->amount = $subtotal->multipliedBy(
                     (string) ($discount->percentage / 100),
                     InvoiceServiceProvider::getRoundingMode()
                 );
             }
 
-            if ($discount->percentage === null && $discount->amount) {
-                $discount->percentage = $discount->amount
-                    ->getMinorAmount()
-                    ->multipliedBy(100)
-                    ->dividedBy(
-                        $item->price_subtotal->getMinorAmount(),
-                        scale: 2,
-                        roundingMode: InvoiceServiceProvider::getRoundingMode()
-                    )
-                    ->toFloat();
+            if (
+                $discount->amount &&
+                ($discount->percentage === null || $force)
+            ) {
+                if ($subtotal->isZero()) {
+                    $discount->percentage = 0.0;
+                } else {
+                    $discount->percentage = $discount->amount
+                        ->getAmount()
+                        ->multipliedBy(100)
+                        ->dividedBy(
+                            $subtotal->getAmount(),
+                            scale: 2,
+                            roundingMode: InvoiceServiceProvider::getRoundingMode()
+                        )
+                        ->toFloat();
+                }
             }
-        });
+
+            $subtotal = $subtotal->minus($discount->amount);
+        }
 
         return $this;
     }

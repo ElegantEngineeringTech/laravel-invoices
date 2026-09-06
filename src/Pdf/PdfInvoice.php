@@ -8,12 +8,14 @@ use Brick\Money\Money;
 use Carbon\CarbonInterface;
 use Dompdf\Dompdf;
 use Elegantly\Invoices\Collections\InvoiceDiscountCollection;
+use Elegantly\Invoices\Collections\InvoiceTaxCollection;
 use Elegantly\Invoices\Collections\PdfInvoiceItemCollection;
 use Elegantly\Invoices\Concerns\FormatForPdf;
 use Elegantly\Invoices\Contracts\HasLabel;
 use Elegantly\Invoices\Enums\InvoiceState;
 use Elegantly\Invoices\Enums\InvoiceType;
 use Elegantly\Invoices\InvoiceDiscount;
+use Elegantly\Invoices\InvoiceTax;
 use Elegantly\Invoices\Support\Party;
 use Elegantly\Invoices\Support\PaymentInstruction;
 use Illuminate\Contracts\Mail\Attachable;
@@ -22,6 +24,8 @@ use Illuminate\Http\Response;
 use Illuminate\Mail\Attachment;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\HeaderUtils;
+
+use function Elegantly\Invoices\color;
 
 class PdfInvoice implements Attachable
 {
@@ -83,27 +87,68 @@ class PdfInvoice implements Attachable
         return $this;
     }
 
-    /**
-     * Discounts grouped by code
-     */
     public function getDiscounts(): InvoiceDiscountCollection
     {
+
+        $index = -1;
 
         $discounts = $this->items
             ->toBase()
             ->flatMap(fn ($item) => $item->discounts)
-            ->groupBy(fn ($discount) => implode('|', [$discount->code, $discount->name]))
-            ->map(function ($discounts, $group) {
-                [$code, $name] = explode('|', $group);
+            ->groupBy(fn ($discount) => implode('|', [$discount->code, $discount->name, $discount->percentage]))
+            ->map(function ($discounts, $group) use (&$index) {
+                $index++;
+                [$code, $name, $percentage] = explode('|', $group);
+
+                $color = color($index, 4);
+
+                $discounts->each(function ($discount) use ($color) {
+                    $discount->color = $color;
+                });
 
                 return new InvoiceDiscount(
                     code: $code,
                     name: $name,
+                    percentage: (float) $percentage,
                     amount: new InvoiceDiscountCollection($discounts)->amount(),
+                    color: $color,
                 );
             });
 
         return new InvoiceDiscountCollection($discounts);
+
+    }
+
+    public function getTaxes(): InvoiceTaxCollection
+    {
+
+        $index = -1;
+
+        $discounts = $this->items
+            ->toBase()
+            ->flatMap(fn ($item) => $item->taxes)
+            ->groupBy(fn ($tax) => implode('|', [$tax->type, $tax->label, $tax->percentage, $tax->taxability]))
+            ->map(function ($taxes, $group) use (&$index) {
+                $index++;
+                [$type, $label, $percentage, $taxability] = explode('|', $group);
+
+                $color = color($index, 104);
+
+                $taxes->each(function ($tax) use ($color) {
+                    $tax->color = $color;
+                });
+
+                return new InvoiceTax(
+                    type: $type,
+                    label: $label,
+                    taxability: $taxability,
+                    percentage: (float) $percentage,
+                    amount: new InvoiceTaxCollection($taxes)->amount(),
+                    color: $color,
+                );
+            });
+
+        return new InvoiceTaxCollection($discounts);
 
     }
 
