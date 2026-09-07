@@ -1,10 +1,10 @@
 @if ($party->company && $party->name)
-    <p class="pb-1 text-xs"><strong>{{ $party->company }}</strong></p>
-    <p class="pb-1 text-xs">{{ $party->name }}</p>
+    <p class="p-px text-xs"><strong>{{ $party->company }}</strong></p>
+    <p class="p-px text-xs">{{ $party->name }}</p>
 @elseif($party->company)
-    <p class="pb-1 text-xs"><strong>{{ $party->company }}</strong></p>
+    <p class="p-px text-xs"><strong>{{ $party->company }}</strong></p>
 @elseif ($party->name)
-    <p class="pb-1 text-xs"><strong>{{ $party->name }}</strong></p>
+    <p class="p-px text-xs"><strong>{{ $party->name }}</strong></p>
 @endif
 
 @if ($party->address)
@@ -14,20 +14,20 @@
 @endif
 
 @if ($party->email)
-    <p class="pb-1 text-xs">{{ $party->email }}</p>
+    <p class="p-px text-xs">{{ $party->email }}</p>
 @endif
 
 @if ($party->phone)
-    <p class="pb-1 text-xs">{{ $party->phone }}</p>
+    <p class="p-px text-xs">{{ $party->phone }}</p>
 @endif
 
 @if ($party->tax_id)
-    <p class="pb-1 text-xs">{{ $party->tax_id->getLabel() }}</p>
+    <p class="p-px text-xs">{{ $party->tax_id->getLabel() }}</p>
 @endif
 
 @if ($party->identities)
     @foreach ($party->identities as $identity)
-        <p class="pb-1 text-xs">
+        <p class="p-px text-xs">
             {{ $identity->getLabel() }} {{ $identity->code }}
         </p>
     @endforeach
@@ -35,7 +35,7 @@
 
 @if ($party->fields)
     @foreach ($party->fields as $key => $value)
-        <p class="pb-1 text-xs">
+        <p class="p-px text-xs">
             @if (is_string($key))
                 {{ __($key) }}
             @endif

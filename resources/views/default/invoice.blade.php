@@ -12,10 +12,10 @@
         <tbody>
             <tr>
                 <td class="p-0 align-top">
-                    <h1 class="mb-1 text-2xl">
+                    <h1 class="mb-1 p-px text-2xl">
                         <strong>{{ $invoice->getTypeLabel() }}</strong>
                     </h1>
-                    <p class="mb-5 text-sm">
+                    <p class="mb-5 p-px text-sm">
                         {{ $invoice->getStateLabel() }}
                     </p>
 
@@ -76,7 +76,7 @@
                     </table>
                 </td>
                 @if ($invoice->logo)
-                    <td class="p-0 align-top" width="20%">
+                    <td class="align-top" width="20%">
                         <img src="{{ $invoice->logo }}" alt="logo" height="100" />
                     </td>
                 @endif
@@ -89,14 +89,18 @@
         <tbody>
             <tr>
                 <td class="p-0 align-top" width="33%">
-                    <p class="mb-1 pb-1 text-xs text-gray-500">{{ __('invoices::invoice.pdf.from') }}</p>
+                    <p class="mb-1 whitespace-nowrap p-px text-xs text-gray-500">
+                        {{ __('invoices::invoice.pdf.from') }}
+                    </p>
 
                     @include('invoices::default.includes.party', [
                         'party' => $invoice->seller,
                     ])
                 </td>
                 <td class="p-0 align-top" width="33%">
-                    <p class="mb-1 pb-1 text-xs text-gray-500">{{ __('invoices::invoice.pdf.to') }}</p>
+                    <p class="mb-1 whitespace-nowrap p-px text-xs text-gray-500">
+                        {{ __('invoices::invoice.pdf.to') }}
+                    </p>
 
                     @include('invoices::default.includes.party', [
                         'party' => $invoice->buyer,
@@ -106,7 +110,7 @@
                 @if ($invoice->buyer->shipping_address)
                     <td class="p-0 align-top" width="33%">
 
-                        <p class="mb-1 whitespace-nowrap pb-1 text-xs text-gray-500">
+                        <p class="mb-1 whitespace-nowrap p-px text-xs text-gray-500">
                             {{ __('invoices::invoice.pdf.shipping_to') }}
                         </p>
 
@@ -167,23 +171,29 @@
                     </td>
 
                     <td class="whitespace-nowrap border-b p-2 align-top text-xs">
-                        <p>{{ money($item->price_discount) }}</p>
-                        @foreach ($item->discounts as $discount)
-                            @include('invoices::default.includes.indicator', [
-                                'index' => $discount->getIndex(),
-                                'seed' => 4,
-                            ])
-                        @endforeach
+                        <p>
+                            {{ money($item->price_discount) }}
+
+                            @foreach ($item->discounts as $discount)
+                                @include('invoices::default.includes.indicator', [
+                                    'index' => $discount->getIndex(),
+                                    'seed' => 4,
+                                ])
+                            @endforeach
+                        </p>
                     </td>
 
                     <td class="whitespace-nowrap border-b p-2 align-top text-xs">
-                        <p>{{ money($item->price_tax) }}</p>
-                        @foreach ($item->taxes as $tax)
-                            @include('invoices::default.includes.indicator', [
-                                'index' => $tax->getIndex(),
-                                'seed' => 104,
-                            ])
-                        @endforeach
+                        <p>
+                            {{ money($item->price_tax) }}
+
+                            @foreach ($item->taxes as $tax)
+                                @include('invoices::default.includes.indicator', [
+                                    'index' => $tax->getIndex(),
+                                    'seed' => 104,
+                                ])
+                            @endforeach
+                        </p>
                     </td>
 
                     <td class="whitespace-nowrap border-b py-2 pl-2 text-right align-top text-xs">
@@ -298,67 +308,21 @@
     </table>
 
     @if ($invoice->description)
-        <p class="mb-2 text-sm">
+        <p class="mb-2 p-px text-sm">
             <strong> {{ __('invoices::invoice.pdf.description') }} </strong>
         </p>
-        <p class="whitespace-pre-line text-xs">{!! $invoice->description !!}</p>
+        <p class="whitespace-pre-line p-px text-xs">{!! $invoice->description !!}</p>
     @endif
 
     @if ($invoice->paymentInstructions)
         <div class="mt-12">
             @foreach ($invoice->paymentInstructions as $paymentInstruction)
-                <div @class([
-                    'border-b' => !$loop->last,
-                    '-ml-12 -mr-12 px-12 bg-zinc-100 py-6',
-                ])>
-
-                    <table class="w-full">
-                        <tbody>
-                            <tr>
-                                <td class="w-full p-0 align-top">
-                                    @if ($paymentInstruction->name)
-                                        <p class="mb-1 text-xs">
-                                            <strong>{!! __($paymentInstruction->name) !!}</strong>
-                                        </p>
-                                    @endif
-
-                                    @if ($paymentInstruction->description)
-                                        <p class="mb-3 text-xs">
-                                            {!! __($paymentInstruction->description) !!}
-                                        </p>
-                                    @endif
-
-                                    <table>
-                                        <tbody>
-                                            @foreach ($paymentInstruction->fields as $key => $value)
-                                                <tr>
-                                                    @if (is_string($key))
-                                                        <td class="py-1 pr-5 text-xs">{{ __($key) }}</td>
-                                                        <td class="py-1 pl-2 text-xs text-gray-500">
-                                                            {!! $value !!}
-                                                        </td>
-                                                    @else
-                                                        <td class="py-1 pr-5 text-xs" colspan="2">
-                                                            {!! $value !!}
-                                                        </td>
-                                                    @endif
-                                                </tr>
-                                            @endforeach
-                                        </tbody>
-                                    </table>
-                                </td>
-                                @if ($paymentInstruction->qrcode)
-                                    <td class="min-w-28 p-0 align-top">
-                                        <img src="{{ $paymentInstruction->qrcode }}" class="w-28 bg-white" />
-                                    </td>
-                                @endif
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+                @include('invoices::default.includes.payment-instructions', [
+                    'last' => $loop->last,
+                    'paymentInstruction' => $paymentInstruction,
+                ])
             @endforeach
         </div>
     @endif
-
 
 </div>
