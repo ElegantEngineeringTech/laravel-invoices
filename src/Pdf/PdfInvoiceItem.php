@@ -7,13 +7,10 @@ namespace Elegantly\Invoices\Pdf;
 use Brick\Money\Money;
 use Elegantly\Invoices\Collections\InvoiceDiscountCollection;
 use Elegantly\Invoices\Collections\InvoiceTaxCollection;
-use Elegantly\Invoices\Concerns\FormatForPdf;
 use Elegantly\Invoices\InvoiceServiceProvider;
 
 class PdfInvoiceItem
 {
-    use FormatForPdf;
-
     public function __construct(
         public ?string $label = null,
         public ?Money $unit_price = null,

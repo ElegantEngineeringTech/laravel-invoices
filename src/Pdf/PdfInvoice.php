@@ -10,7 +10,6 @@ use Dompdf\Dompdf;
 use Elegantly\Invoices\Collections\InvoiceDiscountCollection;
 use Elegantly\Invoices\Collections\InvoiceTaxCollection;
 use Elegantly\Invoices\Collections\PdfInvoiceItemCollection;
-use Elegantly\Invoices\Concerns\FormatForPdf;
 use Elegantly\Invoices\Contracts\HasLabel;
 use Elegantly\Invoices\Enums\InvoiceState;
 use Elegantly\Invoices\Enums\InvoiceType;
@@ -25,12 +24,8 @@ use Illuminate\Mail\Attachment;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\HeaderUtils;
 
-use function Elegantly\Invoices\color;
-
 class PdfInvoice implements Attachable
 {
-    use FormatForPdf;
-
     public string $template;
 
     /**
@@ -65,8 +60,6 @@ class PdfInvoice implements Attachable
 
         public ?string $logo = null,
     ) {
-        $this->denormalize();
-
         // @phpstan-ignore-next-line
         $this->logo = $logo ?? config('invoices.pdf.logo') ?? config('invoices.default_logo');
         // @phpstan-ignore-next-line
@@ -100,10 +93,8 @@ class PdfInvoice implements Attachable
                 $index++;
                 [$code, $name, $percentage] = explode('|', $group);
 
-                $color = color($index, 4);
-
-                $discounts->each(function ($discount) use ($color) {
-                    $discount->color = $color;
+                $discounts->each(function ($discount) use ($index) {
+                    $discount->setIndex($index);
                 });
 
                 return new InvoiceDiscount(
@@ -111,8 +102,7 @@ class PdfInvoice implements Attachable
                     name: $name,
                     percentage: (float) $percentage,
                     amount: new InvoiceDiscountCollection($discounts)->amount(),
-                    color: $color,
-                );
+                )->setIndex($index);
             });
 
         return new InvoiceDiscountCollection($discounts);
@@ -132,10 +122,8 @@ class PdfInvoice implements Attachable
                 $index++;
                 [$type, $label, $percentage, $taxability] = explode('|', $group);
 
-                $color = color($index, 104);
-
-                $taxes->each(function ($tax) use ($color) {
-                    $tax->color = $color;
+                $taxes->each(function ($tax) use ($index) {
+                    $tax->setIndex($index);
                 });
 
                 return new InvoiceTax(
@@ -144,8 +132,7 @@ class PdfInvoice implements Attachable
                     taxability: $taxability,
                     percentage: (float) $percentage,
                     amount: new InvoiceTaxCollection($taxes)->amount(),
-                    color: $color,
-                );
+                )->setIndex($index);
             });
 
         return new InvoiceTaxCollection($discounts);

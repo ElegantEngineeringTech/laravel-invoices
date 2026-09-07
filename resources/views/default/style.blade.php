@@ -430,6 +430,10 @@
         background-color: #f4f4f5;
     }
 
+    .rounded-full {
+        border-radius: 100%;
+    }
+
     .dompdf-page:after {
         content: counter(page);
     }

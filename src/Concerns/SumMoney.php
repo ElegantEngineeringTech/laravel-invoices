@@ -8,6 +8,8 @@ use Brick\Math\RoundingMode;
 use Brick\Money\Money;
 use Elegantly\Invoices\InvoiceServiceProvider;
 
+use function Elegantly\Money\sumMoney;
+
 trait SumMoney
 {
     public function sumMoney(
@@ -16,19 +18,6 @@ trait SumMoney
     ): ?Money {
         $roundingMode ??= InvoiceServiceProvider::getRoundingMode();
 
-        $items = $this->where($column, '!=', null);
-
-        if ($first = $items->shift()) {
-            // @phpstan-ignore-next-line
-            return $items->reduce(
-                // @phpstan-ignore-next-line
-                fn (Money $total, $item) => $total->plus(data_get($item, $column), $roundingMode),
-                // @phpstan-ignore-next-line
-                data_get($first, $column)
-            );
-        }
-
-        return null;
-
+        return sumMoney($this->items, $column, $roundingMode);
     }
 }

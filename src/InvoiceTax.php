@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Elegantly\Invoices;
 
 use Brick\Money\Money;
-use Elegantly\Invoices\Concerns\FormatForPdf;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\Jsonable;
 use JsonSerializable;
@@ -17,7 +16,7 @@ use JsonSerializable;
  */
 class InvoiceTax implements Arrayable, Jsonable, JsonSerializable
 {
-    use FormatForPdf;
+    protected int $index;
 
     public ?string $type = null;
 
@@ -29,8 +28,6 @@ class InvoiceTax implements Arrayable, Jsonable, JsonSerializable
 
     public ?string $label = null;
 
-    public ?string $color = null;
-
     /**
      * @param  string|array{
      *      type?: null|string,
@@ -39,7 +36,6 @@ class InvoiceTax implements Arrayable, Jsonable, JsonSerializable
      *      currency?: null|string,
      *      percentage?: null|float,
      *      label?: null|string,
-     *      color?: null|float,
      * }  $type
      */
     public function __construct(
@@ -48,7 +44,6 @@ class InvoiceTax implements Arrayable, Jsonable, JsonSerializable
         ?Money $amount = null,
         ?float $percentage = null,
         ?string $label = null,
-        ?string $color = null,
     ) {
         if (is_array($type)) {
 
@@ -56,7 +51,6 @@ class InvoiceTax implements Arrayable, Jsonable, JsonSerializable
             $this->taxability = $type['taxability'] ?? null;
             $this->percentage = $type['percentage'] ?? null;
             $this->label = $type['label'] ?? null;
-            $this->color = $code['color'] ?? null;
 
             $amount = $type['amount'] ?? null;
             $currency = $type['currency'] ?? null;
@@ -73,8 +67,19 @@ class InvoiceTax implements Arrayable, Jsonable, JsonSerializable
             $this->amount = $amount;
             $this->percentage = $percentage;
             $this->label = $label;
-            $this->color = $color;
         }
+    }
+
+    public function setIndex(int $value): static
+    {
+        $this->index = $value;
+
+        return $this;
+    }
+
+    public function getIndex(): int
+    {
+        return $this->index;
     }
 
     /**
@@ -85,7 +90,6 @@ class InvoiceTax implements Arrayable, Jsonable, JsonSerializable
      *      currency: ?string,
      *      percentage: ?float,
      *      label: ?string,
-     *      color: null|string,
      * }
      */
     public function toArray(): array
@@ -108,7 +112,6 @@ class InvoiceTax implements Arrayable, Jsonable, JsonSerializable
      *      currency: ?string,
      *      percentage: ?float,
      *      label: ?string,
-     *      color: null|string,
      * }
      */
     public function jsonSerialize(): array
@@ -129,7 +132,6 @@ class InvoiceTax implements Arrayable, Jsonable, JsonSerializable
      *      currency: ?string,
      *      percentage: ?float,
      *      label: ?string,
-     *      color: null|string,
      * }
      */
     public function toLivewire()
@@ -145,7 +147,6 @@ class InvoiceTax implements Arrayable, Jsonable, JsonSerializable
      *      currency: ?string,
      *      percentage: ?float,
      *      label: ?string,
-     *      color: null|string,
      * } $value
      */
     // @phpstan-ignore-next-line

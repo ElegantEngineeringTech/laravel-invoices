@@ -1,5 +1,6 @@
 @php
     use function Elegantly\Invoices\money;
+    use function Elegantly\Invoices\color;
 
     $dateFormat = config('invoices.date_format');
     $discounts = $invoice->getDiscounts();
@@ -168,16 +169,20 @@
                     <td class="whitespace-nowrap border-b p-2 align-top text-xs">
                         <p>{{ money($item->price_discount) }}</p>
                         @foreach ($item->discounts as $discount)
-                            <span class="inline-block size-1 rounded-full"
-                                style="background: {{ $discount->color }}"></span>
+                            @include('invoices::default.includes.indicator', [
+                                'index' => $discount->getIndex(),
+                                'seed' => 4,
+                            ])
                         @endforeach
                     </td>
 
                     <td class="whitespace-nowrap border-b p-2 align-top text-xs">
                         <p>{{ money($item->price_tax) }}</p>
                         @foreach ($item->taxes as $tax)
-                            <span class="inline-block size-1 rounded-full"
-                                style="background: {{ $tax->color }}"></span>
+                            @include('invoices::default.includes.indicator', [
+                                'index' => $tax->getIndex(),
+                                'seed' => 104,
+                            ])
                         @endforeach
                     </td>
 
@@ -218,8 +223,11 @@
                                 ({{ Number::percentage($discount->percentage) }})
                             @endif
 
-                            <span class="inline-block size-1 rounded-full align-top"
-                                style="background: {{ $discount->color }}"></span>
+                            @include('invoices::default.includes.indicator', [
+                                'index' => $discount->getIndex(),
+                                'seed' => 4,
+                            ])
+
                         </td>
                         <td class="whitespace-nowrap border-b py-2 pl-2 text-right text-xs">
                             {{ money($discount->amount) }}
@@ -260,8 +268,11 @@
                                 ({{ Number::percentage($tax->percentage) }})
                             @endif
 
-                            <span class="inline-block size-1 rounded-full align-top"
-                                style="background: {{ $tax->color }}"></span>
+                            @include('invoices::default.includes.indicator', [
+                                'index' => $tax->getIndex(),
+                                'seed' => 104,
+                            ])
+
                         </td>
                         <td class="whitespace-nowrap border-b py-2 pl-2 text-right text-xs">
                             {{ money($tax->amount) }}

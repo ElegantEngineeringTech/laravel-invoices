@@ -1,4 +1,6 @@
 @php
+    use function Elegantly\Invoices\money;
+
     $font = data_get($invoice->templateData, 'font');
     $fonts = data_get($invoice->templateData, 'fonts', []);
 @endphp
@@ -33,6 +35,19 @@
 
     <div class="fixed -bottom-14 -left-12 -right-12 mx-12 mb-12">
         @include('invoices::default.includes.footer', ['invoice' => $invoice])
+
+        <table class="w-full">
+            <tbody>
+                <tr class="text-xs text-gray-500">
+                    <td class="">
+                        {{ $invoice->serial_number }} • {{ money($invoice->total_amount) }}
+                    </td>
+                    <td class="text-right">
+                        <p class="dompdf-page p-2">{{ __('invoices::invoice.pdf.page') }} </p>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 
     @include('invoices::default.invoice', ['invoice' => $invoice])

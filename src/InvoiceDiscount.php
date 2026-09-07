@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Elegantly\Invoices;
 
 use Brick\Money\Money;
-use Elegantly\Invoices\Concerns\FormatForPdf;
 use Elegantly\Invoices\Contracts\GOBLable;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\Jsonable;
@@ -18,7 +17,7 @@ use JsonSerializable;
  */
 class InvoiceDiscount implements Arrayable, GOBLable, Jsonable, JsonSerializable
 {
-    use FormatForPdf;
+    protected int $index;
 
     public ?string $code = null;
 
@@ -30,8 +29,6 @@ class InvoiceDiscount implements Arrayable, GOBLable, Jsonable, JsonSerializable
 
     public ?string $name = null;
 
-    public ?string $color = null;
-
     /**
      * @param  null|string|array{
      *      code?: null|string,
@@ -40,7 +37,6 @@ class InvoiceDiscount implements Arrayable, GOBLable, Jsonable, JsonSerializable
      *      currency?: null|string,
      *      percentage?: null|float,
      *      subtotal?: null|int|Money,
-     *      color?: null|float,
      * }  $code
      */
     public function __construct(
@@ -49,14 +45,12 @@ class InvoiceDiscount implements Arrayable, GOBLable, Jsonable, JsonSerializable
         ?Money $amount = null,
         ?float $percentage = null,
         ?Money $subtotal = null,
-        ?string $color = null,
     ) {
         if (is_array($code)) {
 
             $this->code = $code['code'] ?? null;
             $this->percentage = $code['percentage'] ?? null;
             $this->name = $code['name'] ?? null;
-            $this->color = $code['color'] ?? null;
 
             $subtotal = $code['subtotal'] ?? null;
             $amount = $code['amount'] ?? null;
@@ -80,8 +74,19 @@ class InvoiceDiscount implements Arrayable, GOBLable, Jsonable, JsonSerializable
             $this->subtotal = $subtotal;
             $this->percentage = $percentage;
             $this->name = $name;
-            $this->color = $color;
         }
+    }
+
+    public function setIndex(int $value): static
+    {
+        $this->index = $value;
+
+        return $this;
+    }
+
+    public function getIndex(): int
+    {
+        return $this->index;
     }
 
     /**
@@ -92,7 +97,6 @@ class InvoiceDiscount implements Arrayable, GOBLable, Jsonable, JsonSerializable
      *      currency: null|string,
      *      percentage: null|float,
      *      subtotal: null|int,
-     *      color: null|string,
      * }
      */
     public function toArray(): array
@@ -115,7 +119,6 @@ class InvoiceDiscount implements Arrayable, GOBLable, Jsonable, JsonSerializable
      *      currency: null|string,
      *      percentage: null|float,
      *      subtotal: null|int,
-     *      color: null|string,
      * }
      */
     public function jsonSerialize(): array
@@ -136,7 +139,6 @@ class InvoiceDiscount implements Arrayable, GOBLable, Jsonable, JsonSerializable
      *      currency: null|string,
      *      percentage: null|float,
      *      subtotal: null|int,
-     *      color: null|string,
      * }
      */
     public function toLivewire()
@@ -152,7 +154,6 @@ class InvoiceDiscount implements Arrayable, GOBLable, Jsonable, JsonSerializable
      *      currency: null|string,
      *      percentage: null|float,
      *      subtotal: null|int,
-     *      color: null|string,
      * } $value
      */
     // @phpstan-ignore-next-line
