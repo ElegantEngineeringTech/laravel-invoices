@@ -380,10 +380,21 @@ class Invoice extends Model implements Attachable
     {
         $this->items->denormalize($force);
 
-        $this->subtotal_amount = $this->items->sumMoney('price_subtotal');
-        $this->discount_amount = $this->items->sumMoney('price_discount');
-        $this->tax_amount = $this->items->sumMoney('price_tax');
-        $this->total_amount = $this->items->sumMoney('price');
+        if ($this->subtotal_amount === null || $force) {
+            $this->subtotal_amount = $this->items->sumMoney('price_subtotal');
+        }
+
+        if ($this->discount_amount === null || $force) {
+            $this->discount_amount = $this->items->sumMoney('price_discount');
+        }
+
+        if ($this->tax_amount === null || $force) {
+            $this->tax_amount = $this->items->sumMoney('price_tax');
+        }
+
+        if ($this->total_amount === null || $force) {
+            $this->total_amount = $this->items->sumMoney('price');
+        }
 
         return $this;
     }

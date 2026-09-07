@@ -113,7 +113,7 @@ return [
             'isPhpEnabled' => false,
 
             // Adjusts line-height rendering to prevent text from looking vertically "cramped"
-            'fontHeightRatio' => 0.8,
+            'fontHeightRatio' => 1.1,
 
             /**
              * Supported values are: 'DejaVu Sans', 'Helvetica', 'Courier', 'Times', 'Symbol', 'ZapfDingbats'.

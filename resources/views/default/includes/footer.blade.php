@@ -9,7 +9,7 @@
                 {{ $invoice->serial_number }} • {{ money($invoice->total_amount) }}
             </td>
             <td class="text-right">
-                <p class="dompdf-page p-2">{{ __('invoices::invoice.pdf.page') }} </p>
+                <p class="dompdf-page">{{ __('invoices::invoice.pdf.page') }} </p>
             </td>
         </tr>
     </tbody>

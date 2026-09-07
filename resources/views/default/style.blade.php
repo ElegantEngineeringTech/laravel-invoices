@@ -1,16 +1,76 @@
 <style type="text/css">
     @page {
-        margin: 48px 48px 56px 48px;
+        /* margin-bottom give space for the footer */
+        margin: 48px 48px 80px 48px;
+    }
+
+    .-top-12 {
+        top: -48px;
+    }
+
+    .-left-12 {
+        left: -48px;
+    }
+
+    .-right-12 {
+        right: -48px;
+    }
+
+    .-bottom-20 {
+        bottom: -80px;
+    }
+
+    .-bottom-16\.5 {
+        bottom: -66px;
+    }
+
+    .m-12 {
+        margin: 48px;
+    }
+
+    .mx-12 {
+        margin-left: 48px;
+        margin-right: 48px;
+    }
+
+    .my-12 {
+        margin-top: 48px;
+        margin-bottom: 48px;
+    }
+
+    .mb-12 {
+        margin-bottom: 48px;
+    }
+
+    .mt-12 {
+        margin-top: 48px;
+    }
+
+    html {
+        font-size: 16px;
+        line-height: 1.5;
+    }
+
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
     }
 
     body {
         margin: 0;
-        line-height: inherit;
+        font-size: 16px;
+        line-height: 24px;
         color: #050038;
         background-color: #fff;
         text-align: left;
         font-feature-settings: normal;
         font-variation-settings: normal;
+    }
+
+    strong,
+    b {
+        font-weight: 700;
     }
 
     h1,
@@ -21,11 +81,6 @@
     h6 {
         font-size: inherit;
         font-weight: inherit;
-    }
-
-    b,
-    strong {
-        font-weight: bolder;
     }
 
     small {
@@ -373,6 +428,10 @@
 
     .-bottom-14 {
         bottom: -56px;
+    }
+
+    .-bottom-16 {
+        bottom: -64px;
     }
 
     .left-0 {

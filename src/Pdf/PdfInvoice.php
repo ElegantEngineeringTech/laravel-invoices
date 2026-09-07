@@ -68,14 +68,25 @@ class PdfInvoice implements Attachable
         $this->templateData = $templateData ?: config('invoices.pdf.template_data') ?: [];
     }
 
-    public function denormalize(): static
+    public function denormalize(bool $force = false): static
     {
-        $this->items->denormalize();
+        $this->items->denormalize($force);
 
-        $this->subtotal_amount = $this->items->sumMoney('price_subtotal');
-        $this->discount_amount = $this->items->sumMoney('price_discount');
-        $this->tax_amount = $this->items->sumMoney('price_tax');
-        $this->total_amount = $this->items->sumMoney('price');
+        if ($this->subtotal_amount === null || $force) {
+            $this->subtotal_amount = $this->items->sumMoney('price_subtotal');
+        }
+
+        if ($this->discount_amount === null || $force) {
+            $this->discount_amount = $this->items->sumMoney('price_discount');
+        }
+
+        if ($this->tax_amount === null || $force) {
+            $this->tax_amount = $this->items->sumMoney('price_tax');
+        }
+
+        if ($this->total_amount === null || $force) {
+            $this->total_amount = $this->items->sumMoney('price');
+        }
 
         return $this;
     }

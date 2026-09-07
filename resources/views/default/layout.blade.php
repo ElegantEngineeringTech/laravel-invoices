@@ -31,7 +31,7 @@
         @include('invoices::default.includes.header', ['invoice' => $invoice])
     </div>
 
-    <div class="fixed -bottom-14 -left-12 -right-12 mx-12 mb-12">
+    <div class="fixed -bottom-20 -left-12 -right-12 mx-12 mb-12">
         @include('invoices::default.includes.footer', ['invoice' => $invoice])
     </div>
 
