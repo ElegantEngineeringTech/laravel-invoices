@@ -181,8 +181,8 @@ class InvoiceTax implements Arrayable, GOBLable, Jsonable, JsonSerializable
     public function toGOBL(array $values = []): array
     {
         return array_filter([
-            'cat' => $this->type ? mb_strtoupper($this->type) : null,
-            'country' => $this->country,
+            'cat' => $this->type,
+            'country' => $this->country ? mb_strtoupper($this->country) : null,
             'key' => $this->taxability,
             'percent' => $this->percentage !== null ? "{$this->percentage}%" : null,
             ...$values,

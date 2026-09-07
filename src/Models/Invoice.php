@@ -7,6 +7,7 @@ namespace Elegantly\Invoices\Models;
 use Brick\Money\Money;
 use Carbon\CarbonInterface;
 use Elegantly\Invoices\Collections\Eloquent\InvoiceItemCollection as EloquentInvoiceItemCollection;
+use Elegantly\Invoices\Contracts\GOBLable;
 use Elegantly\Invoices\Contracts\HasLabel;
 use Elegantly\Invoices\Database\Factories\InvoiceFactory;
 use Elegantly\Invoices\Enums\InvoiceState;
@@ -76,7 +77,7 @@ use Illuminate\Support\Collection as SupportCollection;
  * @property-read EloquentInvoiceItemCollection $items
  * @property-read Collection<int, static> $credits
  */
-class Invoice extends Model implements Attachable
+class Invoice extends Model implements Attachable, GOBLable
 {
     /**
      * @use HasFactory<InvoiceFactory>
@@ -554,5 +555,15 @@ class Invoice extends Model implements Attachable
             logo: $this->getLogo(),
             paymentInstructions: $this->payment_instructions?->all() ?? [],
         );
+    }
+
+    /**
+     * @see https://docs.gobl.org/draft-0/bill/invoice#invoice
+     */
+    public function toGOBL(array $values = []): array
+    {
+        return array_filter([
+            ...$values,
+        ], fn ($value) => filled($value));
     }
 }
