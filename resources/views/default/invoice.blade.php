@@ -219,8 +219,8 @@
                         {{-- empty space --}}
                         <td class="py-2 pr-2"></td>
                         <td class="border-b p-2 text-xs" colspan="4">
-                            @if ($discount->name)
-                                {{ $discount->name }}
+                            @if ($label = $discount->getLabel())
+                                {{ $label }}
                             @else
                                 {{ __('invoices::invoice.pdf.summary.discount') }}
                             @endif
@@ -264,14 +264,18 @@
                         {{-- empty space --}}
                         <td class="py-2 pr-2"></td>
                         <td class="border-b p-2 text-xs" colspan="4">
-                            @if ($tax->label)
-                                {{ $tax->label }}
+                            @if ($label = $tax->getLabel())
+                                {{ $label }}
                             @else
                                 {{ __('invoices::invoice.pdf.summary.tax') }}
-                            @endif
 
-                            @if ($tax->type)
-                                {{ $tax->type }}
+                                @if ($tax->country)
+                                    {{ $tax->country }}
+                                @endif
+
+                                @if ($tax->type)
+                                    {{ $tax->type }}
+                                @endif
                             @endif
 
                             @if ($tax->percentage)

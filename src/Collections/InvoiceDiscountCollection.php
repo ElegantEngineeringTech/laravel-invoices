@@ -70,7 +70,9 @@ class InvoiceDiscountCollection extends Collection
                 }
             }
 
-            $subtotal = $subtotal->minus($discount->amount);
+            if ($discount->amount) {
+                $subtotal = $subtotal->minus($discount->amount);
+            }
         }
 
         return $this;

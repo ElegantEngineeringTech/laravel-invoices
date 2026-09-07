@@ -11,9 +11,7 @@ use Elegantly\Invoices\Collections\InvoiceDiscountCollection;
 use Elegantly\Invoices\Collections\InvoiceTaxCollection;
 use Elegantly\Invoices\Contracts\GOBLable;
 use Elegantly\Invoices\Database\Factories\InvoiceItemFactory;
-use Elegantly\Invoices\InvoiceDiscount;
 use Elegantly\Invoices\InvoiceServiceProvider;
-use Elegantly\Invoices\InvoiceTax;
 use Elegantly\Invoices\Pdf\PdfInvoiceItem;
 use Elegantly\Money\MoneyCast;
 use Illuminate\Database\Eloquent\Attributes\CollectedBy;
@@ -68,8 +66,8 @@ class InvoiceItem extends Model implements GOBLable
             'price_discount' => MoneyCast::of('currency'),
             'price_tax' => MoneyCast::of('currency'),
             'price' => MoneyCast::of('currency'),
-            'taxes' => AsCollection::using(InvoiceTaxCollection::class, InvoiceTax::class),
-            'discounts' => AsCollection::using(InvoiceDiscountCollection::class, InvoiceDiscount::class),
+            'taxes' => AsCollection::using(InvoiceTaxCollection::class, InvoiceServiceProvider::getInvoiceTaxClass()),
+            'discounts' => AsCollection::using(InvoiceDiscountCollection::class, InvoiceServiceProvider::getInvoiceDiscountClass()),
             'metadata' => 'array',
         ];
     }

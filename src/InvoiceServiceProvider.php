@@ -163,6 +163,24 @@ class InvoiceServiceProvider extends PackageServiceProvider
         return config('invoices.model_invoice_item') ?? InvoiceItem::class;
     }
 
+    /**
+     * @return class-string<InvoiceDiscount>
+     */
+    public static function getInvoiceDiscountClass(): string
+    {
+        // @phpstan-ignore-next-line
+        return config('invoices.discount_class') ?? InvoiceDiscount::class;
+    }
+
+    /**
+     * @return class-string<InvoiceTax>
+     */
+    public static function getInvoiceTaxClass(): string
+    {
+        // @phpstan-ignore-next-line
+        return config('invoices.tax_class') ?? InvoiceTax::class;
+    }
+
     public static function getRoundingMode(): RoundingMode
     {
         // @phpstan-ignore-next-line

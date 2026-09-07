@@ -13,8 +13,7 @@ use Elegantly\Invoices\Collections\PdfInvoiceItemCollection;
 use Elegantly\Invoices\Contracts\HasLabel;
 use Elegantly\Invoices\Enums\InvoiceState;
 use Elegantly\Invoices\Enums\InvoiceType;
-use Elegantly\Invoices\InvoiceDiscount;
-use Elegantly\Invoices\InvoiceTax;
+use Elegantly\Invoices\InvoiceServiceProvider;
 use Elegantly\Invoices\Support\Party;
 use Elegantly\Invoices\Support\PaymentInstruction;
 use Illuminate\Contracts\Mail\Attachable;
@@ -93,24 +92,24 @@ class PdfInvoice implements Attachable
 
     public function getDiscounts(): InvoiceDiscountCollection
     {
+        $class = InvoiceServiceProvider::getInvoiceDiscountClass();
 
         $index = -1;
 
         $discounts = $this->items
             ->toBase()
             ->flatMap(fn ($item) => $item->discounts)
-            ->groupBy(fn ($discount) => implode('|', [$discount->code, $discount->name, $discount->percentage]))
-            ->map(function ($discounts, $group) use (&$index) {
+            ->groupBy(fn ($discount) => implode('|', [$discount->code, $discount->percentage]))
+            ->map(function ($discounts, $group) use ($class, &$index) {
                 $index++;
-                [$code, $name, $percentage] = explode('|', $group);
+                [$code, $percentage] = explode('|', $group);
 
                 $discounts->each(function ($discount) use ($index) {
                     $discount->setIndex($index);
                 });
 
-                return new InvoiceDiscount(
+                return new $class(
                     code: $code,
-                    name: $name,
                     percentage: (float) $percentage,
                     amount: new InvoiceDiscountCollection($discounts)->amount(),
                 )->setIndex($index);
@@ -122,24 +121,24 @@ class PdfInvoice implements Attachable
 
     public function getTaxes(): InvoiceTaxCollection
     {
+        $class = InvoiceServiceProvider::getInvoiceTaxClass();
 
         $index = -1;
 
         $discounts = $this->items
             ->toBase()
             ->flatMap(fn ($item) => $item->taxes)
-            ->groupBy(fn ($tax) => implode('|', [$tax->type, $tax->label, $tax->percentage, $tax->taxability]))
-            ->map(function ($taxes, $group) use (&$index) {
+            ->groupBy(fn ($tax) => implode('|', [$tax->type, $tax->percentage, $tax->taxability]))
+            ->map(function ($taxes, $group) use ($class, &$index) {
                 $index++;
-                [$type, $label, $percentage, $taxability] = explode('|', $group);
+                [$type, $percentage, $taxability] = explode('|', $group);
 
                 $taxes->each(function ($tax) use ($index) {
                     $tax->setIndex($index);
                 });
 
-                return new InvoiceTax(
+                return new $class(
                     type: $type,
-                    label: $label,
                     taxability: $taxability,
                     percentage: (float) $percentage,
                     amount: new InvoiceTaxCollection($taxes)->amount(),

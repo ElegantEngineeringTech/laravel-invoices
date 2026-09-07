@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Elegantly\Invoices;
 
 use Brick\Money\Money;
+use Elegantly\Invoices\Contracts\GOBLable;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\Jsonable;
 use JsonSerializable;
@@ -14,11 +15,16 @@ use JsonSerializable;
  *
  * @phpstan-consistent-constructor
  */
-class InvoiceTax implements Arrayable, Jsonable, JsonSerializable
+class InvoiceTax implements Arrayable, GOBLable, Jsonable, JsonSerializable
 {
+    /**
+     * Used internally to identify items in aggregate
+     */
     protected int $index;
 
     public ?string $type = null;
+
+    public ?string $country = null;
 
     public ?string $taxability = null;
 
@@ -31,6 +37,7 @@ class InvoiceTax implements Arrayable, Jsonable, JsonSerializable
     /**
      * @param  string|array{
      *      type?: null|string,
+     *      country?: null|string,
      *      taxability?: null|string,
      *      amount?: null|int|Money,
      *      currency?: null|string,
@@ -40,6 +47,7 @@ class InvoiceTax implements Arrayable, Jsonable, JsonSerializable
      */
     public function __construct(
         null|string|array $type,
+        ?string $country = null,
         ?string $taxability = null,
         ?Money $amount = null,
         ?float $percentage = null,
@@ -49,6 +57,7 @@ class InvoiceTax implements Arrayable, Jsonable, JsonSerializable
 
             $this->type = $type['type'] ?? null;
             $this->taxability = $type['taxability'] ?? null;
+            $this->country = $type['country'] ?? null;
             $this->percentage = $type['percentage'] ?? null;
             $this->label = $type['label'] ?? null;
 
@@ -63,11 +72,17 @@ class InvoiceTax implements Arrayable, Jsonable, JsonSerializable
 
         } else {
             $this->type = $type;
+            $this->country = $country;
             $this->taxability = $taxability;
             $this->amount = $amount;
             $this->percentage = $percentage;
             $this->label = $label;
         }
+    }
+
+    public function getLabel(): ?string
+    {
+        return $this->label;
     }
 
     public function setIndex(int $value): static
@@ -85,6 +100,7 @@ class InvoiceTax implements Arrayable, Jsonable, JsonSerializable
     /**
      * @return array{
      *      type: ?string,
+     *      country: ?string,
      *      taxability: ?string,
      *      amount: ?int,
      *      currency: ?string,
@@ -96,6 +112,7 @@ class InvoiceTax implements Arrayable, Jsonable, JsonSerializable
     {
         return [
             'type' => $this->type,
+            'country' => $this->country,
             'taxability' => $this->taxability,
             'amount' => $this->amount?->getMinorAmount()->toInt(),
             'currency' => $this->amount?->getCurrency()->getCurrencyCode(),
@@ -107,6 +124,7 @@ class InvoiceTax implements Arrayable, Jsonable, JsonSerializable
     /**
      * @return array{
      *      type: ?string,
+     *      country: ?string,
      *      taxability: ?string,
      *      amount: ?int,
      *      currency: ?string,
@@ -127,6 +145,7 @@ class InvoiceTax implements Arrayable, Jsonable, JsonSerializable
     /**
      * @return array{
      *      type: ?string,
+     *      country: ?string,
      *      taxability: ?string,
      *      amount: ?int,
      *      currency: ?string,
@@ -142,6 +161,7 @@ class InvoiceTax implements Arrayable, Jsonable, JsonSerializable
     /**
      * @param array{
      *      type: ?string,
+     *      country: ?string,
      *      taxability: ?string,
      *      amount: ?int,
      *      currency: ?string,
@@ -153,5 +173,16 @@ class InvoiceTax implements Arrayable, Jsonable, JsonSerializable
     public static function fromLivewire($value)
     {
         return new static($value);
+    }
+
+    /**
+     * @see https://docs.gobl.org/draft-0/tax/combo
+     */
+    public function toGOBL(array $values = []): array
+    {
+        return array_filter([
+            //
+            ...$values,
+        ], fn ($value) => filled($value));
     }
 }
