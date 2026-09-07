@@ -66,7 +66,7 @@ class InvoiceTax implements Arrayable, GOBLable, Jsonable, JsonSerializable
 
             if ($amount instanceof Money) {
                 $this->amount = $amount;
-            } elseif ($amount && $currency) {
+            } elseif ($amount !== null && $currency) {
                 $this->amount = Money::ofMinor($amount, $currency);
             }
 

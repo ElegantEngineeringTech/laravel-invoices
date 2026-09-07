@@ -170,20 +170,19 @@ class InvoiceItem extends Model implements GOBLable
      */
     public function toGOBL(array $values = []): array
     {
-        return array_filter(array_merge_recursive(
-            [
-                'quantity' => (string) $this->quantity,
-                'item' => array_filter([
-                    'name' => $this->label,
-                    'description' => $this->description,
-                    'price' => $this->unit_price?->getAmount()->toString(),
-                    'currency' => $this->unit_price?->getCurrency()->getCurrencyCode(),
-                    'unit' => $this->quantity_unit,
-                ], fn ($value) => filled($value)),
-                'discounts' => $this->discounts?->toGOBL(),
-                'taxes' => $this->taxes?->toGOBL(),
-            ],
-            $values
-        ), fn ($value) => filled($value));
+        return array_filter([
+            'quantity' => (string) $this->quantity,
+            'discounts' => $this->discounts?->toGOBL(),
+            'taxes' => $this->taxes?->toGOBL(),
+            ...$values,
+            'item' => array_filter([
+                'name' => $this->label,
+                'description' => $this->description,
+                'price' => $this->unit_price?->getAmount()->toString(),
+                'currency' => $this->unit_price?->getCurrency()->getCurrencyCode(),
+                'unit' => $this->quantity_unit,
+                ...($values['items'] ?? []),
+            ], fn ($value) => filled($value)),
+        ], fn ($value) => filled($value));
     }
 }
