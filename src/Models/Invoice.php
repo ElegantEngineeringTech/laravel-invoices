@@ -563,6 +563,39 @@ class Invoice extends Model implements Attachable, GOBLable
     public function toGOBL(array $values = []): array
     {
         return array_filter([
+            '$schema' => 'https://gobl.org/draft-0/bill/invoice',
+            'type' => match ($this->type) {
+                InvoiceType::Invoice->value => 'standard',
+                InvoiceType::Quote->value, InvoiceType::Proforma->value => 'proforma',
+                InvoiceType::Credit->value => 'credit-note',
+                default => 'other',
+            },
+            'code' => $this->serial_number,
+            'issue_date' => $this->created_at->toDateString(),
+            'currency' => $this->currency,
+            'preceding' => $this->parent ? [
+                array_filter([
+                    'code' => $this->parent->serial_number,
+                    'issue_date' => $this->parent->created_at->toDateString(),
+                ], fn ($value) => filled($value)),
+            ] : null,
+            'supplier' => $this->seller_information?->toGOBL(),
+            'customer' => $this->buyer_information?->toGOBL(),
+            'lines' => $this->items->toGOBL(),
+            'payment' => $this->due_at ? [
+                'terms' => [
+                    'key' => 'due-date',
+                    'due_dates' => [
+                        ['date' => $this->due_at->toDateString()],
+                    ],
+                ],
+            ] : null,
+            'notes' => $this->description ? [
+                [
+                    'key' => 'general',
+                    'text' => $this->description,
+                ],
+            ] : null,
             ...$values,
         ], fn ($value) => filled($value));
     }

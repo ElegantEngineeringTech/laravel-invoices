@@ -181,7 +181,8 @@ class InvoiceItem extends Model implements GOBLable
                 'price' => $this->unit_price?->getAmount()->toString(),
                 'currency' => $this->unit_price?->getCurrency()->getCurrencyCode(),
                 'unit' => $this->quantity_unit,
-                ...($values['items'] ?? []),
+                // @phpstan-ignore-next-line
+                ...($values['item'] ?? []),
             ], fn ($value) => filled($value)),
         ], fn ($value) => filled($value));
     }
