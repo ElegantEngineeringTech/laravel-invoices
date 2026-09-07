@@ -42,11 +42,15 @@ class InvoiceDiscountCollection extends Collection implements GOBLable
 
         foreach ($this->items as $discount) {
 
+            if ($discount->subtotal === null || $force) {
+                $discount->subtotal = $subtotal;
+            }
+
             if (
                 $discount->percentage !== null &&
                 ($discount->amount === null || $force)
             ) {
-                $discount->amount = $subtotal->multipliedBy(
+                $discount->amount = $discount->subtotal->multipliedBy(
                     (string) ($discount->percentage / 100),
                     InvoiceServiceProvider::getRoundingMode()
                 );
@@ -56,14 +60,14 @@ class InvoiceDiscountCollection extends Collection implements GOBLable
                 $discount->amount &&
                 ($discount->percentage === null || $force)
             ) {
-                if ($subtotal->isZero()) {
+                if ($discount->subtotal->isZero()) {
                     $discount->percentage = 0.0;
                 } else {
                     $discount->percentage = $discount->amount
                         ->getAmount()
                         ->multipliedBy(100)
                         ->dividedBy(
-                            $subtotal->getAmount(),
+                            $discount->subtotal->getAmount(),
                             scale: 2,
                             roundingMode: InvoiceServiceProvider::getRoundingMode()
                         )

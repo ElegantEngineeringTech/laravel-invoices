@@ -26,24 +26,28 @@ class InvoiceDiscount implements Arrayable, GOBLable, Jsonable, JsonSerializable
 
     public ?string $code = null;
 
+    public ?float $percentage = null;
+
     public ?Money $amount = null;
 
-    public ?float $percentage = null;
+    public ?Money $subtotal = null;
 
     /**
      * @param  null|string|array{
      *      code?: null|string,
      *      label?: null|string,
-     *      amount?: null|int|Money,
-     *      currency?: null|string,
      *      percentage?: null|float,
+     *      amount?: null|int|Money,
+     *      subtotal?: null|int|Money,
+     *      currency?: null|string,
      * }  $code
      */
     public function __construct(
         null|string|array $code = null,
         ?string $label = null,
-        ?Money $amount = null,
         ?float $percentage = null,
+        ?Money $amount = null,
+        ?Money $subtotal = null,
     ) {
         if (is_array($code)) {
 
@@ -52,6 +56,7 @@ class InvoiceDiscount implements Arrayable, GOBLable, Jsonable, JsonSerializable
             $this->percentage = $code['percentage'] ?? null;
 
             $amount = $code['amount'] ?? null;
+            $subtotal = $code['subtotal'] ?? null;
             $currency = $code['currency'] ?? null;
 
             if ($amount instanceof Money) {
@@ -60,11 +65,18 @@ class InvoiceDiscount implements Arrayable, GOBLable, Jsonable, JsonSerializable
                 $this->amount = Money::ofMinor($amount, $currency);
             }
 
+            if ($subtotal instanceof Money) {
+                $this->subtotal = $subtotal;
+            } elseif ($subtotal && $currency) {
+                $this->subtotal = Money::ofMinor($subtotal, $currency);
+            }
+
         } else {
             $this->code = $code;
             $this->label = $label;
-            $this->amount = $amount;
             $this->percentage = $percentage;
+            $this->amount = $amount;
+            $this->subtotal = $subtotal;
         }
     }
 
@@ -90,6 +102,7 @@ class InvoiceDiscount implements Arrayable, GOBLable, Jsonable, JsonSerializable
      *      code: null|string,
      *      label: null|string,
      *      amount: null|int,
+     *      subtotal: null|int,
      *      currency: null|string,
      *      percentage: null|float,
      * }
@@ -100,6 +113,7 @@ class InvoiceDiscount implements Arrayable, GOBLable, Jsonable, JsonSerializable
             'code' => $this->code,
             'label' => $this->label,
             'amount' => $this->amount?->getMinorAmount()->toInt(),
+            'subtotal' => $this->subtotal?->getMinorAmount()->toInt(),
             'currency' => $this->amount?->getCurrency()->getCurrencyCode(),
             'percentage' => $this->percentage,
         ];
@@ -110,6 +124,7 @@ class InvoiceDiscount implements Arrayable, GOBLable, Jsonable, JsonSerializable
      *      code: null|string,
      *      label: null|string,
      *      amount: null|int,
+     *      subtotal: null|int,
      *      currency: null|string,
      *      percentage: null|float,
      * }
@@ -129,6 +144,7 @@ class InvoiceDiscount implements Arrayable, GOBLable, Jsonable, JsonSerializable
      *      code: null|string,
      *      label: null|string,
      *      amount: null|int,
+     *      subtotal: null|int,
      *      currency: null|string,
      *      percentage: null|float,
      * }
@@ -143,6 +159,7 @@ class InvoiceDiscount implements Arrayable, GOBLable, Jsonable, JsonSerializable
      *      code: null|string,
      *      label: null|string,
      *      amount: null|int,
+     *      subtotal: null|int,
      *      currency: null|string,
      *      percentage: null|float,
      * } $value
@@ -165,9 +182,10 @@ class InvoiceDiscount implements Arrayable, GOBLable, Jsonable, JsonSerializable
     {
         return array_filter([
             'amount' => $this->amount?->getAmount()->toString(),
-            'percent' => $this->percentage ? "{$this->percentage}%" : null,
+            'percent' => $this->percentage !== null ? "{$this->percentage}%" : null,
             'reason' => $this->getLabel(),
             'code' => $this->code,
+            'base' => $this->subtotal,
             ...$values,
         ], fn ($value) => filled($value));
     }
