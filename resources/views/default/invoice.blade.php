@@ -315,10 +315,12 @@
     @endif
 
     @if ($invoice->paymentInstructions)
-        <div class="mt-12">
+        <div class="mt-12 pt-px">
             @foreach ($invoice->paymentInstructions as $paymentInstruction)
                 @include('invoices::default.includes.payment-instructions', [
+                    'first' => $loop->first,
                     'last' => $loop->last,
+                    'index' => $loop->index,
                     'paymentInstruction' => $paymentInstruction,
                 ])
             @endforeach

@@ -1,14 +1,11 @@
-<div @class([
-    'border-b' => !$last,
-    '-ml-12 -mr-12 px-12 bg-zinc-100 py-6',
-])>
+<div class="-ml-12 -mr-12 -mt-px border-b border-t px-12 py-6">
 
     <table class="w-full">
         <tbody>
             <tr>
                 <td class="w-full p-0 align-top">
                     @if ($paymentInstruction->name)
-                        <p class="mb-1 p-px text-xs">
+                        <p class="mb-1 p-px text-sm">
                             <strong>{!! __($paymentInstruction->name) !!}</strong>
                         </p>
                     @endif

@@ -149,6 +149,10 @@
     }
 
     /* Margin */
+    .-mt-px {
+        margin-top: -1px;
+    }
+
     .mx-12 {
         margin-right: 48px;
         margin-left: 48px;
@@ -291,6 +295,10 @@
     /* Borders */
     .border-b {
         border-bottom: 1px solid #e5e7eb;
+    }
+
+    .border-t {
+        border-top: 1px solid #e5e7eb;
     }
 
     .rounded-full {
