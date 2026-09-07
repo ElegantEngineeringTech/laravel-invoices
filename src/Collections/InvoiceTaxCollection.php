@@ -6,6 +6,7 @@ namespace Elegantly\Invoices\Collections;
 
 use Brick\Money\Money;
 use Elegantly\Invoices\Concerns\SumMoney;
+use Elegantly\Invoices\Contracts\GOBLable;
 use Elegantly\Invoices\InvoiceServiceProvider;
 use Elegantly\Invoices\InvoiceTax;
 use Elegantly\Invoices\Models\InvoiceItem;
@@ -15,7 +16,7 @@ use Illuminate\Support\Collection;
 /**
  * @extends Collection<int, InvoiceTax>
  */
-class InvoiceTaxCollection extends Collection
+class InvoiceTaxCollection extends Collection implements GOBLable
 {
     use SumMoney;
 
@@ -78,5 +79,13 @@ class InvoiceTaxCollection extends Collection
         }
 
         return $this;
+    }
+
+    public function toGOBL(array $values = []): array
+    {
+        return $this
+            ->map(fn ($tax) => $tax->toGOBL($values))
+            ->values()
+            ->all();
     }
 }

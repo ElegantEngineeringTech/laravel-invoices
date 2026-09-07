@@ -156,6 +156,8 @@ class InvoiceDiscount implements Arrayable, GOBLable, Jsonable, JsonSerializable
     /**
      * Convert the identity to its GOBL representation.
      *
+     * @see https://docs.gobl.org/draft-0/bill/line_discount
+     *
      * @param  array<array-key, mixed>  $values
      * @return array<array-key, mixed>
      */

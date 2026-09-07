@@ -180,6 +180,8 @@ class InvoiceItem extends Model implements GOBLable
                     'currency' => $this->unit_price?->getCurrency()->getCurrencyCode(),
                     'unit' => $this->quantity_unit,
                 ], fn ($value) => filled($value)),
+                'taxes' => $this->taxes?->toGOBL(),
+                'discounts' => $this->discounts?->toGOBL(),
             ],
             $values
         ), fn ($value) => filled($value));
