@@ -6,7 +6,7 @@ namespace Elegantly\Invoices\Models;
 
 use Brick\Money\Money;
 use Carbon\CarbonInterface;
-use Elegantly\Invoices\Collections\Eloquent\InvoiceItemCollection as EloquentInvoiceItemCollection;
+use Elegantly\Invoices\Collections\Eloquent\InvoiceItemCollection;
 use Elegantly\Invoices\Contracts\GOBLable;
 use Elegantly\Invoices\Contracts\HasLabel;
 use Elegantly\Invoices\Database\Factories\InvoiceFactory;
@@ -74,7 +74,7 @@ use Illuminate\Support\Collection as SupportCollection;
  * @property-read ?Model $seller
  * @property-read ?static $parent
  * @property-read ?static $quote
- * @property-read EloquentInvoiceItemCollection $items
+ * @property-read InvoiceItemCollection $items
  * @property-read Collection<int, static> $credits
  */
 class Invoice extends Model implements Attachable, GOBLable
@@ -213,6 +213,33 @@ class Invoice extends Model implements Attachable, GOBLable
     public function credits(): HasMany
     {
         return $this->children()->where('type', InvoiceType::Credit);
+    }
+
+    /**
+     * @param  array<int, InvoiceItem>|InvoiceItemCollection  $items
+     */
+    public function setItems(array|InvoiceItemCollection $items = []): static
+    {
+        return $this->setRelation('items', new InvoiceItemCollection($items));
+    }
+
+    /**
+     * @param  array<int, InvoiceItem>|InvoiceItemCollection  $items
+     */
+    public function addItems(array|InvoiceItemCollection $items = []): static
+    {
+        return $this->setRelation(
+            'items',
+            $this->items->push(...$items)
+        );
+    }
+
+    /**
+     * @return iterable<InvoiceItem>
+     */
+    public function saveItems(): iterable
+    {
+        return $this->items()->saveMany($this->items);
     }
 
     /**

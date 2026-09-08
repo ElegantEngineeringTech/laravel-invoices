@@ -7,13 +7,13 @@ use Elegantly\Invoices\Collections\InvoiceDiscountCollection;
 use Elegantly\Invoices\Collections\InvoiceTaxCollection;
 use Elegantly\Invoices\InvoiceDiscount;
 use Elegantly\Invoices\InvoiceTax;
-use Elegantly\Invoices\Pdf\PdfInvoiceItem;
+use Elegantly\Invoices\Models\InvoiceItem;
 
-it('[PdfInvoiceItem] can denormalize a simple item without discounts or taxes', function () {
-    $item = new PdfInvoiceItem(
-        unit_price: Money::of(10, 'EUR'),
-        quantity: 10,
-    );
+it('[InvoiceItem] can denormalize a simple item without discounts or taxes', function () {
+    $item = new InvoiceItem([
+        'unit_price' => Money::of(10, 'EUR'),
+        'quantity' => 10,
+    ]);
 
     $item->denormalize();
 
@@ -24,27 +24,27 @@ it('[PdfInvoiceItem] can denormalize a simple item without discounts or taxes', 
 
 });
 
-it('[PdfInvoiceItem] does not override values when denormalizing', function () {
-    $item = new PdfInvoiceItem(
-        unit_price: Money::of(10, 'EUR'),
-        quantity: 10,
-        price_subtotal: Money::of(1_111, 'EUR'),
-        price_discount: Money::of(2_222, 'EUR'),
-        price_tax: Money::of(3_333, 'EUR'),
-        price: Money::of(4_444, 'EUR'),
-        discounts: new InvoiceDiscountCollection([
+it('[InvoiceItem] does not override values when denormalizing', function () {
+    $item = new InvoiceItem([
+        'unit_price' => Money::of(10, 'EUR'),
+        'quantity' => 10,
+        'price_subtotal' => Money::of(1_111, 'EUR'),
+        'price_discount' => Money::of(2_222, 'EUR'),
+        'price_tax' => Money::of(3_333, 'EUR'),
+        'price' => Money::of(4_444, 'EUR'),
+        'discounts' => new InvoiceDiscountCollection([
             $discount1 = new InvoiceDiscount(
                 percentage : 5_000.0,
                 amount: Money::of(5_555, 'EUR'),
             ),
         ]),
-        taxes: new InvoiceTaxCollection([
+        'taxes' => new InvoiceTaxCollection([
             $tax1 = new InvoiceTax(
                 percentage : 6_000.0,
                 amount: Money::of(6_666, 'EUR'),
             ),
         ]),
-    );
+    ]);
 
     $item->denormalize();
 
@@ -61,27 +61,27 @@ it('[PdfInvoiceItem] does not override values when denormalizing', function () {
 
 });
 
-it('[PdfInvoiceItem] overrides amounts when denormalizing with $force', function () {
-    $item = new PdfInvoiceItem(
-        unit_price: Money::of(10, 'EUR'),
-        quantity: 10,
-        price_subtotal: Money::of(1_111, 'EUR'),
-        price_discount: Money::of(2_222, 'EUR'),
-        price_tax: Money::of(3_333, 'EUR'),
-        price: Money::of(4_444, 'EUR'),
-        discounts: new InvoiceDiscountCollection([
+it('[InvoiceItem] overrides amounts when denormalizing with $force', function () {
+    $item = new InvoiceItem([
+        'unit_price' => Money::of(10, 'EUR'),
+        'quantity' => 10,
+        'price_subtotal' => Money::of(1_111, 'EUR'),
+        'price_discount' => Money::of(2_222, 'EUR'),
+        'price_tax' => Money::of(3_333, 'EUR'),
+        'price' => Money::of(4_444, 'EUR'),
+        'discounts' => new InvoiceDiscountCollection([
             $discount1 = new InvoiceDiscount(
                 percentage : 10.0,
                 amount: Money::of(5_555, 'EUR'),
             ),
         ]),
-        taxes: new InvoiceTaxCollection([
+        'taxes' => new InvoiceTaxCollection([
             $tax1 = new InvoiceTax(
                 percentage : 20.0,
                 amount: Money::of(6_666, 'EUR'),
             ),
         ]),
-    );
+    ]);
 
     $item->denormalize(force: true);
 
@@ -98,11 +98,11 @@ it('[PdfInvoiceItem] overrides amounts when denormalizing with $force', function
 
 });
 
-it('[PdfInvoiceItem] can denormalize amounts from percentages', function () {
-    $item = new PdfInvoiceItem(
-        unit_price: Money::of(10, 'EUR'),
-        quantity: 10,
-        discounts: new InvoiceDiscountCollection([
+it('[InvoiceItem] can denormalize amounts from percentages', function () {
+    $item = new InvoiceItem([
+        'unit_price' => Money::of(10, 'EUR'),
+        'quantity' => 10,
+        'discounts' => new InvoiceDiscountCollection([
             $discount1 = new InvoiceDiscount(
                 percentage : 10
             ),
@@ -110,7 +110,7 @@ it('[PdfInvoiceItem] can denormalize amounts from percentages', function () {
                 percentage : 5
             ),
         ]),
-        taxes: new InvoiceTaxCollection([
+        'taxes' => new InvoiceTaxCollection([
             $tax1 = new InvoiceTax(
                 percentage : 20
             ),
@@ -118,7 +118,7 @@ it('[PdfInvoiceItem] can denormalize amounts from percentages', function () {
                 percentage : 5
             ),
         ]),
-    );
+    ]);
 
     $item->denormalize();
 
@@ -135,11 +135,11 @@ it('[PdfInvoiceItem] can denormalize amounts from percentages', function () {
 
 });
 
-it('[PdfInvoiceItem] can denormalize percentages from amounts', function () {
-    $item = new PdfInvoiceItem(
-        unit_price: Money::of(10, 'EUR'),
-        quantity: 10,
-        discounts: new InvoiceDiscountCollection([
+it('[InvoiceItem] can denormalize percentages from amounts', function () {
+    $item = new InvoiceItem([
+        'unit_price' => Money::of(10, 'EUR'),
+        'quantity' => 10,
+        'discounts' => new InvoiceDiscountCollection([
             $discount1 = new InvoiceDiscount(
                 amount: Money::of(10, 'EUR'),
             ),
@@ -147,7 +147,7 @@ it('[PdfInvoiceItem] can denormalize percentages from amounts', function () {
                 amount: Money::of('4.5', 'EUR'),
             ),
         ]),
-        taxes: new InvoiceTaxCollection([
+        'taxes' => new InvoiceTaxCollection([
             $tax1 = new InvoiceTax(
                 amount: Money::of('17.1', 'EUR'),
             ),
@@ -155,7 +155,7 @@ it('[PdfInvoiceItem] can denormalize percentages from amounts', function () {
                 amount: Money::of('4.28', 'EUR'),
             ),
         ]),
-    );
+    ]);
 
     $item->denormalize();
 
