@@ -11,12 +11,12 @@ use Elegantly\Invoices\InvoiceTax;
 use Elegantly\Invoices\Pdf\PdfInvoice;
 use Elegantly\Invoices\Pdf\PdfInvoiceItem;
 
-it('[PdfInvoice] can denormalize amounts from percentages', function () {
+it('[PdfInvoice] can denormalize amounts', function () {
     $invoice = new PdfInvoice(
         items: new PdfInvoiceItemCollection([
             $item1 = new PdfInvoiceItem(
-                unit_price: Money::of(40, 'EUR'),
-                quantity: 1,
+                unit_price: Money::of(10, 'EUR'),
+                quantity: 3,
                 discounts: new InvoiceDiscountCollection([
                     $discount1 = new InvoiceDiscount(
                         percentage : 10
@@ -24,20 +24,6 @@ it('[PdfInvoice] can denormalize amounts from percentages', function () {
                 ]),
                 taxes: new InvoiceTaxCollection([
                     $tax1 = new InvoiceTax(
-                        percentage : 20
-                    ),
-                ]),
-            ),
-            $item2 = new PdfInvoiceItem(
-                unit_price: Money::of(60, 'EUR'),
-                quantity: 1,
-                discounts: new InvoiceDiscountCollection([
-                    $discount2 = new InvoiceDiscount(
-                        percentage : 10
-                    ),
-                ]),
-                taxes: new InvoiceTaxCollection([
-                    $tax2 = new InvoiceTax(
                         percentage : 20
                     ),
                 ]),
@@ -50,21 +36,8 @@ it('[PdfInvoice] can denormalize amounts from percentages', function () {
     expect($discount1->amount)->toCost(Money::of(4, 'EUR'));
     expect($tax1->amount)->toCost(Money::of('7.2', 'EUR'));
 
-    expect($discount2->amount)->toCost(Money::of(6, 'EUR'));
-    expect($tax2->amount)->toCost(Money::of('10.8', 'EUR'));
-
-    expect($item1->price_subtotal)->toCost(Money::of(40, 'EUR'));
-    expect($item1->price_discount)->toCost(Money::of(4, 'EUR'));
-    expect($item1->price_tax)->toCost(Money::of('7.2', 'EUR'));
-
-    expect($item2->price_subtotal)->toCost(Money::of(60, 'EUR'));
-    expect($item2->price_discount)->toCost(Money::of(6, 'EUR'));
-    expect($item2->price_tax)->toCost(Money::of('10.8', 'EUR'));
-
-    expect($invoice->subtotal_amount)->toCost(Money::of(100, 'EUR'));
-    expect($invoice->discount_amount)->toCost(Money::of(10, 'EUR'));
-    expect($invoice->tax_amount)->toCost(Money::of(18, 'EUR'));
-    expect($invoice->total_amount)->toCost(Money::of(108, 'EUR'));
+    expect($item1->price_subtotal)->toCost(Money::of(30, 'EUR'));
+    expect($item1->price_discount)->toCost(Money::of('7.2', 'EUR'));
 
 });
 

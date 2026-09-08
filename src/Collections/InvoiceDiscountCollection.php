@@ -38,28 +38,24 @@ class InvoiceDiscountCollection extends Collection implements GOBLable
             return $this;
         }
 
+        $roundingMode = InvoiceServiceProvider::getRoundingMode();
+
         $subtotal = $item->price_subtotal;
 
         foreach ($this->items as $discount) {
-
-            if ($discount->subtotal === null || $force) {
+            if ($force || $discount->subtotal === null) {
                 $discount->subtotal = $subtotal;
             }
 
-            if (
-                $discount->percentage !== null &&
-                ($discount->amount === null || $force)
-            ) {
-                $discount->amount = $discount->subtotal->multipliedBy(
-                    (string) ($discount->percentage / 100),
-                    InvoiceServiceProvider::getRoundingMode()
-                );
-            }
-
-            if (
-                $discount->amount &&
-                ($discount->percentage === null || $force)
-            ) {
+            // percentage is the source of truth
+            if ($discount->percentage !== null) {
+                if ($force || $discount->amount === null) {
+                    $discount->amount = $discount->subtotal->multipliedBy(
+                        (string) ($discount->percentage / 100),
+                        $roundingMode,
+                    );
+                }
+            } elseif ($discount->amount !== null) {
                 if ($discount->subtotal->isZero()) {
                     $discount->percentage = 0.0;
                 } else {
@@ -69,14 +65,17 @@ class InvoiceDiscountCollection extends Collection implements GOBLable
                         ->dividedBy(
                             $discount->subtotal->getAmount(),
                             scale: 2,
-                            roundingMode: InvoiceServiceProvider::getRoundingMode()
+                            roundingMode: $roundingMode,
                         )
                         ->toFloat();
                 }
             }
 
-            if ($discount->amount) {
-                $subtotal = $subtotal->minus($discount->amount);
+            if ($discount->amount !== null) {
+                $subtotal = $subtotal->minus(
+                    $discount->amount,
+                    $roundingMode,
+                );
             }
         }
 

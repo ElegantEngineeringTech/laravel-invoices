@@ -32,35 +32,33 @@ class InvoiceTaxCollection extends Collection implements GOBLable
 
     public function denormalize(
         InvoiceItem|PdfInvoiceItem $item,
-        bool $force = false
+        bool $force = false,
     ): static {
 
-        if ($item->price_subtotal === null || $item->price_discount === null) {
+        if (
+            $item->price_subtotal === null ||
+            $item->price_discount === null
+        ) {
             return $this;
         }
 
+        $roundingMode = InvoiceServiceProvider::getRoundingMode();
+
         $subtotal = $item->price_subtotal->minus(
             $item->price_discount,
-            InvoiceServiceProvider::getRoundingMode()
+            $roundingMode,
         );
 
         foreach ($this->items as $tax) {
-
-            if (
-                $tax->percentage !== null &&
-                ($tax->amount === null || $force)
-            ) {
-
-                $tax->amount = $subtotal->multipliedBy(
-                    (string) ($tax->percentage / 100),
-                    InvoiceServiceProvider::getRoundingMode()
-                );
-            }
-
-            if (
-                $tax->amount &&
-                ($tax->percentage === null || $force)
-            ) {
+            // percentage is the source of truth
+            if ($tax->percentage !== null) {
+                if ($force || $tax->amount === null) {
+                    $tax->amount = $subtotal->multipliedBy(
+                        (string) ($tax->percentage / 100),
+                        $roundingMode,
+                    );
+                }
+            } elseif ($tax->amount !== null) {
                 if ($subtotal->isZero()) {
                     $tax->percentage = 0.0;
                 } else {
@@ -70,11 +68,10 @@ class InvoiceTaxCollection extends Collection implements GOBLable
                         ->dividedBy(
                             $subtotal->getAmount(),
                             scale: 2,
-                            roundingMode: InvoiceServiceProvider::getRoundingMode()
+                            roundingMode: $roundingMode,
                         )
                         ->toFloat();
                 }
-
             }
         }
 
