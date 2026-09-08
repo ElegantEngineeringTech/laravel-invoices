@@ -27,7 +27,7 @@ it('can retrieve a base64 encoded url from a binary file', function () {
 
 });
 
-it('can denormalize amounts from percentages', function () {
+it('[Invoice] can denormalize amounts from percentages', function () {
     $invoice = new Invoice;
 
     $invoice->setRelation(
@@ -85,9 +85,9 @@ it('can denormalize amounts from percentages', function () {
     expect($invoice->tax_amount)->toCost(Money::of(18, 'EUR'));
     expect($invoice->total_amount)->toCost(Money::of(108, 'EUR'));
 
-})->only();
+});
 
-it('can denormalize percentages from amounts', function () {
+it('[Invoice] can denormalize percentages from amounts', function () {
     $invoice = new Invoice;
 
     $invoice->setRelation(
@@ -145,4 +145,4 @@ it('can denormalize percentages from amounts', function () {
     expect($invoice->tax_amount)->toCost(Money::of(18, 'EUR'));
     expect($invoice->total_amount)->toCost(Money::of(108, 'EUR'));
 
-})->only();
+});

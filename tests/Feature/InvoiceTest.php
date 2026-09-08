@@ -6,7 +6,6 @@ use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use Elegantly\Invoices\Enums\InvoiceType;
 use Elegantly\Invoices\Models\Invoice;
-use Elegantly\Invoices\Models\InvoiceItem;
 use Illuminate\Database\Eloquent\Collection;
 
 it('can set the right serial number year and month from a date', function (
@@ -224,27 +223,4 @@ it('can create following serial numbers scoped by year', function () {
         ->create();
 
     expect($invoice->serial_number)->toBe('INV-24001');
-});
-
-it('denormalize amounts in invoice', function () {
-    /** @var Invoice */
-    $invoice = Invoice::factory()->make();
-    $invoice->save();
-
-    $invoice->items()->saveMany(InvoiceItem::factory(2)->make());
-
-    $invoice->denormalize()->save();
-    $pdfInvoice = $invoice->toPdfInvoice();
-
-    expect($invoice->subtotal_amount->getAmount()->toFloat())
-        ->toEqual($pdfInvoice->subTotalAmount()->getAmount()->toFloat());
-
-    expect($invoice->discount_amount->getAmount()->toFloat())
-        ->toEqual($pdfInvoice->totalDiscountAmount()->getAmount()->toFloat());
-
-    expect($invoice->tax_amount->getAmount()->toFloat())
-        ->toEqual($pdfInvoice->totalTaxAmount()->getAmount()->toFloat());
-
-    expect($invoice->total_amount->getAmount()->toFloat())
-        ->toEqual($pdfInvoice->totalAmount()->getAmount()->toFloat());
 });

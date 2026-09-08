@@ -21,6 +21,19 @@ use function Illuminate\Support\enum_value;
 
 class InvoiceServiceProvider extends PackageServiceProvider
 {
+    public const array MIGRATIONS = [
+        'create_invoices_table',
+        'create_invoice_items_table',
+        'add_discounts_column_to_invoices_table',
+        'add_type_column_to_invoices_table',
+        'add_denormalized_columns_to_invoices_table',
+        'add_serial_number_details_columns_to_invoices_table',
+        'migrate_serial_number_details_columns_to_invoices_table',
+        'add_payment_instructions_to_invoices_table',
+        'add_fields_column_to_invoices_table',
+        'migrate_tax_number_column_in_invoices_table',
+    ];
+
     public function configurePackage(Package $package): void
     {
         /*
@@ -34,16 +47,7 @@ class InvoiceServiceProvider extends PackageServiceProvider
             ->hasViews()
             ->hasTranslations()
             ->hasCommand(DenormalizeInvoicesCommand::class)
-            ->hasMigration('create_invoices_table')
-            ->hasMigration('create_invoice_items_table')
-            ->hasMigration('add_discounts_column_to_invoices_table')
-            ->hasMigration('add_type_column_to_invoices_table')
-            ->hasMigration('add_denormalized_columns_to_invoices_table')
-            ->hasMigration('add_serial_number_details_columns_to_invoices_table')
-            ->hasMigration('migrate_serial_number_details_columns_to_invoices_table')
-            ->hasMigration('add_payment_instructions_to_invoices_table')
-            ->hasMigration('add_fields_column_to_invoices_table')
-            ->hasMigration('migrate_tax_number_column_in_invoices_table');
+            ->hasMigrations(self::MIGRATIONS);
     }
 
     public static function getSerialNumberPrefixConfiguration(null|string|BackedEnum $type): ?string

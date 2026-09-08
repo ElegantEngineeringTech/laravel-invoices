@@ -46,7 +46,7 @@ class InvoiceTax implements Arrayable, GOBLable, Jsonable, JsonSerializable
      * }  $type
      */
     public function __construct(
-        null|string|array $type,
+        null|string|array $type = null,
         ?string $country = null,
         ?string $taxability = null,
         ?Money $amount = null,
