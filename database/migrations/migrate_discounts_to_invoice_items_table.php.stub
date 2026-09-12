@@ -1,0 +1,57 @@
+<?php
+
+declare(strict_types=1);
+
+use Elegantly\Invoices\InvoiceDiscount;
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\DB;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        $query = DB::table('invoices')
+            ->where('discounts', '!=', null);
+
+        $query->chunkById(100, function ($invoices) {
+            foreach ($invoices as $invoice) {
+
+                $items = DB::table('invoices_items')
+                    ->where('invoice_id', $invoice->id)
+                    ->get();
+
+                $discounts = array_map(
+                    fn ($discount) => new InvoiceDiscount(
+                        code: data_get($discount, 'code'),
+                        label: data_get($discount, 'name'),
+                        percentage: data_get($discount, 'percent_off'),
+                        amount: data_get($discount, 'amount_off'),
+                    ),
+                    json_decode($invoice->discounts, true),
+                );
+
+                foreach ($items as $item) {
+
+                    DB::table('invoices_items')
+                        ->where('id', $item->id)
+                        ->update([
+                            'discounts' => $discounts,
+                        ]);
+
+                }
+
+            }
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        //
+    }
+};

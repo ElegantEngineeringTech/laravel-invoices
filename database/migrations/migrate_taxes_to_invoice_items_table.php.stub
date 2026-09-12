@@ -47,13 +47,13 @@ return new class extends Migration
                             $amount = Money::ofMinor($item->unit_tax, $item->currency)
                                 ->multipliedBy($item->quantity);
 
-                            $percentage = $item->unit_tax / $item->unit_price * 100;
+                            $percentage = $item->unit_tax / $item->unit_price * 100.0;
 
                         } elseif ($item->tax_percentage) {
 
                             $amount = Money::ofMinor($item->unit_price, $item->currency)
                                 ->multipliedBy($item->quantity)
-                                ->multipliedBy($item->tax_percentage / 100);
+                                ->multipliedBy($item->tax_percentage / 100.0);
 
                             $percentage = $item->tax_percentage;
 
@@ -61,25 +61,19 @@ return new class extends Migration
 
                     }
 
-                    if ($amount && $percentage) {
-                        $taxes = [
-                            new InvoiceTax(
-                                type: $invoice->tax_type,
-                                taxability: $invoice->tax_exempt,
-                                amount: $amount,
-                                percentage: $percentage,
-                            ),
-                        ];
-                    } else {
-                        $taxes = null;
-                    }
+                    $taxes = [
+                        new InvoiceTax(
+                            type: $invoice->tax_type,
+                            taxability: $invoice->tax_exempt,
+                            amount: $amount,
+                            percentage: $percentage,
+                        ),
+                    ];
 
                     DB::table('invoices_items')
                         ->where('id', $item->id)
                         ->update([
                             'taxes' => $taxes,
-                            'tax_percentage' => null,
-                            'unit_tax' => null,
                         ]);
 
                 }

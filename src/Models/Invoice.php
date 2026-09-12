@@ -114,6 +114,8 @@ class Invoice extends Model implements Attachable, GOBLable
     public static function booted()
     {
         static::creating(function (Invoice $invoice) {
+            $invoice->denormalize();
+
             if (
                 config('invoices.serial_number.auto_generate') &&
                 blank($invoice->serial_number)

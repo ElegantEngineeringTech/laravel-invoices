@@ -47,13 +47,13 @@ class InvoiceItem extends Model implements GOBLable
      */
     use HasFactory;
 
-    protected $guarded = ['id'];
-
     protected $attributes = [
         'quantity' => 1,
         'taxes' => '[]',
         'discounts' => '[]',
     ];
+
+    protected $guarded = ['id'];
 
     /**
      * @return array<string, string>
@@ -70,6 +70,18 @@ class InvoiceItem extends Model implements GOBLable
             'discounts' => AsCollection::using(InvoiceDiscountCollection::class, InvoiceServiceProvider::getInvoiceDiscountClass()),
             'metadata' => 'array',
         ];
+    }
+
+    public static function booted()
+    {
+        static::creating(function (InvoiceItem $item) {
+            //
+        });
+
+        static::updating(function (InvoiceItem $item) {
+            //
+        });
+
     }
 
     /**
