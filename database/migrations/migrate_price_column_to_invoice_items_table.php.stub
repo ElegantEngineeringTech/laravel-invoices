@@ -2,10 +2,16 @@
 
 declare(strict_types=1);
 
+use Brick\Math\RoundingMode;
 use Brick\Money\Money;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 
+use function Elegantly\Money\sumMoney;
+
+/**
+ * Invoice items now introduce denormalized amounts
+ */
 return new class extends Migration
 {
     /**
@@ -13,20 +19,128 @@ return new class extends Migration
      */
     public function up(): void
     {
-        $query = DB::table('invoice_items')
-            ->where('unit_price', '!=', null)
-            ->where('currency', '!=', null);
+        $roundingMode = RoundingMode::HalfUp;
 
-        $query->chunkById(100, function ($items) {
+        $query = DB::table('invoice_items')
+            ->where('unit_price', '!=', null);
+
+        $query->chunkById(100, function ($items) use ($roundingMode) {
             foreach ($items as $item) {
-                DB::table('invoice_items')
+
+                $price_subtotal = Money::ofMinor(
+                    $item->unit_price,
+                    $item->currency
+                )->multipliedBy(
+                    (string) $item->quantity,
+                    $roundingMode
+                );
+
+                // migrate discounts
+                $discounts = json_decode($item->discounts, false) ?? [];
+
+                $subtotal = $price_subtotal;
+
+                foreach ($discounts as $discount) {
+                    $discount->subtotal = $subtotal;
+
+                    // percentage is the source of truth
+                    if ($discount->percentage !== null) {
+                        if ($discount->amount === null) {
+                            $discount->amount = $discount->subtotal->multipliedBy(
+                                (string) ($discount->percentage / 100.0),
+                                $roundingMode,
+                            );
+                        }
+                    } elseif ($discount->amount !== null) {
+                        if ($discount->subtotal->isZero()) {
+                            $discount->percentage = 0.0;
+                        } else {
+                            $discount->percentage = Money::ofMinor($discount->amount, $discount->currency)
+                                ->getAmount()
+                                ->multipliedBy(100)
+                                ->dividedBy(
+                                    $discount->subtotal->getAmount(),
+                                    scale: 2,
+                                    roundingMode: $roundingMode,
+                                )
+                                ->toFloat();
+                        }
+                    }
+
+                    if ($discount->amount !== null) {
+                        $subtotal = $subtotal->minus(
+                            Money::ofMinor($discount->amount, $discount->currency),
+                            $roundingMode,
+                        );
+                    }
+
+                }
+                // end migrate dicounts
+
+                $price_discount = sumMoney(
+                    $discounts,
+                    'amount',
+                    $roundingMode,
+                ) ?? Money::zero($item->currency);
+
+                // migrate taxes
+                $taxes = json_decode($item->taxes, false) ?? [];
+
+                $subtotal = $price_subtotal->minus(
+                    $price_discount,
+                    $roundingMode,
+                );
+
+                foreach ($taxes as $tax) {
+                    // percentage is the source of truth
+                    if ($tax->percentage !== null) {
+                        if ($tax->amount === null) {
+                            $tax->amount = $subtotal->multipliedBy(
+                                (string) ($tax->percentage / 100),
+                                $roundingMode,
+                            );
+                        }
+                    } elseif ($tax->amount !== null) {
+                        if ($subtotal->isZero()) {
+                            $tax->percentage = 0.0;
+                        } else {
+                            $tax->percentage = Money::ofMinor($tax->amount, $tax->currency)
+                                ->getAmount()
+                                ->multipliedBy(100)
+                                ->dividedBy(
+                                    $subtotal->getAmount(),
+                                    scale: 2,
+                                    roundingMode: $roundingMode,
+                                )
+                                ->toFloat();
+                        }
+                    }
+                }
+
+                // end migrate taxes
+
+                $price_tax = sumMoney(
+                    $taxes,
+                    'amount',
+                    $roundingMode,
+                );
+
+                $price_discount ??= Money::zero($item->currency);
+                $price_tax ??= Money::zero($item->currency);
+
+                $price = $price_subtotal->minus($price_discount)->plus($price_tax);
+
+                $items = DB::table('invoice_items')
                     ->where('id', $item->id)
                     ->update([
-                        'price' => Money::ofMinor($item->unit_price, $item->currency)
-                            ->multipliedBy($item->quantity)
-                            ->getMinorAmount()
-                            ->toInt(),
+                        'price_subtotal' => $price_subtotal->getMinorAmount()->toInt(),
+                        'price_discount' => $price_discount->getMinorAmount()->toInt(),
+                        'price_tax' => $price_tax->getMinorAmount()->toInt(),
+                        'price' => $price->getMinorAmount()->toInt(),
+                        'discounts' => json_encode($discounts),
+                        'taxes' => json_encode($taxes),
                     ]);
+
             }
         });
     }

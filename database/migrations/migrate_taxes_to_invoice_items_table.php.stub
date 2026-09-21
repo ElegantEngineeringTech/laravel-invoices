@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Brick\Math\RoundingMode;
 use Brick\Money\Money;
 use Elegantly\Invoices\InvoiceTax;
 use Illuminate\Database\Migrations\Migration;
@@ -19,7 +20,7 @@ return new class extends Migration
         $query->chunkById(100, function ($invoices) {
             foreach ($invoices as $invoice) {
 
-                $items = DB::table('invoices_items')
+                $items = DB::table('invoice_items')
                     ->where('invoice_id', $invoice->id)
                     ->where(function ($query) {
                         return $query
@@ -33,29 +34,41 @@ return new class extends Migration
                     $amount = null;
                     $percentage = null;
 
-                    if ($item->unit_tax && $item->tax_percentage) {
+                    if ($item->unit_tax !== null && $item->tax_percentage) {
 
                         $amount = Money::ofMinor($item->unit_tax, $item->currency)
-                            ->multipliedBy($item->quantity);
+                            ->multipliedBy(
+                                (string) $item->quantity,
+                                RoundingMode::HalfUp
+                            );
 
-                        $percentage = $item->tax_percentage;
+                        $percentage = (float) $item->tax_percentage;
 
-                    } elseif ($item->unit_price) {
+                    } elseif ($item->unit_price !== null) {
 
-                        if ($item->unit_tax) {
+                        if ($item->unit_tax !== null) {
 
                             $amount = Money::ofMinor($item->unit_tax, $item->currency)
-                                ->multipliedBy($item->quantity);
+                                ->multipliedBy(
+                                    (string) $item->quantity,
+                                    RoundingMode::HalfUp
+                                );
 
                             $percentage = $item->unit_tax / $item->unit_price * 100.0;
 
-                        } elseif ($item->tax_percentage) {
+                        } elseif ($item->tax_percentage !== null) {
 
                             $amount = Money::ofMinor($item->unit_price, $item->currency)
-                                ->multipliedBy($item->quantity)
-                                ->multipliedBy($item->tax_percentage / 100.0);
+                                ->multipliedBy(
+                                    (string) $item->quantity,
+                                    RoundingMode::HalfUp,
+                                )
+                                ->multipliedBy(
+                                    (string) (((float) $item->tax_percentage) / 100.0),
+                                    RoundingMode::HalfUp,
+                                );
 
-                            $percentage = $item->tax_percentage;
+                            $percentage = (float) $item->tax_percentage;
 
                         }
 
@@ -64,16 +77,16 @@ return new class extends Migration
                     $taxes = [
                         new InvoiceTax(
                             type: $invoice->tax_type,
-                            taxability: $invoice->tax_exempt,
+                            taxability: $invoice->tax_exempt ?: 'standard_rated',
                             amount: $amount,
                             percentage: $percentage,
                         ),
                     ];
 
-                    DB::table('invoices_items')
+                    DB::table('invoice_items')
                         ->where('id', $item->id)
                         ->update([
-                            'taxes' => $taxes,
+                            'taxes' => json_encode($taxes),
                         ]);
 
                 }

@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Brick\Money\AllocationMode;
+use Brick\Money\Money;
 use Elegantly\Invoices\InvoiceDiscount;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
@@ -19,28 +21,51 @@ return new class extends Migration
         $query->chunkById(100, function ($invoices) {
             foreach ($invoices as $invoice) {
 
-                $items = DB::table('invoices_items')
+                $items = DB::table('invoice_items')
                     ->where('invoice_id', $invoice->id)
                     ->get();
 
-                $discounts = array_map(
-                    fn ($discount) => new InvoiceDiscount(
-                        code: data_get($discount, 'code'),
-                        label: data_get($discount, 'name'),
-                        percentage: data_get($discount, 'percent_off'),
-                        amount: data_get($discount, 'amount_off'),
-                    ),
-                    json_decode($invoice->discounts, true),
-                );
+                $discounts = json_decode($invoice->discounts, false) ?? [];
+
+                foreach ($items as $index => $value) {
+                    $items[$index]->discounts = [];
+                }
+
+                foreach ($discounts as $discount) {
+                    if ($discount->amount_off) {
+                        $amount = Money::ofMinor($discount->amount_off, $discount->currency);
+
+                        $amounts = $amount->allocate(
+                            $items->map(fn ($item) => $item->unit_price * $item->quantity)->all(),
+                            AllocationMode::FloorToFirst
+                        );
+
+                        foreach ($items as $index => $item) {
+                            $items[$index]->discounts[] = new InvoiceDiscount(
+                                code: $discount->code,
+                                label: $discount->name,
+                                percentage: $discount->percent_off,
+                                amount: $amounts[$index]
+                            );
+                        }
+                    } else {
+                        foreach ($items as $index => $item) {
+                            $items[$index]->discounts[] = new InvoiceDiscount(
+                                code: $discount->code,
+                                label: $discount->name,
+                                percentage: $discount->percent_off,
+                            );
+                        }
+                    }
+                }
 
                 foreach ($items as $item) {
 
-                    DB::table('invoices_items')
+                    DB::table('invoice_items')
                         ->where('id', $item->id)
                         ->update([
-                            'discounts' => $discounts,
+                            'discounts' => json_encode($item->discounts),
                         ]);
-
                 }
 
             }

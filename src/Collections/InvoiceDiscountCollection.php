@@ -51,7 +51,7 @@ class InvoiceDiscountCollection extends Collection implements GOBLable
             if ($discount->percentage !== null) {
                 if ($force || $discount->amount === null) {
                     $discount->amount = $discount->subtotal->multipliedBy(
-                        (string) ($discount->percentage / 100),
+                        (string) ($discount->percentage / 100.0),
                         $roundingMode,
                     );
                 }

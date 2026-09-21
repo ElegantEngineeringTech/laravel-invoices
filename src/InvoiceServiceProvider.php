@@ -32,10 +32,12 @@ class InvoiceServiceProvider extends PackageServiceProvider
         'add_payment_instructions_to_invoices_table',
         'add_fields_column_to_invoices_table',
         'migrate_tax_number_column_in_invoices_table',
+        'add_price_column_to_invoice_items_table',
         'add_discounts_to_invoice_items_table',
         'add_taxes_to_invoice_items_table',
         'migrate_discounts_to_invoice_items_table',
         'migrate_taxes_to_invoice_items_table',
+        'migrate_price_column_to_invoice_items_table',
     ];
 
     public function configurePackage(Package $package): void

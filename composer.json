@@ -19,7 +19,7 @@
     "require": {
         "php": "^8.4",
         "dompdf/dompdf": "^3.1",
-        "elegantly/laravel-money": "^4.1.0",
+        "elegantly/laravel-money": "^4.2.0",
         "illuminate/contracts": "^13.0",
         "spatie/laravel-package-tools": "^1.14"
     },

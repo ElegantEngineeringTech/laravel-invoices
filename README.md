@@ -5,7 +5,7 @@
 [![Laravel Pint](https://img.shields.io/github/actions/workflow/status/ElegantEngineeringTech/laravel-invoices/pint.yml?label=laravel%20pint&style=flat-square)](https://github.com/ElegantEngineeringTech/laravel-invoices/actions?query=workflow%3Apint)
 [![Total Downloads](https://img.shields.io/packagist/dt/elegantly/laravel-invoices.svg?style=flat-square)](https://packagist.org/packages/elegantly/laravel-invoices)
 
-This package provides a robust, easy-to-use system for managing invoices within a Laravel application, with options for database storage, serial numbering, and PDF generation.
+Create, store, calculate, and render invoices in Laravel. The package supports item-level discounts and taxes, automatic totals, serial numbers, PDF generation, mail attachments, polymorphic relations, and [GOBL](https://gobl.org/) export.
 
 ![laravel-invoices](https://repository-images.githubusercontent.com/527661364/f98e92f9-62a6-48a1-a7b1-1a587b92a430)
 
@@ -60,10 +60,12 @@ Try out [the interactive demo](https://elegantly.dev/laravel-invoices) to explor
 
 ## Requirements
 
-- PHP 8.1+
-- Laravel 11.0+
-- `dompdf/dompdf` for PDF rendering
-- `elegantly/laravel-money` for money computation which use `brick\money` under the hood
+- PHP 8.4+
+- Laravel 13.x
+- `dompdf/dompdf` 3.1+
+- `elegantly/laravel-money` 4.1+
+
+Money values use [`brick/money`](https://github.com/brick/money) through `elegantly/laravel-money`.
 
 ## Installation
 
@@ -92,15 +94,31 @@ This is the contents of the published config file:
 use Brick\Math\RoundingMode;
 use Elegantly\Invoices\Enums\InvoiceType;
 use Elegantly\Invoices\InvoiceDiscount;
+use Elegantly\Invoices\InvoiceTax;
 use Elegantly\Invoices\Models\Invoice;
 use Elegantly\Invoices\Models\InvoiceItem;
+use Elegantly\Invoices\Support\Address;
+use Elegantly\Invoices\Support\Identity;
+use Elegantly\Invoices\Support\Party;
+use Elegantly\Invoices\Support\TaxId;
 
 return [
 
     'model_invoice' => Invoice::class,
+
     'model_invoice_item' => InvoiceItem::class,
 
     'discount_class' => InvoiceDiscount::class,
+
+    'tax_class' => InvoiceTax::class,
+
+    'party_class' => Party::class,
+
+    'identity_class' => Identity::class,
+
+    'address_class' => Address::class,
+
+    'tax_id_class' => TaxId::class,
 
     'cascade_invoice_delete_to_invoice_items' => true,
 
@@ -142,7 +160,10 @@ return [
 
     ],
 
-    'date_format' => 'Y-m-d',
+    /**
+     * @see https://carbon.nesbot.com/guide/getting-started/localization.html
+     */
+    'date_format' => 'YYYY-MM-DD',
 
     'rounding_mode' => RoundingMode::HalfUp,
 
@@ -158,10 +179,7 @@ return [
         ],
         'email' => null,
         'phone' => null,
-        'tax_id' => [
-            'country' => 'FR',
-            'code' => '123456789'
-        ],
+        'tax_id' => null,
         'fields' => [
             //
         ],

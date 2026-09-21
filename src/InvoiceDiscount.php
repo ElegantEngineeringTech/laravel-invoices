@@ -53,7 +53,7 @@ class InvoiceDiscount implements Arrayable, GOBLable, Jsonable, JsonSerializable
 
             $this->code = $code['code'] ?? null;
             $this->label = $code['label'] ?? null;
-            $this->percentage = $code['percentage'] ?? null;
+            $this->percentage = ($code['percentage'] ?? null) ? round($code['percentage'], 2) : null;
 
             $amount = $code['amount'] ?? null;
             $subtotal = $code['subtotal'] ?? null;
@@ -74,7 +74,7 @@ class InvoiceDiscount implements Arrayable, GOBLable, Jsonable, JsonSerializable
         } else {
             $this->code = $code;
             $this->label = $label;
-            $this->percentage = $percentage;
+            $this->percentage = $percentage ? round($percentage, 2) : null;
             $this->amount = $amount;
             $this->subtotal = $subtotal;
         }

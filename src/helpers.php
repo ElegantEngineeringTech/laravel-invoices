@@ -4,11 +4,20 @@ declare(strict_types=1);
 
 namespace Elegantly\Invoices;
 
+use Brick\Money\CurrencyDisplay;
 use Brick\Money\Money;
 
-function money(?Money $money, ?string $locale = null): ?string
-{
-    return $money?->formatToLocale($locale ?? app()->getLocale());
+function money(
+    ?Money $money,
+    ?string $locale,
+    CurrencyDisplay $currencyDisplay = CurrencyDisplay::Symbol,
+    bool $hideFractionIfWhole = false
+): ?string {
+    return $money?->formatToLocale(
+        locale: $locale ?? app()->getLocale(),
+        currencyDisplay: $currencyDisplay,
+        hideFractionIfWhole: $hideFractionIfWhole
+    );
 }
 
 function color(int $index, int $seed = 0): string
