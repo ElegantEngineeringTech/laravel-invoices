@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Brick\Math\RoundingMode;
 use Brick\Money\Money;
+use Elegantly\Invoices\Collections\InvoiceTaxCollection;
 use Elegantly\Invoices\InvoiceTax;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
@@ -43,43 +44,30 @@ return new class extends Migration
 
                         $percentage = (float) $item->tax_percentage;
 
-                    } elseif ($item->unit_price !== null) {
+                    } elseif ($item->tax_percentage) {
 
-                        if ($item->unit_tax !== null) {
+                        $percentage = (float) $item->tax_percentage;
 
-                            $amount = Money::ofMinor($item->unit_tax, $item->currency)
-                                ->multipliedBy((string) $item->quantity, $roundingMode);
+                    } elseif ($item->unit_tax !== null) {
 
-                            $percentage = $item->unit_price ? $item->unit_tax / $item->unit_price * 100.0 : 0.0;
-
-                        } elseif ($item->tax_percentage !== null) {
-
-                            $amount = Money::ofMinor($item->unit_price, $item->currency)
-                                ->multipliedBy((string) $item->quantity, $roundingMode)
-                                ->multipliedBy(
-                                    (string) (((float) $item->tax_percentage) / 100.0),
-                                    $roundingMode
-                                );
-
-                            $percentage = (float) $item->tax_percentage;
-
-                        }
+                        $amount = Money::ofMinor($item->unit_tax, $item->currency)
+                            ->multipliedBy((string) $item->quantity, $roundingMode);
 
                     }
 
-                    $taxes = [
+                    $taxes = new InvoiceTaxCollection([
                         new InvoiceTax(
                             type: $invoice->tax_type,
                             taxability: $invoice->tax_exempt ?: 'standard_rated',
                             amount: $amount,
                             percentage: $percentage,
                         ),
-                    ];
+                    ]);
 
                     DB::table('invoice_items')
                         ->where('id', $item->id)
                         ->update([
-                            'taxes' => json_encode(array_map(fn ($item) => $item->toArray(), $taxes)),
+                            'taxes' => $taxes->toJson(),
                         ]);
 
                 }

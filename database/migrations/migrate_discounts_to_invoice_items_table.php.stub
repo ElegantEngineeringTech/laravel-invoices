@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Brick\Math\RoundingMode;
 use Brick\Money\AllocationMode;
 use Brick\Money\Money;
+use Elegantly\Invoices\Collections\InvoiceDiscountCollection;
 use Elegantly\Invoices\InvoiceDiscount;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
@@ -76,7 +77,7 @@ return new class extends Migration
                     DB::table('invoice_items')
                         ->where('id', $item->id)
                         ->update([
-                            'discounts' => json_encode(array_map(fn (InvoiceDiscount $item) => $item->toArray(), $item->discounts)),
+                            'discounts' => new InvoiceDiscountCollection($item->discounts)->toJson(),
                         ]);
                 }
 

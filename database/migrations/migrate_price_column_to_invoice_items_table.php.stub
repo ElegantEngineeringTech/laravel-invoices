@@ -5,6 +5,8 @@ declare(strict_types=1);
 use Brick\Math\BigRational;
 use Brick\Math\RoundingMode;
 use Brick\Money\Money;
+use Elegantly\Invoices\Collections\InvoiceDiscountCollection;
+use Elegantly\Invoices\Collections\InvoiceTaxCollection;
 use Elegantly\Invoices\InvoiceDiscount;
 use Elegantly\Invoices\InvoiceTax;
 use Illuminate\Database\Migrations\Migration;
@@ -34,10 +36,10 @@ return new class extends Migration
                     ->multipliedBy((string) $item->quantity, $roundingMode);
 
                 // migrate discounts
-                $discounts = array_map(
+                $discounts = new InvoiceDiscountCollection(array_map(
                     fn ($item) => new InvoiceDiscount($item),
                     json_decode($item->discounts, true) ?? []
-                );
+                ));
 
                 $subtotal = $price_subtotal;
 
@@ -78,10 +80,10 @@ return new class extends Migration
                 // end migrate dicounts
 
                 // migrate taxes
-                $taxes = array_map(
+                $taxes = new InvoiceTaxCollection(array_map(
                     fn ($item) => new InvoiceTax($item),
                     json_decode($item->taxes, true) ?? []
-                );
+                ));
 
                 $subtotal = $price_subtotal->minus($price_discount, $roundingMode);
 
@@ -120,8 +122,8 @@ return new class extends Migration
                         'price_tax' => $price_tax->getMinorAmount()->toInt(),
                         'price' => $price->getMinorAmount()->toInt(),
                         'currency' => $price->getCurrency()->getCurrencyCode(),
-                        'discounts' => json_encode(array_map(fn (InvoiceDiscount $item) => $item->toArray(), $discounts)),
-                        'taxes' => json_encode(array_map(fn (InvoiceTax $item) => $item->toArray(), $taxes)),
+                        'discounts' => $discounts->toJson(),
+                        'taxes' => $taxes->toJson(),
                     ]);
 
             }
