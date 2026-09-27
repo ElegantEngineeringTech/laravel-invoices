@@ -98,7 +98,7 @@ it('[PdfInvoiceItem] overrides amounts when denormalizing with $force', function
 
 });
 
-it('[PdfInvoiceItem] can denormalize amounts from percentages', function () {
+it('[PdfInvoiceItem] does denormalize amounts from percentages', function () {
     $item = new PdfInvoiceItem(
         unit_price: Money::of(10, 'EUR'),
         quantity: 10,
@@ -135,7 +135,7 @@ it('[PdfInvoiceItem] can denormalize amounts from percentages', function () {
 
 });
 
-it('[PdfInvoiceItem] can denormalize percentages from amounts', function () {
+it('[PdfInvoiceItem] does not denormalize percentages from amounts', function () {
     $item = new PdfInvoiceItem(
         unit_price: Money::of(10, 'EUR'),
         quantity: 10,
@@ -159,12 +159,11 @@ it('[PdfInvoiceItem] can denormalize percentages from amounts', function () {
 
     $item->denormalize();
 
-    expect($discount1->percentage)->toBe(10.0);
-    expect($discount2->percentage)->toBe(5.0);
+    expect($discount1->percentage)->toBe(null);
+    expect($discount2->percentage)->toBe(null);
 
-    expect($tax1->percentage)->toBe(20.0);
-    // 5.0 can't be inferred back because the amount rounding lose precision
-    expect($tax2->percentage)->toBe(5.01);
+    expect($tax1->percentage)->toBe(null);
+    expect($tax2->percentage)->toBe(null);
 
     expect($item->price_subtotal)->toCost(Money::of(100, 'EUR'));
     expect($item->price_discount)->toCost(Money::of('14.5', 'EUR'));

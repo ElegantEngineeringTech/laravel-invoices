@@ -49,9 +49,10 @@ return new class extends Migration
 
                     // denormalize discounts
                     foreach ($discounts as $discount) {
-                        $discount->amount_subtotal = $subtotal;
 
                         if ($discount->amount === null && $discount->percentage !== null) {
+                            $discount->amount_subtotal = $subtotal;
+
                             $discount->percentage = (float) $discount->percentage;
                             $discount->amount = $discount->amount_subtotal->multipliedBy((string) ($discount->percentage / 100.0), $roundingMode);
                         } elseif ($discount->amount !== null && $discount->currency !== null) {
@@ -100,9 +101,10 @@ return new class extends Migration
                                 fn ($discount) => [
                                     'code' => $discount->code,
                                     'label' => $discount->name,
-                                    'percentage' => $discount->percent_off ? (round((float) $discount->percent_off, 2)) : null,
-                                    'amount' => $discount?->getMinorAmount()->toInt(),
-                                    'currency' => $discount?->getCurrency()->getCurrencyCode(),
+                                    'percentage' => $discount->percentage ? (round((float) $discount->percentage, 2)) : null,
+                                    'amount' => $discount->amount?->getMinorAmount()->toInt(),
+                                    'currency' => $discount->amount?->getCurrency()->getCurrencyCode(),
+                                    'amount_subtotal' => $discount->amount_subtotal?->getMinorAmount()->toInt(),
                                 ],
                                 $discounts
                             )),

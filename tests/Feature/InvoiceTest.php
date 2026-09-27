@@ -15,13 +15,10 @@ it('can set the right serial number year and month from a date', function (
     ?int $expectedMonth,
 ) {
     /** @var Invoice */
-    $invoice = Invoice::factory()
-        ->state([
-            'serial_number_format' => $format,
-        ])
-        ->make();
+    $invoice = Invoice::factory()->make();
 
     $invoice->configureSerialNumber(
+        format: $format,
         year: $date?->format('Y'),
         month: $date?->format('m'),
     );

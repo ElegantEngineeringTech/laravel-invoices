@@ -60,6 +60,8 @@ return new class extends Migration
                                 'code' => $discount->code,
                                 'label' => $discount->name,
                                 'percentage' => $discount->percent_off ? (round((float) $discount->percent_off, 2)) : null,
+                                'amount' => null,
+                                'currency' => null,
                             ];
                         }
                     }

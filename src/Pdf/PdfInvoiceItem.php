@@ -34,16 +34,10 @@ class PdfInvoiceItem
         // unit_price is the source of truth
         if ($this->unit_price !== null) {
             if ($force || $this->price_subtotal === null) {
-                $this->price_subtotal = $this->unit_price->multipliedBy(
-                    (string) $this->quantity,
-                    $roundingMode,
-                );
+                $this->price_subtotal = $this->unit_price->multipliedBy((string) $this->quantity, $roundingMode);
             }
         } elseif ($this->price_subtotal !== null) {
-            $this->unit_price = $this->price_subtotal->dividedBy(
-                (string) $this->quantity,
-                $roundingMode,
-            );
+            $this->unit_price = $this->price_subtotal->dividedBy((string) $this->quantity, $roundingMode);
         }
 
         if ($force || $this->price_discount === null) {
