@@ -32,6 +32,8 @@ class InvoiceTax implements Arrayable, GOBLable, Jsonable, JsonSerializable
 
     public ?Money $amount = null;
 
+    public ?Money $amount_taxable = null;
+
     public ?float $percentage = null;
 
     public ?string $label = null;
@@ -44,6 +46,7 @@ class InvoiceTax implements Arrayable, GOBLable, Jsonable, JsonSerializable
      *      taxability?: null|string,
      *      amount?: null|int|Money,
      *      currency?: null|string,
+     *      amount_taxable?: null|int|Money,
      *      percentage?: null|float,
      *      label?: null|string,
      * }  $type
@@ -54,6 +57,7 @@ class InvoiceTax implements Arrayable, GOBLable, Jsonable, JsonSerializable
         ?string $state = null,
         ?string $taxability = null,
         ?Money $amount = null,
+        ?Money $amount_taxable = null,
         ?float $percentage = null,
         ?string $label = null,
     ) {
@@ -75,12 +79,21 @@ class InvoiceTax implements Arrayable, GOBLable, Jsonable, JsonSerializable
                 $this->amount = Money::ofMinor($amount, $currency);
             }
 
+            $amount_taxable = $type['amount_taxable'] ?? null;
+
+            if ($amount_taxable instanceof Money) {
+                $this->amount_taxable = $amount_taxable;
+            } elseif ($amount_taxable !== null && $currency) {
+                $this->amount_taxable = Money::ofMinor($amount_taxable, $currency);
+            }
+
         } else {
             $this->type = $type;
             $this->country = $country;
             $this->state = $state;
             $this->taxability = $taxability;
             $this->amount = $amount;
+            $this->amount_taxable = $amount_taxable;
             $this->percentage = $percentage ? round($percentage, 2) : null;
             $this->label = $label;
         }
@@ -111,6 +124,7 @@ class InvoiceTax implements Arrayable, GOBLable, Jsonable, JsonSerializable
      *      taxability: ?string,
      *      amount: ?int,
      *      currency: ?string,
+     *      amount_taxable: ?int,
      *      percentage: ?float,
      *      label: ?string,
      * }
@@ -124,6 +138,7 @@ class InvoiceTax implements Arrayable, GOBLable, Jsonable, JsonSerializable
             'taxability' => $this->taxability,
             'amount' => $this->amount?->getMinorAmount()->toInt(),
             'currency' => $this->amount?->getCurrency()->getCurrencyCode(),
+            'amount_taxable' => $this->amount_taxable?->getMinorAmount()->toInt(),
             'percentage' => $this->percentage,
             'label' => $this->label,
         ];
@@ -137,6 +152,7 @@ class InvoiceTax implements Arrayable, GOBLable, Jsonable, JsonSerializable
      *      taxability: ?string,
      *      amount: ?int,
      *      currency: ?string,
+     *      amount_taxable: ?int,
      *      percentage: ?float,
      *      label: ?string,
      * }
@@ -159,6 +175,7 @@ class InvoiceTax implements Arrayable, GOBLable, Jsonable, JsonSerializable
      *      taxability: ?string,
      *      amount: ?int,
      *      currency: ?string,
+     *      amount_taxable: ?int,
      *      percentage: ?float,
      *      label: ?string,
      * }
@@ -176,6 +193,7 @@ class InvoiceTax implements Arrayable, GOBLable, Jsonable, JsonSerializable
      *      taxability: ?string,
      *      amount: ?int,
      *      currency: ?string,
+     *      amount_taxable: ?int,
      *      percentage: ?float,
      *      label: ?string,
      * } $value

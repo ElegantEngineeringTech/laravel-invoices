@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Elegantly\Invoices\Collections;
 
-use Brick\Math\BigRational;
 use Brick\Money\Money;
 use Elegantly\Invoices\Concerns\SumMoney;
 use Elegantly\Invoices\Contracts\GOBLable;
@@ -44,29 +43,20 @@ class InvoiceDiscountCollection extends Collection implements GOBLable
         $subtotal = $item->price_subtotal;
 
         foreach ($this->items as $discount) {
-            if ($force || $discount->subtotal === null) {
-                $discount->subtotal = $subtotal;
+            if ($force || $discount->amount_subtotal === null) {
+                $discount->amount_subtotal = $subtotal;
             }
 
-            // percentage is the source of truth
+            /**
+             * percentage is the source of truth
+             * we do not store it if not defined
+             */
             if ($discount->percentage !== null) {
                 if ($force || $discount->amount === null) {
-                    $discount->amount = $discount->subtotal->multipliedBy(
+                    $discount->amount = $discount->amount_subtotal->multipliedBy(
                         (string) ($discount->percentage / 100.0),
                         $roundingMode,
                     );
-                }
-            } elseif ($discount->amount !== null) {
-                if ($discount->subtotal->isZero()) {
-                    $discount->percentage = 0.0;
-                } else {
-                    $discount->percentage = BigRational::ofFraction(
-                        $discount->amount->getMinorAmount(),
-                        $discount->subtotal->getMinorAmount(),
-                    )
-                        ->multipliedBy(100)
-                        ->toScale(2, $roundingMode)
-                        ->toFloat();
                 }
             }
 

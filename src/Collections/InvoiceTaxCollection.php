@@ -44,33 +44,19 @@ class InvoiceTaxCollection extends Collection implements GOBLable
 
         $roundingMode = InvoiceServiceProvider::getRoundingMode();
 
-        $subtotal = $item->price_subtotal->minus(
-            $item->price_discount,
-            $roundingMode,
-        );
+        $subtotal = $item->price_subtotal->minus($item->price_discount, $roundingMode);
 
         foreach ($this->items as $tax) {
-            // percentage is the source of truth
+            /**
+             * percentage is the source of truth
+             * we do not store it if not defined
+             */
             if ($tax->percentage !== null) {
                 if ($force || $tax->amount === null) {
                     $tax->amount = $subtotal->multipliedBy(
                         (string) ($tax->percentage / 100),
                         $roundingMode,
                     );
-                }
-            } elseif ($tax->amount !== null) {
-                if ($subtotal->isZero()) {
-                    $tax->percentage = 0.0;
-                } else {
-                    $tax->percentage = $tax->amount
-                        ->getAmount()
-                        ->multipliedBy(100)
-                        ->dividedBy(
-                            $subtotal->getAmount(),
-                            scale: 2,
-                            roundingMode: $roundingMode,
-                        )
-                        ->toFloat();
                 }
             }
         }

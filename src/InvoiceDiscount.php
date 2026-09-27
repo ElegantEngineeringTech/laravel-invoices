@@ -30,7 +30,7 @@ class InvoiceDiscount implements Arrayable, GOBLable, Jsonable, JsonSerializable
 
     public ?Money $amount = null;
 
-    public ?Money $subtotal = null;
+    public ?Money $amount_subtotal = null;
 
     /**
      * @param  null|string|array{
@@ -38,7 +38,7 @@ class InvoiceDiscount implements Arrayable, GOBLable, Jsonable, JsonSerializable
      *      label?: null|string,
      *      percentage?: null|float,
      *      amount?: null|int|Money,
-     *      subtotal?: null|int|Money,
+     *      amount_subtotal?: null|int|Money,
      *      currency?: null|string,
      * }  $code
      */
@@ -47,7 +47,7 @@ class InvoiceDiscount implements Arrayable, GOBLable, Jsonable, JsonSerializable
         ?string $label = null,
         ?float $percentage = null,
         ?Money $amount = null,
-        ?Money $subtotal = null,
+        ?Money $amount_subtotal = null,
     ) {
         if (is_array($code)) {
 
@@ -56,7 +56,7 @@ class InvoiceDiscount implements Arrayable, GOBLable, Jsonable, JsonSerializable
             $this->percentage = ($code['percentage'] ?? null) ? round($code['percentage'], 2) : null;
 
             $amount = $code['amount'] ?? null;
-            $subtotal = $code['subtotal'] ?? null;
+            $amount_subtotal = $code['amount_subtotal'] ?? null;
             $currency = $code['currency'] ?? null;
 
             if ($amount instanceof Money) {
@@ -65,10 +65,10 @@ class InvoiceDiscount implements Arrayable, GOBLable, Jsonable, JsonSerializable
                 $this->amount = Money::ofMinor($amount, $currency);
             }
 
-            if ($subtotal instanceof Money) {
-                $this->subtotal = $subtotal;
-            } elseif ($subtotal !== null && $currency) {
-                $this->subtotal = Money::ofMinor($subtotal, $currency);
+            if ($amount_subtotal instanceof Money) {
+                $this->amount_subtotal = $amount_subtotal;
+            } elseif ($amount_subtotal !== null && $currency) {
+                $this->amount_subtotal = Money::ofMinor($amount_subtotal, $currency);
             }
 
         } else {
@@ -76,7 +76,7 @@ class InvoiceDiscount implements Arrayable, GOBLable, Jsonable, JsonSerializable
             $this->label = $label;
             $this->percentage = $percentage ? round($percentage, 2) : null;
             $this->amount = $amount;
-            $this->subtotal = $subtotal;
+            $this->amount_subtotal = $amount_subtotal;
         }
     }
 
@@ -102,7 +102,7 @@ class InvoiceDiscount implements Arrayable, GOBLable, Jsonable, JsonSerializable
      *      code: null|string,
      *      label: null|string,
      *      amount: null|int,
-     *      subtotal: null|int,
+     *      amount_subtotal: null|int,
      *      currency: null|string,
      *      percentage: null|float,
      * }
@@ -113,8 +113,8 @@ class InvoiceDiscount implements Arrayable, GOBLable, Jsonable, JsonSerializable
             'code' => $this->code,
             'label' => $this->label,
             'amount' => $this->amount?->getMinorAmount()->toInt(),
-            'subtotal' => $this->subtotal?->getMinorAmount()->toInt(),
-            'currency' => $this->amount?->getCurrency()->getCurrencyCode() ?? $this->subtotal?->getCurrency()->getCurrencyCode(),
+            'amount_subtotal' => $this->amount_subtotal?->getMinorAmount()->toInt(),
+            'currency' => $this->amount?->getCurrency()->getCurrencyCode() ?? $this->amount_subtotal?->getCurrency()->getCurrencyCode(),
             'percentage' => $this->percentage,
         ];
     }
@@ -124,7 +124,7 @@ class InvoiceDiscount implements Arrayable, GOBLable, Jsonable, JsonSerializable
      *      code: null|string,
      *      label: null|string,
      *      amount: null|int,
-     *      subtotal: null|int,
+     *      amount_subtotal: null|int,
      *      currency: null|string,
      *      percentage: null|float,
      * }
@@ -144,7 +144,7 @@ class InvoiceDiscount implements Arrayable, GOBLable, Jsonable, JsonSerializable
      *      code: null|string,
      *      label: null|string,
      *      amount: null|int,
-     *      subtotal: null|int,
+     *      amount_subtotal: null|int,
      *      currency: null|string,
      *      percentage: null|float,
      * }
@@ -159,7 +159,7 @@ class InvoiceDiscount implements Arrayable, GOBLable, Jsonable, JsonSerializable
      *      code: null|string,
      *      label: null|string,
      *      amount: null|int,
-     *      subtotal: null|int,
+     *      amount_subtotal: null|int,
      *      currency: null|string,
      *      percentage: null|float,
      * } $value
@@ -181,7 +181,7 @@ class InvoiceDiscount implements Arrayable, GOBLable, Jsonable, JsonSerializable
     public function toGOBL(array $values = []): array
     {
         return array_filter([
-            'base' => $this->subtotal?->getAmount()->toString(),
+            'base' => $this->amount_subtotal?->getAmount()->toString(),
             'amount' => $this->amount?->getAmount()->toString(),
             'percent' => $this->percentage !== null ? "{$this->percentage}%" : null,
             'reason' => $this->getLabel(),

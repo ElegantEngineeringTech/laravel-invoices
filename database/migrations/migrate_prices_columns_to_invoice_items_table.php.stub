@@ -2,13 +2,8 @@
 
 declare(strict_types=1);
 
-use Brick\Math\BigRational;
 use Brick\Math\RoundingMode;
 use Brick\Money\Money;
-use Elegantly\Invoices\Collections\InvoiceDiscountCollection;
-use Elegantly\Invoices\Collections\InvoiceTaxCollection;
-use Elegantly\Invoices\InvoiceDiscount;
-use Elegantly\Invoices\InvoiceTax;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 
@@ -48,38 +43,19 @@ return new class extends Migration
                         ->multipliedBy((string) $item->quantity, $roundingMode);
 
                     // migrate discounts
-                    $discounts = new InvoiceDiscountCollection(array_map(
-                        fn ($item) => new InvoiceDiscount($item),
-                        json_decode($item->discounts, true) ?? []
-                    ));
+                    $discounts = json_decode($item->discounts, false) ?? [];
 
                     $subtotal = $item->price_subtotal;
 
                     // denormalize discounts
                     foreach ($discounts as $discount) {
-                        $discount->subtotal = $subtotal;
+                        $discount->amount_subtotal = $subtotal;
 
-                        if ($discount->percentage !== null) {
-                            if ($discount->amount === null) {
-                                $discount->amount = $discount->subtotal->multipliedBy(
-                                    (string) (((float) $discount->percentage) / 100.0),
-                                    $roundingMode,
-                                );
-                            }
-                        } elseif ($discount->amount !== null) {
-                            if ($discount->percentage === null) {
-                                if ($discount->subtotal->isZero()) {
-                                    $discount->percentage = 0.0;
-                                } else {
-                                    $discount->percentage = BigRational::ofFraction(
-                                        $discount->amount->getMinorAmount(),
-                                        $discount->subtotal->getMinorAmount()
-                                    )
-                                        ->multipliedBy(100)
-                                        ->toScale(2, $roundingMode)
-                                        ->toFloat();
-                                }
-                            }
+                        if ($discount->amount === null && $discount->percentage !== null) {
+                            $discount->percentage = (float) $discount->percentage;
+                            $discount->amount = $discount->amount_subtotal->multipliedBy((string) ($discount->percentage / 100.0), $roundingMode);
+                        } elseif ($discount->amount !== null && $discount->currency !== null) {
+                            $discount->amount = Money::ofMinor($discount->amount, $discount->currency);
                         }
 
                         if ($discount->amount !== null) {
@@ -92,38 +68,19 @@ return new class extends Migration
                     // end migrate dicounts
 
                     // migrate taxes
-                    $taxes = new InvoiceTaxCollection(array_map(
-                        fn ($item) => new InvoiceTax($item),
-                        json_decode($item->taxes, true) ?? []
-                    ));
+                    $taxes = json_decode($item->taxes, false) ?? [];
 
                     $subtotal = $item->price_subtotal->minus($item->price_discount, $roundingMode);
 
                     foreach ($taxes as $tax) {
-                        // percentage is the source of truth
-                        if ($tax->percentage !== null) {
 
-                            if ($tax->amount === null) {
-                                $tax->amount = $subtotal->multipliedBy((string) ($tax->percentage / 100), $roundingMode);
-                            }
-
-                        } elseif ($tax->amount !== null) {
-
-                            if ($tax->percentage === null) {
-                                if ($subtotal->isZero()) {
-                                    $tax->percentage = 0.0;
-                                } else {
-                                    $tax->percentage = BigRational::ofFraction(
-                                        $tax->amount->getMinorAmount(),
-                                        $subtotal->getMinorAmount()
-                                    )
-                                        ->multipliedBy(100)
-                                        ->toScale(2, $roundingMode)
-                                        ->toFloat();
-                                }
-                            }
-
+                        if ($tax->amount === null && $tax->percentage !== null) {
+                            $tax->percentage = (float) $tax->percentage;
+                            $tax->amount = $subtotal->multipliedBy((string) ($tax->percentage / 100), $roundingMode);
+                        } elseif ($tax->amount !== null && $tax->currency !== null) {
+                            $tax->amount = Money::ofMinor($tax->amount, $tax->currency);
                         }
+
                     }
 
                     $item->price_tax = sumMoney($taxes, 'amount', $roundingMode) ?? Money::zero($item->currency);
@@ -139,8 +96,26 @@ return new class extends Migration
                             'price_tax' => $item->price_tax->getMinorAmount()->toInt(),
                             'price' => $item->price->getMinorAmount()->toInt(),
                             'currency' => $item->price->getCurrency()->getCurrencyCode(),
-                            'discounts' => $discounts->toJson(),
-                            'taxes' => $taxes->toJson(),
+                            'discounts' => json_encode(array_map(
+                                fn ($discount) => [
+                                    'code' => $discount->code,
+                                    'label' => $discount->name,
+                                    'percentage' => $discount->percent_off ? (round((float) $discount->percent_off, 2)) : null,
+                                    'amount' => $discount?->getMinorAmount()->toInt(),
+                                    'currency' => $discount?->getCurrency()->getCurrencyCode(),
+                                ],
+                                $discounts
+                            )),
+                            'taxes' => json_encode(array_map(
+                                fn ($tax) => [
+                                    'type' => $tax->type,
+                                    'taxability' => $tax->taxability,
+                                    'amount' => $tax->amount?->getMinorAmount()->toInt(),
+                                    'currency' => $tax->amount?->getCurrency()->getCurrencyCode(),
+                                    'percentage' => $tax->percentage,
+                                ],
+                                $taxes
+                            )),
                         ]);
 
                 }
