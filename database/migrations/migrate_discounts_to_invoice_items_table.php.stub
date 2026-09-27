@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Brick\Math\RoundingMode;
 use Brick\Money\AllocationMode;
 use Brick\Money\Money;
 use Elegantly\Invoices\InvoiceDiscount;
@@ -15,6 +16,8 @@ return new class extends Migration
      */
     public function up(): void
     {
+        $roundingMode = RoundingMode::HalfUp;
+
         $query = DB::table('invoices')
             ->where('discounts', '!=', null);
 
@@ -27,7 +30,7 @@ return new class extends Migration
 
                 $discounts = json_decode($invoice->discounts, false) ?? [];
 
-                foreach ($items as $index => $value) {
+                foreach ($items as $index => $item) {
                     $items[$index]->discounts = [];
                 }
 
@@ -35,25 +38,34 @@ return new class extends Migration
                     if ($discount->amount_off) {
                         $amount = Money::ofMinor($discount->amount_off, $discount->currency);
 
-                        $amounts = $amount->allocate(
-                            $items->map(fn ($item) => $item->unit_price * $item->quantity)->all(),
-                            AllocationMode::FloorToFirst
-                        );
+                        $total = $items->sum(fn ($item) => abs($item->unit_price * $item->quantity));
+
+                        if ($total > 0) {
+                            $amounts = $amount->allocate(
+                                $items->map(fn ($item) => abs($item->unit_price * $item->quantity))->all(),
+                                AllocationMode::FloorToFirst
+                            );
+                        } else {
+                            $amounts = $items->map(fn ($item) => $amount->multipliedBy(0));
+                        }
 
                         foreach ($items as $index => $item) {
                             $items[$index]->discounts[] = new InvoiceDiscount(
                                 code: $discount->code,
                                 label: $discount->name,
-                                percentage: $discount->percent_off,
+                                percentage: $discount->percent_off ? ((float) $discount->percent_off) : null,
                                 amount: $amounts[$index]
                             );
                         }
                     } else {
+                        /**
+                         * amount will be calculate in next migration
+                         */
                         foreach ($items as $index => $item) {
                             $items[$index]->discounts[] = new InvoiceDiscount(
                                 code: $discount->code,
                                 label: $discount->name,
-                                percentage: $discount->percent_off,
+                                percentage: $discount->percent_off ? ((float) $discount->percent_off) : null,
                             );
                         }
                     }
@@ -64,7 +76,7 @@ return new class extends Migration
                     DB::table('invoice_items')
                         ->where('id', $item->id)
                         ->update([
-                            'discounts' => json_encode($item->discounts),
+                            'discounts' => json_encode(array_map(fn (InvoiceDiscount $item) => $item->toJson(), $item->discounts)),
                         ]);
                 }
 

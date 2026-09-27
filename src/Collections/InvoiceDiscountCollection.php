@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Elegantly\Invoices\Collections;
 
+use Brick\Math\BigRational;
 use Brick\Money\Money;
 use Elegantly\Invoices\Concerns\SumMoney;
 use Elegantly\Invoices\Contracts\GOBLable;
@@ -59,23 +60,18 @@ class InvoiceDiscountCollection extends Collection implements GOBLable
                 if ($discount->subtotal->isZero()) {
                     $discount->percentage = 0.0;
                 } else {
-                    $discount->percentage = $discount->amount
-                        ->getAmount()
+                    $discount->percentage = BigRational::ofFraction(
+                        $discount->amount->getAmount(),
+                        $discount->subtotal->getAmount(),
+                    )
                         ->multipliedBy(100)
-                        ->dividedBy(
-                            $discount->subtotal->getAmount(),
-                            scale: 2,
-                            roundingMode: $roundingMode,
-                        )
+                        ->toScale(2, $roundingMode)
                         ->toFloat();
                 }
             }
 
             if ($discount->amount !== null) {
-                $subtotal = $subtotal->minus(
-                    $discount->amount,
-                    $roundingMode,
-                );
+                $subtotal = $subtotal->minus($discount->amount, $roundingMode);
             }
         }
 

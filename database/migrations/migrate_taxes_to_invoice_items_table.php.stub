@@ -15,9 +15,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        $roundingMode = RoundingMode::HalfUp;
+
         $query = DB::table('invoices');
 
-        $query->chunkById(100, function ($invoices) {
+        $query->chunkById(100, function ($invoices) use ($roundingMode) {
             foreach ($invoices as $invoice) {
 
                 $items = DB::table('invoice_items')
@@ -37,10 +39,7 @@ return new class extends Migration
                     if ($item->unit_tax !== null && $item->tax_percentage) {
 
                         $amount = Money::ofMinor($item->unit_tax, $item->currency)
-                            ->multipliedBy(
-                                (string) $item->quantity,
-                                RoundingMode::HalfUp
-                            );
+                            ->multipliedBy((string) $item->quantity, $roundingMode);
 
                         $percentage = (float) $item->tax_percentage;
 
@@ -49,23 +48,17 @@ return new class extends Migration
                         if ($item->unit_tax !== null) {
 
                             $amount = Money::ofMinor($item->unit_tax, $item->currency)
-                                ->multipliedBy(
-                                    (string) $item->quantity,
-                                    RoundingMode::HalfUp
-                                );
+                                ->multipliedBy((string) $item->quantity, $roundingMode);
 
-                            $percentage = $item->unit_tax / $item->unit_price * 100.0;
+                            $percentage = $item->unit_price ? $item->unit_tax / $item->unit_price * 100.0 : 0.0;
 
                         } elseif ($item->tax_percentage !== null) {
 
                             $amount = Money::ofMinor($item->unit_price, $item->currency)
-                                ->multipliedBy(
-                                    (string) $item->quantity,
-                                    RoundingMode::HalfUp,
-                                )
+                                ->multipliedBy((string) $item->quantity, $roundingMode)
                                 ->multipliedBy(
                                     (string) (((float) $item->tax_percentage) / 100.0),
-                                    RoundingMode::HalfUp,
+                                    $roundingMode
                                 );
 
                             $percentage = (float) $item->tax_percentage;
@@ -86,7 +79,7 @@ return new class extends Migration
                     DB::table('invoice_items')
                         ->where('id', $item->id)
                         ->update([
-                            'taxes' => json_encode($taxes),
+                            'taxes' => json_encode(array_map(fn ($item) => $item->toJson(), $taxes)),
                         ]);
 
                 }
