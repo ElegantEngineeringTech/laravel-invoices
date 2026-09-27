@@ -12,6 +12,7 @@ use Elegantly\Invoices\Collections\InvoiceTaxCollection;
 use Elegantly\Invoices\Contracts\GOBLable;
 use Elegantly\Invoices\Database\Factories\InvoiceItemFactory;
 use Elegantly\Invoices\InvoiceServiceProvider;
+use Elegantly\Invoices\InvoiceTax;
 use Elegantly\Invoices\Pdf\PdfInvoiceItem;
 use Elegantly\Money\MoneyCast;
 use Illuminate\Database\Eloquent\Attributes\CollectedBy;
@@ -128,6 +129,19 @@ class InvoiceItem extends Model implements GOBLable
                     ->minus($this->price_discount)
                     ->plus($this->price_tax);
             }
+        }
+
+        return $this;
+    }
+
+    public function addTaxes(InvoiceTaxCollection|InvoiceTax $taxes): static
+    {
+        $taxes = $taxes instanceof InvoiceTax ? new InvoiceTaxCollection([$taxes]) : $taxes;
+
+        if ($this->taxes === null) {
+            $this->taxes = $taxes;
+        } else {
+            $this->taxes->push(...$taxes);
         }
 
         return $this;

@@ -37,6 +37,8 @@ use Illuminate\Mail\Attachment;
 use Illuminate\Support\Collection as SupportCollection;
 use LogicException;
 
+use function Illuminate\Support\enum_value;
+
 /**
  * @property int $id
  * @property ?int $parent_id
@@ -613,7 +615,7 @@ class Invoice extends Model implements Attachable, GOBLable
     {
         return array_filter([
             '$schema' => 'https://gobl.org/draft-0/bill/invoice',
-            'type' => match ($this->type) {
+            'type' => match (enum_value($this->type)) {
                 InvoiceType::Invoice->value => 'standard',
                 InvoiceType::Quote->value, InvoiceType::Proforma->value => 'proforma',
                 InvoiceType::Credit->value => 'credit-note',
