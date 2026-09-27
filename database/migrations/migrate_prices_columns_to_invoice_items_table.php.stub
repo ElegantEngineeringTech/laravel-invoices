@@ -101,7 +101,7 @@ return new class extends Migration
                                 fn ($discount) => [
                                     'code' => $discount->code,
                                     'label' => $discount->name,
-                                    'percentage' => $discount->percentage ? (round((float) $discount->percentage, 2)) : null,
+                                    'percentage' => $discount->percentage === null ? null : (round((float) $discount->percentage, 2)),
                                     'amount' => $discount->amount?->getMinorAmount()->toInt(),
                                     'currency' => $discount->amount?->getCurrency()->getCurrencyCode(),
                                     'amount_subtotal' => $discount->amount_subtotal?->getMinorAmount()->toInt(),
