@@ -34,9 +34,15 @@ return new class extends Migration
 
                 $items = DB::table('invoice_items')
                     ->where('invoice_id', $invoice->id)
+                    ->where('unit_price', '!=', null)
+                    ->where('currency', '!=', null)
                     ->get();
 
                 foreach ($items as $item) {
+
+                    if ($item->unit_price === null || $item->currency === null) {
+                        continue;
+                    }
 
                     $item->price_subtotal = Money::ofMinor($item->unit_price, $item->currency)
                         ->multipliedBy((string) $item->quantity, $roundingMode);
@@ -53,7 +59,6 @@ return new class extends Migration
                     foreach ($discounts as $discount) {
                         $discount->subtotal = $subtotal;
 
-                        // percentage is the source of truth
                         if ($discount->percentage !== null) {
                             if ($discount->amount === null) {
                                 $discount->amount = $discount->subtotal->multipliedBy(
@@ -62,17 +67,18 @@ return new class extends Migration
                                 );
                             }
                         } elseif ($discount->amount !== null) {
-
-                            if ($discount->subtotal->isZero()) {
-                                $discount->percentage = 0.0;
-                            } else {
-                                $discount->percentage = BigRational::ofFraction(
-                                    $discount->amount->getMinorAmount(),
-                                    $discount->subtotal->getMinorAmount()
-                                )
-                                    ->multipliedBy(100)
-                                    ->toScale(2, $roundingMode)
-                                    ->toFloat();
+                            if ($discount->percentage === null) {
+                                if ($discount->subtotal->isZero()) {
+                                    $discount->percentage = 0.0;
+                                } else {
+                                    $discount->percentage = BigRational::ofFraction(
+                                        $discount->amount->getMinorAmount(),
+                                        $discount->subtotal->getMinorAmount()
+                                    )
+                                        ->multipliedBy(100)
+                                        ->toScale(2, $roundingMode)
+                                        ->toFloat();
+                                }
                             }
                         }
 
@@ -96,22 +102,27 @@ return new class extends Migration
                     foreach ($taxes as $tax) {
                         // percentage is the source of truth
                         if ($tax->percentage !== null) {
+
                             if ($tax->amount === null) {
                                 $tax->amount = $subtotal->multipliedBy((string) ($tax->percentage / 100), $roundingMode);
                             }
+
                         } elseif ($tax->amount !== null) {
 
-                            if ($subtotal->isZero()) {
-                                $tax->percentage = 0.0;
-                            } else {
-                                $tax->percentage = BigRational::ofFraction(
-                                    $tax->amount->getMinorAmount(),
-                                    $subtotal->getMinorAmount()
-                                )
-                                    ->multipliedBy(100)
-                                    ->toScale(2, $roundingMode)
-                                    ->toFloat();
+                            if ($tax->percentage === null) {
+                                if ($subtotal->isZero()) {
+                                    $tax->percentage = 0.0;
+                                } else {
+                                    $tax->percentage = BigRational::ofFraction(
+                                        $tax->amount->getMinorAmount(),
+                                        $subtotal->getMinorAmount()
+                                    )
+                                        ->multipliedBy(100)
+                                        ->toScale(2, $roundingMode)
+                                        ->toFloat();
+                                }
                             }
+
                         }
                     }
 
@@ -120,7 +131,7 @@ return new class extends Migration
 
                     $item->price = $item->price_subtotal->minus($item->price_discount)->plus($item->price_tax);
 
-                    $items = DB::table('invoice_items')
+                    DB::table('invoice_items')
                         ->where('id', $item->id)
                         ->update([
                             'price_subtotal' => $item->price_subtotal->getMinorAmount()->toInt(),
@@ -134,19 +145,19 @@ return new class extends Migration
 
                 }
 
-                $invoice->price_subtotal = sumMoney($items, 'price_subtotal', $roundingMode);
-                $invoice->price_discount = sumMoney($items, 'price_discount', $roundingMode);
-                $invoice->price_tax = sumMoney($items, 'price_tax', $roundingMode);
-                $invoice->price = sumMoney($items, 'price', $roundingMode);
+                $invoice->subtotal_amount = sumMoney($items, 'price_subtotal', $roundingMode);
+                $invoice->discount_amount = sumMoney($items, 'price_discount', $roundingMode);
+                $invoice->tax_amount = sumMoney($items, 'price_tax', $roundingMode);
+                $invoice->total_amount = sumMoney($items, 'price', $roundingMode);
 
-                DB::table('invoice')
+                DB::table('invoices')
                     ->where('id', $invoice->id)
                     ->update([
-                        'price_subtotal' => $invoice->price_subtotal->getMinorAmount()->toInt(),
-                        'price_discount' => $invoice->price_discount->getMinorAmount()->toInt(),
-                        'price_tax' => $invoice->price_tax->getMinorAmount()->toInt(),
-                        'price' => $invoice->price->getMinorAmount()->toInt(),
-                        'currency' => $invoice->price->getCurrency()->getCurrencyCode(),
+                        'subtotal_amount' => $invoice->subtotal_amount->getMinorAmount()->toInt(),
+                        'discount_amount' => $invoice->discount_amount->getMinorAmount()->toInt(),
+                        'tax_amount' => $invoice->tax_amount->getMinorAmount()->toInt(),
+                        'total_amount' => $invoice->total_amount->getMinorAmount()->toInt(),
+                        'currency' => $invoice->total_amount->getCurrency()->getCurrencyCode(),
                     ]);
 
             }

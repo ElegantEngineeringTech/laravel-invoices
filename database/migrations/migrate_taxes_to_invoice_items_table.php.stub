@@ -55,14 +55,18 @@ return new class extends Migration
 
                     }
 
-                    $taxes = new InvoiceTaxCollection([
-                        new InvoiceTax(
-                            type: $invoice->tax_type,
-                            taxability: $invoice->tax_exempt ?: 'standard_rated',
-                            amount: $amount,
-                            percentage: $percentage,
-                        ),
-                    ]);
+                    if ($amount || $percentage) {
+                        $taxes = new InvoiceTaxCollection([
+                            new InvoiceTax(
+                                type: $invoice->tax_type,
+                                taxability: $invoice->tax_exempt ?: 'standard_rated',
+                                amount: $amount,
+                                percentage: $percentage,
+                            ),
+                        ]);
+                    } else {
+                        $taxes = new InvoiceTaxCollection;
+                    }
 
                     DB::table('invoice_items')
                         ->where('id', $item->id)
