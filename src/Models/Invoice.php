@@ -574,6 +574,20 @@ class Invoice extends Model implements Attachable, GOBLable
         return InvoiceState::tryFrom($this->state) ?? $this->state;
     }
 
+    public function replicate(?array $except = null): static
+    {
+        return parent::replicate(array_merge([
+            'serial_number',
+            'serial_number_format',
+            'serial_number_prefix',
+            'serial_number_serie',
+            'serial_number_year',
+            'serial_number_month',
+            'serial_number_count',
+            'serial_number_details',
+        ], $except ?? []));
+    }
+
     public function toPdfInvoice(): PdfInvoice
     {
         return new PdfInvoice(
