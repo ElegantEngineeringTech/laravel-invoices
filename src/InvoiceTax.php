@@ -67,7 +67,10 @@ class InvoiceTax implements Arrayable, GOBLable, Jsonable, JsonSerializable
             $this->taxability = $type['taxability'] ?? null;
             $this->country = $type['country'] ?? null;
             $this->state = $type['state'] ?? null;
-            $this->percentage = ($type['percentage'] ?? null) ? round($type['percentage'], 2) : null;
+
+            $percentage = $type['percentage'] ?? null;
+            $this->percentage = $percentage === null ? null : round($percentage, 2);
+
             $this->label = $type['label'] ?? null;
 
             $amount = $type['amount'] ?? null;
@@ -94,7 +97,7 @@ class InvoiceTax implements Arrayable, GOBLable, Jsonable, JsonSerializable
             $this->taxability = $taxability;
             $this->amount = $amount;
             $this->amount_taxable = $amount_taxable;
-            $this->percentage = $percentage ? round($percentage, 2) : null;
+            $this->percentage = $percentage === null ? null : round($percentage, 2);
             $this->label = $label;
         }
     }

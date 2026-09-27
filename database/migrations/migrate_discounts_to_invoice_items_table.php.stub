@@ -52,6 +52,7 @@ return new class extends Migration
                                 'percentage' => $discount->percent_off ? (round((float) $discount->percent_off, 2)) : null,
                                 'amount' => $amounts[$index]?->getMinorAmount()->toInt(),
                                 'currency' => $amounts[$index]?->getCurrency()->getCurrencyCode(),
+                                'amount_subtotal' => null,
                             ];
                         }
                     } else {
@@ -62,6 +63,7 @@ return new class extends Migration
                                 'percentage' => $discount->percent_off ? (round((float) $discount->percent_off, 2)) : null,
                                 'amount' => null,
                                 'currency' => null,
+                                'amount_subtotal' => null,
                             ];
                         }
                     }
