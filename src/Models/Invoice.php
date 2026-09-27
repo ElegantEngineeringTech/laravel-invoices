@@ -350,7 +350,7 @@ class Invoice extends Model implements Attachable, GOBLable
     }
 
     public function configureSerialNumber(
-        null|string|BackedEnum $format,
+        null|string|BackedEnum $format = null,
         null|string|BackedEnum $prefix = null,
         string|int|null $serie = null,
         string|int|null $year = null,
