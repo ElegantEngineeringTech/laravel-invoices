@@ -114,7 +114,7 @@ return new class extends Migration
                                     'taxability' => $tax->taxability,
                                     'amount' => $tax->amount?->getMinorAmount()->toInt(),
                                     'currency' => $tax->amount?->getCurrency()->getCurrencyCode(),
-                                    'percentage' => $tax->percentage,
+                                    'percentage' => $tax->percentage === null ? null : round($tax->percentage, 2),
                                 ],
                                 $taxes
                             )),
