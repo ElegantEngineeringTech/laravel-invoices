@@ -31,7 +31,7 @@ return new class extends Migration
                 }
 
                 foreach ($discounts as $discount) {
-                    if ($discount->amount_off) {
+                    if ($discount->amount_off !== null) {
                         $amount = Money::ofMinor($discount->amount_off, $discount->currency);
 
                         $total = $items->sum(fn ($item) => abs($item->unit_price * $item->quantity));
