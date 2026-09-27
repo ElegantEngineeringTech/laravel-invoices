@@ -576,6 +576,9 @@ class Invoice extends Model implements Attachable, GOBLable
         return InvoiceState::tryFrom($this->state) ?? $this->state;
     }
 
+    /**
+     * @param  null|string[]  $except
+     */
     public function replicate(?array $except = null): static
     {
         return parent::replicate(array_merge([

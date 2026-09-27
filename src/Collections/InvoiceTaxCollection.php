@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Elegantly\Invoices\Collections;
 
+use Brick\Math\BigNumber;
+use Brick\Math\RoundingMode;
 use Brick\Money\Money;
 use Elegantly\Invoices\Concerns\SumMoney;
 use Elegantly\Invoices\Contracts\GOBLable;
@@ -28,6 +30,20 @@ class InvoiceTaxCollection extends Collection implements GOBLable
     public function clone(): static
     {
         return $this->map(fn ($item) => clone $item);
+    }
+
+    public function multiplyBy(BigNumber|int|string $that, ?RoundingMode $roundingMode = null): static
+    {
+        $roundingMode ??= InvoiceServiceProvider::getRoundingMode();
+
+        return $this->map(function ($item) use ($roundingMode, $that) {
+            $newItem = clone $item;
+
+            $newItem->amount_taxable = $item->amount_taxable?->multipliedBy($that, $roundingMode);
+            $newItem->amount = $item->amount?->multipliedBy($that, $roundingMode);
+
+            return $newItem;
+        });
     }
 
     public function denormalize(
