@@ -79,7 +79,7 @@ return new class extends Migration
                     DB::table('invoice_items')
                         ->where('id', $item->id)
                         ->update([
-                            'taxes' => json_encode(array_map(fn ($item) => $item->toJson(), $taxes)),
+                            'taxes' => json_encode(array_map(fn ($item) => $item->toArray(), $taxes)),
                         ]);
 
                 }

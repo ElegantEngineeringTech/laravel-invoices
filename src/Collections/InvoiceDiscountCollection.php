@@ -61,8 +61,8 @@ class InvoiceDiscountCollection extends Collection implements GOBLable
                     $discount->percentage = 0.0;
                 } else {
                     $discount->percentage = BigRational::ofFraction(
-                        $discount->amount->getAmount(),
-                        $discount->subtotal->getAmount(),
+                        $discount->amount->getMinorAmount(),
+                        $discount->subtotal->getMinorAmount(),
                     )
                         ->multipliedBy(100)
                         ->toScale(2, $roundingMode)
