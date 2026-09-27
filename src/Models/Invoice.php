@@ -400,12 +400,6 @@ class Invoice extends Model implements Attachable, GOBLable
         return $this;
     }
 
-    /**
-     * Values can be denormalized automatically because
-     * they must match items and can't be manually set
-     *
-     * To set values manually, set them in items
-     */
     public function denormalize(bool $force = false): static
     {
         $this->items->denormalize($force);
