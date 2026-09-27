@@ -37,14 +37,14 @@ return new class extends Migration
                     $amount = null;
                     $percentage = null;
 
-                    if ($item->unit_tax !== null && $item->currency !== null && $item->tax_percentage) {
+                    if ($item->unit_tax !== null && $item->currency !== null && $item->tax_percentage !== null) {
 
                         $amount = Money::ofMinor($item->unit_tax, $item->currency)
                             ->multipliedBy((string) $item->quantity, $roundingMode);
 
                         $percentage = (float) $item->tax_percentage;
 
-                    } elseif ($item->tax_percentage) {
+                    } elseif ($item->tax_percentage !== null) {
 
                         $percentage = (float) $item->tax_percentage;
 
