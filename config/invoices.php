@@ -149,11 +149,6 @@ return [
 
         'template_data' => [
             /**
-             * The color used for the PDF header/accent.
-             */
-            'color' => '#050038',
-
-            /**
              * The CSS font-family name.
              *
              * Note: 'Arimo' is recommended as it provides superior symbol support
