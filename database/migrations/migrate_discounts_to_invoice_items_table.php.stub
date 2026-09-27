@@ -44,7 +44,7 @@ return new class extends Migration
                         if ($total > 0) {
                             $amounts = $amount->allocate(
                                 $items->map(fn ($item) => abs($item->unit_price * $item->quantity))->all(),
-                                AllocationMode::FloorToFirst
+                                AllocationMode::FloorToLargestRemainder
                             );
                         } else {
                             $amounts = $items->map(fn ($item) => $amount->multipliedBy(0));
