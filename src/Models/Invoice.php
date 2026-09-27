@@ -102,14 +102,14 @@ class Invoice extends Model implements Attachable, GOBLable
             'state_set_at' => 'datetime',
             'due_at' => 'datetime',
             'fields' => 'array',
+            'metadata' => 'array',
             'seller_information' => InvoiceServiceProvider::getSellerClass(),
             'buyer_information' => InvoiceServiceProvider::getBuyerClass(),
+            'payment_instructions' => AsCollection::of(PaymentInstruction::class),
             'subtotal_amount' => MoneyCast::of('currency'),
             'discount_amount' => MoneyCast::of('currency'),
             'tax_amount' => MoneyCast::of('currency'),
             'total_amount' => MoneyCast::of('currency'),
-            'payment_instructions' => AsCollection::of(PaymentInstruction::class),
-            'metadata' => 'array',
         ];
     }
 
@@ -130,6 +130,7 @@ class Invoice extends Model implements Attachable, GOBLable
 
         static::updating(function (Invoice $invoice) {
             $invoice->denormalize();
+            $invoice->denormalizeSerialNumber();
         });
 
         static::deleting(function (Invoice $invoice) {
@@ -267,6 +268,21 @@ class Invoice extends Model implements Attachable, GOBLable
         return $invoice;
     }
 
+    /**
+     * Manually set the serial number
+     */
+    public function setSerialNumber(
+        string $value,
+        string|BackedEnum $format,
+    ): static {
+        $format = $format instanceof BackedEnum ? ((string) $format->value) : $format;
+
+        $this->serial_number = $value;
+        $this->serial_number_format = $format;
+
+        return $this->denormalizeSerialNumber();
+    }
+
     public function setSerialNumberPrefix(
         null|string|BackedEnum $value = null,
         bool $throw = true,
@@ -334,7 +350,7 @@ class Invoice extends Model implements Attachable, GOBLable
     }
 
     public function configureSerialNumber(
-        null|string|BackedEnum $format = null,
+        null|string|BackedEnum $format,
         null|string|BackedEnum $prefix = null,
         string|int|null $serie = null,
         string|int|null $year = null,
@@ -343,11 +359,7 @@ class Invoice extends Model implements Attachable, GOBLable
     ): static {
         $format = $format instanceof BackedEnum ? ((string) $format->value) : $format;
 
-        if ($format) {
-            $this->serial_number_format = $format;
-        } elseif ($this->serial_number_format === null) {
-            $this->serial_number_format = InvoiceServiceProvider::getSerialNumberFormatConfiguration($this->type);
-        }
+        $this->serial_number_format = $format ?? InvoiceServiceProvider::getSerialNumberFormatConfiguration($this->type);
 
         return $this
             ->setSerialNumberPrefix($prefix, $throw)
@@ -359,16 +371,16 @@ class Invoice extends Model implements Attachable, GOBLable
     public function generateSerialNumber(): static
     {
         $this->configureSerialNumber(
-            format: $this->serial_number_format,
-            prefix: $this->serial_number_prefix ?? InvoiceServiceProvider::getSerialNumberPrefixConfiguration($this->type),
+            format: $this->serial_number_format ?: InvoiceServiceProvider::getSerialNumberFormatConfiguration($this->type),
+            prefix: $this->serial_number_prefix ?: InvoiceServiceProvider::getSerialNumberPrefixConfiguration($this->type),
             serie: $this->serial_number_serie,
             year: $this->serial_number_year ?? now()->format('Y'),
             month: $this->serial_number_month ?? now()->format('m'),
         );
 
-        $generator = new SerialNumberGenerator($this->serial_number_format);
-
         $previousCount = (int) $this->getPreviousInvoice()?->serial_number_count;
+
+        $generator = new SerialNumberGenerator($this->serial_number_format);
 
         $this->serial_number = $generator->generate(
             prefix: $this->serial_number_prefix,
@@ -378,28 +390,18 @@ class Invoice extends Model implements Attachable, GOBLable
             count: $previousCount + 1
         );
 
-        $this->denormalizeSerialNumber();
-
-        return $this;
-    }
-
-    /**
-     * @return array{ 'prefix': ?string, 'serie': ?int, 'month': ?int, 'year': ?int, 'count': ?int}
-     */
-    public function parseSerialNumber(): array
-    {
-        $format = $this->serial_number_format ?? InvoiceServiceProvider::getSerialNumberFormatConfiguration($this->type);
-
-        $generator = new SerialNumberGenerator($format);
-
-        return $generator->parse($this->serial_number);
+        return $this->denormalizeSerialNumber();
     }
 
     public function denormalizeSerialNumber(): static
     {
-        $this->serial_number_format ??= InvoiceServiceProvider::getSerialNumberFormatConfiguration($this->type);
+        if (! $this->serial_number_format || ! $this->serial_number) {
+            return $this;
+        }
 
-        $values = $this->parseSerialNumber();
+        $generator = new SerialNumberGenerator($this->serial_number_format);
+
+        $values = $generator->parse($this->serial_number);
 
         $this->serial_number_prefix = $values['prefix'];
         $this->serial_number_serie = $values['serie'];
