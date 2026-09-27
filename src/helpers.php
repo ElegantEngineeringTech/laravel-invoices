@@ -6,21 +6,24 @@ namespace Elegantly\Invoices;
 
 use Brick\Money\CurrencyDisplay;
 use Brick\Money\Money;
+use Illuminate\Support\Facades\App;
 
-function money(
+function format_money(
     ?Money $money,
-    ?string $locale,
+    ?string $locale = null,
     CurrencyDisplay $currencyDisplay = CurrencyDisplay::Symbol,
     bool $hideFractionIfWhole = false
 ): ?string {
+    $locale ??= App::getLocale();
+
     return $money?->formatToLocale(
-        locale: $locale ?? app()->getLocale(),
+        locale: $locale,
         currencyDisplay: $currencyDisplay,
         hideFractionIfWhole: $hideFractionIfWhole
     );
 }
 
-function color(int $index, int $seed = 0): string
+function random_color(int $index, int $seed = 0): string
 {
     $h = fmod(($index + $seed) * 137.508, 360);
     $s = 0.80;

@@ -1,6 +1,5 @@
 @php
-    use function Elegantly\Invoices\money;
-    use function Elegantly\Invoices\color;
+    use function Elegantly\Invoices\format_money;
 
     $dateFormat = config('invoices.date_format');
     $discounts = $invoice->getDiscounts();
@@ -167,12 +166,12 @@
                     </td>
 
                     <td class="whitespace-nowrap border-b p-2 align-top text-xs">
-                        <p>{{ money($item->unit_price) }}</p>
+                        <p>{{ format_money($item->unit_price) }}</p>
                     </td>
 
                     <td class="whitespace-nowrap border-b p-2 align-top text-xs">
                         <p>
-                            {{ money($item->price_discount) }}
+                            {{ format_money($item->price_discount) }}
 
                             @foreach ($item->discounts as $discount)
                                 @include('invoices::default.includes.indicator', [
@@ -185,7 +184,7 @@
 
                     <td class="whitespace-nowrap border-b p-2 align-top text-xs">
                         <p>
-                            {{ money($item->price_tax) }}
+                            {{ format_money($item->price_tax) }}
 
                             @foreach ($item->taxes as $tax)
                                 @include('invoices::default.includes.indicator', [
@@ -197,7 +196,7 @@
                     </td>
 
                     <td class="whitespace-nowrap border-b py-2 pl-2 text-right align-top text-xs">
-                        <p>{{ money($item->price) }}</p>
+                        <p>{{ format_money($item->price) }}</p>
                     </td>
                 </tr>
             @endforeach
@@ -209,7 +208,7 @@
                     {{ __('invoices::invoice.pdf.summary.subtotal') }}
                 </td>
                 <td class="whitespace-nowrap border-b py-2 pl-2 text-right text-xs">
-                    {{ money($invoice->subtotal_amount) }}
+                    {{ format_money($invoice->subtotal_amount) }}
                 </td>
             </tr>
 
@@ -240,7 +239,7 @@
 
                         </td>
                         <td class="whitespace-nowrap border-b py-2 pl-2 text-right text-xs">
-                            {{ money($discount->amount) }}
+                            {{ format_money($discount->amount) }}
                         </td>
                     </tr>
                 @endforeach
@@ -252,7 +251,7 @@
                         {{ __('invoices::invoice.pdf.summary.discounted') }}
                     </td>
                     <td class="whitespace-nowrap border-b py-2 pl-2 text-right text-xs">
-                        {{ money($invoice->subtotal_amount->minus($invoice->discount_amount)) }}
+                        {{ format_money($invoice->subtotal_amount->minus($invoice->discount_amount)) }}
                     </td>
                 </tr>
             @endif
@@ -289,7 +288,7 @@
 
                         </td>
                         <td class="whitespace-nowrap border-b py-2 pl-2 text-right text-xs">
-                            {{ money($tax->amount) }}
+                            {{ format_money($tax->amount) }}
                         </td>
                     </tr>
                 @endforeach
@@ -304,7 +303,7 @@
                 </td>
                 <td class="whitespace-nowrap py-2 pl-2 text-right text-sm">
                     <strong>
-                        {{ money($invoice->total_amount) }}
+                        {{ format_money($invoice->total_amount) }}
                     </strong>
                 </td>
             </tr>
