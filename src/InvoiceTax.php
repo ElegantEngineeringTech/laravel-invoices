@@ -26,6 +26,8 @@ class InvoiceTax implements Arrayable, GOBLable, Jsonable, JsonSerializable
 
     public ?string $country = null;
 
+    public ?string $state = null;
+
     public ?string $taxability = null;
 
     public ?Money $amount = null;
@@ -38,6 +40,7 @@ class InvoiceTax implements Arrayable, GOBLable, Jsonable, JsonSerializable
      * @param  string|array{
      *      type?: null|string,
      *      country?: null|string,
+     *      state?: null|string,
      *      taxability?: null|string,
      *      amount?: null|int|Money,
      *      currency?: null|string,
@@ -48,6 +51,7 @@ class InvoiceTax implements Arrayable, GOBLable, Jsonable, JsonSerializable
     public function __construct(
         null|string|array $type = null,
         ?string $country = null,
+        ?string $state = null,
         ?string $taxability = null,
         ?Money $amount = null,
         ?float $percentage = null,
@@ -58,6 +62,7 @@ class InvoiceTax implements Arrayable, GOBLable, Jsonable, JsonSerializable
             $this->type = $type['type'] ?? null;
             $this->taxability = $type['taxability'] ?? null;
             $this->country = $type['country'] ?? null;
+            $this->state = $type['state'] ?? null;
             $this->percentage = ($type['percentage'] ?? null) ? round($type['percentage'], 2) : null;
             $this->label = $type['label'] ?? null;
 
@@ -73,6 +78,7 @@ class InvoiceTax implements Arrayable, GOBLable, Jsonable, JsonSerializable
         } else {
             $this->type = $type;
             $this->country = $country;
+            $this->state = $state;
             $this->taxability = $taxability;
             $this->amount = $amount;
             $this->percentage = $percentage ? round($percentage, 2) : null;
@@ -101,6 +107,7 @@ class InvoiceTax implements Arrayable, GOBLable, Jsonable, JsonSerializable
      * @return array{
      *      type: ?string,
      *      country: ?string,
+     *      state: ?string,
      *      taxability: ?string,
      *      amount: ?int,
      *      currency: ?string,
@@ -113,6 +120,7 @@ class InvoiceTax implements Arrayable, GOBLable, Jsonable, JsonSerializable
         return [
             'type' => $this->type,
             'country' => $this->country,
+            'state' => $this->state,
             'taxability' => $this->taxability,
             'amount' => $this->amount?->getMinorAmount()->toInt(),
             'currency' => $this->amount?->getCurrency()->getCurrencyCode(),
@@ -125,6 +133,7 @@ class InvoiceTax implements Arrayable, GOBLable, Jsonable, JsonSerializable
      * @return array{
      *      type: ?string,
      *      country: ?string,
+     *      state: ?string,
      *      taxability: ?string,
      *      amount: ?int,
      *      currency: ?string,
@@ -146,6 +155,7 @@ class InvoiceTax implements Arrayable, GOBLable, Jsonable, JsonSerializable
      * @return array{
      *      type: ?string,
      *      country: ?string,
+     *      state: ?string,
      *      taxability: ?string,
      *      amount: ?int,
      *      currency: ?string,
@@ -162,6 +172,7 @@ class InvoiceTax implements Arrayable, GOBLable, Jsonable, JsonSerializable
      * @param array{
      *      type: ?string,
      *      country: ?string,
+     *      state: ?string,
      *      taxability: ?string,
      *      amount: ?int,
      *      currency: ?string,
