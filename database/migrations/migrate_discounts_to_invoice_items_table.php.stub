@@ -31,14 +31,14 @@ return new class extends Migration
                 }
 
                 foreach ($discounts as $discount) {
-                    if ($discount->amount_off !== null) {
+                    if ($discount->amount_off !== null && $discount->currency !== null) {
                         $amount = Money::ofMinor($discount->amount_off, $discount->currency);
 
-                        $total = $items->sum(fn ($item) => abs($item->unit_price * $item->quantity));
+                        $total = $items->sum(fn ($item) => $item->unit_price && $item->currency ? abs($item->unit_price * $item->quantity) : 0);
 
                         if ($total > 0) {
                             $amounts = $amount->allocate(
-                                $items->map(fn ($item) => abs($item->unit_price * $item->quantity))->all(),
+                                $items->map(fn ($item) => $item->unit_price && $item->currency ? abs($item->unit_price * $item->quantity) : 0)->all(),
                                 AllocationMode::FloorToLargestRemainder
                             );
                         } else {
