@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Elegantly\Invoices\Models;
 
+use BackedEnum;
 use Brick\Money\Money;
 use Carbon\CarbonInterface;
 use Elegantly\Invoices\Collections\Eloquent\InvoiceItemCollection;
@@ -34,6 +35,7 @@ use Illuminate\Http\File;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Mail\Attachment;
 use Illuminate\Support\Collection as SupportCollection;
+use LogicException;
 
 /**
  * @property int $id
@@ -266,16 +268,18 @@ class Invoice extends Model implements Attachable, GOBLable
     }
 
     public function setSerialNumberPrefix(
-        ?string $value = null,
+        null|string|BackedEnum $value = null,
         bool $throw = true,
     ): static {
+
+        $value = $value instanceof BackedEnum ? ((string) $value->value) : $value;
 
         if ($value === null) {
             $this->serial_number_prefix = null;
         } elseif ($length = mb_substr_count($this->serial_number_format, 'P')) {
             $this->serial_number_prefix = mb_substr($value, -$length);
         } elseif ($throw) {
-            throw new Exception('The Serial Number Format does not contain a prefix.');
+            throw new LogicException('The Serial Number Format does not contain a prefix.');
         }
 
         return $this;
@@ -330,14 +334,20 @@ class Invoice extends Model implements Attachable, GOBLable
     }
 
     public function configureSerialNumber(
-        ?string $format = null,
-        ?string $prefix = null,
+        null|string|BackedEnum $format = null,
+        null|string|BackedEnum $prefix = null,
         string|int|null $serie = null,
         string|int|null $year = null,
         string|int|null $month = null,
         bool $throw = false,
     ): static {
-        $this->serial_number_format = $format ?? $this->serial_number_format ?? InvoiceServiceProvider::getSerialNumberFormatConfiguration($this->type);
+        $format = $format instanceof BackedEnum ? ((string) $format->value) : $format;
+
+        if ($format) {
+            $this->serial_number_format = $format;
+        } elseif ($this->serial_number_format === null) {
+            $this->serial_number_format = InvoiceServiceProvider::getSerialNumberFormatConfiguration($this->type);
+        }
 
         return $this
             ->setSerialNumberPrefix($prefix, $throw)
