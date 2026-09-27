@@ -37,7 +37,7 @@ return new class extends Migration
                     $amount = null;
                     $percentage = null;
 
-                    if ($item->unit_tax !== null && $item->tax_percentage) {
+                    if ($item->unit_tax !== null && $item->currency !== null && $item->tax_percentage) {
 
                         $amount = Money::ofMinor($item->unit_tax, $item->currency)
                             ->multipliedBy((string) $item->quantity, $roundingMode);
@@ -48,25 +48,21 @@ return new class extends Migration
 
                         $percentage = (float) $item->tax_percentage;
 
-                    } elseif ($item->unit_tax !== null) {
+                    } elseif ($item->unit_tax !== null && $item->currency !== null) {
 
                         $amount = Money::ofMinor($item->unit_tax, $item->currency)
                             ->multipliedBy((string) $item->quantity, $roundingMode);
 
                     }
 
-                    if ($amount || $percentage) {
-                        $taxes = new InvoiceTaxCollection([
-                            new InvoiceTax(
-                                type: $invoice->tax_type,
-                                taxability: $invoice->tax_exempt ?: 'standard_rated',
-                                amount: $amount,
-                                percentage: $percentage,
-                            ),
-                        ]);
-                    } else {
-                        $taxes = new InvoiceTaxCollection;
-                    }
+                    $taxes = new InvoiceTaxCollection([
+                        new InvoiceTax(
+                            type: $invoice->tax_type,
+                            taxability: $invoice->tax_exempt ?: 'standard_rated',
+                            amount: $amount,
+                            percentage: $percentage,
+                        ),
+                    ]);
 
                     DB::table('invoice_items')
                         ->where('id', $item->id)

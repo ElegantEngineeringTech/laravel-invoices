@@ -153,11 +153,11 @@ return new class extends Migration
                 DB::table('invoices')
                     ->where('id', $invoice->id)
                     ->update([
-                        'subtotal_amount' => $invoice->subtotal_amount->getMinorAmount()->toInt(),
-                        'discount_amount' => $invoice->discount_amount->getMinorAmount()->toInt(),
-                        'tax_amount' => $invoice->tax_amount->getMinorAmount()->toInt(),
-                        'total_amount' => $invoice->total_amount->getMinorAmount()->toInt(),
-                        'currency' => $invoice->total_amount->getCurrency()->getCurrencyCode(),
+                        'subtotal_amount' => $invoice->subtotal_amount?->getMinorAmount()->toInt(),
+                        'discount_amount' => $invoice->discount_amount?->getMinorAmount()->toInt(),
+                        'tax_amount' => $invoice->tax_amount?->getMinorAmount()->toInt(),
+                        'total_amount' => $invoice->total_amount?->getMinorAmount()->toInt(),
+                        'currency' => $invoice->total_amount?->getCurrency()->getCurrencyCode(),
                     ]);
 
             }
