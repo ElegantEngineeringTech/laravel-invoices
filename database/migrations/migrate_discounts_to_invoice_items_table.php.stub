@@ -49,7 +49,7 @@ return new class extends Migration
                             $items[$index]->discounts[] = [
                                 'code' => $discount->code,
                                 'label' => $discount->name,
-                                'percentage' => $discount->percent_off ? (round((float) $discount->percent_off, 2)) : null,
+                                'percentage' => $discount->percent_off === null ? null : (round((float) $discount->percent_off, 2)),
                                 'amount' => $amounts[$index]?->getMinorAmount()->toInt(),
                                 'currency' => $amounts[$index]?->getCurrency()->getCurrencyCode(),
                                 'amount_subtotal' => null,
@@ -60,7 +60,7 @@ return new class extends Migration
                             $items[$index]->discounts[] = [
                                 'code' => $discount->code,
                                 'label' => $discount->name,
-                                'percentage' => $discount->percent_off ? (round((float) $discount->percent_off, 2)) : null,
+                                'percentage' => $discount->percent_off === null ? null : (round((float) $discount->percent_off, 2)),
                                 'amount' => null,
                                 'currency' => null,
                                 'amount_subtotal' => null,
