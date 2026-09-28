@@ -100,7 +100,7 @@ return new class extends Migration
                             'discounts' => json_encode(array_map(
                                 fn ($discount) => [
                                     'code' => $discount->code,
-                                    'label' => $discount->name,
+                                    'label' => $discount->label,
                                     'percentage' => $discount->percentage === null ? null : (round((float) $discount->percentage, 2)),
                                     'amount' => $discount->amount?->getMinorAmount()->toInt(),
                                     'currency' => $discount->amount?->getCurrency()->getCurrencyCode(),
