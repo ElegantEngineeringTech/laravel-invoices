@@ -134,7 +134,16 @@ class Invoice extends Model implements Attachable, GOBLable
 
         static::updating(function (Invoice $invoice) {
             $invoice->denormalize();
-            $invoice->denormalizeSerialNumber();
+
+            if (
+                config('invoices.serial_number.auto_generate') &&
+                blank($invoice->serial_number)
+            ) {
+                $invoice->generateSerialNumber();
+            } else {
+                $invoice->denormalizeSerialNumber();
+            }
+
         });
 
         static::deleting(function (Invoice $invoice) {
