@@ -596,7 +596,8 @@ class Invoice extends Model implements Attachable, GOBLable
     }
 
     /**
-     * Mutate the amounts and items
+     * Mutate the invoice amounts and its items by scaling them.
+     * Uses the configured rounding mode when none is provided.
      */
     public function multiplyBy(BigNumber|int|string $that, ?RoundingMode $roundingMode = null): static
     {

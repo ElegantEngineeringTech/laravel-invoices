@@ -33,7 +33,8 @@ class InvoiceTaxCollection extends Collection implements GOBLable
     }
 
     /**
-     * Mutate the items
+     * Mutate each tax's monetary amounts by scaling them.
+     * Uses the configured rounding mode when none is provided.
      */
     public function multiplyBy(BigNumber|int|string $that, ?RoundingMode $roundingMode = null): static
     {
