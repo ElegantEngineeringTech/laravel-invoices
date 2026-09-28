@@ -645,6 +645,10 @@ class Invoice extends Model implements Attachable, GOBLable
             items: $this->items->toPdfItems()->values(),
             logo: $this->getLogo(),
             paymentInstructions: $this->payment_instructions?->all() ?? [],
+            subtotal_amount: $this->subtotal_amount,
+            discount_amount: $this->discount_amount,
+            tax_amount: $this->tax_amount,
+            total_amount: $this->total_amount,
         );
     }
 
