@@ -27,6 +27,11 @@ class InvoiceItemCollection extends Collection implements GOBLable
         });
     }
 
+    public function replicate(?array $except = null): static
+    {
+        return $this->map(fn ($item) => $item->replicate($except));
+    }
+
     /**
      * Mutate each item's monetary amounts, discounts, and taxes by scaling them.
      * Uses the configured rounding mode when none is provided.
