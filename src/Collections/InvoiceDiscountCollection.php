@@ -6,6 +6,7 @@ namespace Elegantly\Invoices\Collections;
 
 use Brick\Math\BigNumber;
 use Brick\Math\RoundingMode;
+use Brick\Money\AllocationMode;
 use Brick\Money\Money;
 use Elegantly\Invoices\Concerns\SumMoney;
 use Elegantly\Invoices\Contracts\GOBLable;
@@ -43,6 +44,23 @@ class InvoiceDiscountCollection extends Collection implements GOBLable
         return $this->each(function ($item) use ($roundingMode, $that) {
             $item->amount_subtotal = $item->amount_subtotal?->multipliedBy($that, $roundingMode);
             $item->amount = $item->amount?->multipliedBy($that, $roundingMode);
+        });
+    }
+
+    public function allocate(
+        Money $amount,
+        AllocationMode $mode = AllocationMode::FloorToFirst,
+        ?RoundingMode $roundingMode = null
+    ): static {
+        $roundingMode ??= InvoiceServiceProvider::getRoundingMode();
+
+        $ratios = $this->toBase()->map(fn ($discount) => abs($discount->amount?->getMinorAmount()->toInt() ?? 0))->all();
+
+        $amounts = $amount->allocate($ratios, $mode);
+
+        return $this->each(function ($discount, $index) use ($amounts) {
+            $discount->amount_subtotal = null;
+            $discount->amount = $amounts[$index];
         });
     }
 

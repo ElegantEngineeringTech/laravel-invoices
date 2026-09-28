@@ -6,6 +6,8 @@ namespace Elegantly\Invoices\Collections\Eloquent;
 
 use Brick\Math\BigNumber;
 use Brick\Math\RoundingMode;
+use Brick\Money\AllocationMode;
+use Brick\Money\Money;
 use Elegantly\Invoices\Collections\PdfInvoiceItemCollection;
 use Elegantly\Invoices\Concerns\SumMoney;
 use Elegantly\Invoices\Contracts\GOBLable;
@@ -27,9 +29,62 @@ class InvoiceItemCollection extends Collection implements GOBLable
         });
     }
 
+    /**
+     * @param  null|string[]  $except
+     */
     public function replicate(?array $except = null): static
     {
+        // @phpstan-ignore-next-line
         return $this->map(fn ($item) => $item->replicate($except));
+    }
+
+    public function allocate(
+        Money $subtotal,
+        Money $tax,
+        Money $discount,
+        Money $total,
+        AllocationMode $mode = AllocationMode::FloorToFirst,
+        ?RoundingMode $roundingMode = null
+    ): static {
+        $roundingMode ??= InvoiceServiceProvider::getRoundingMode();
+
+        $ratiosSubtotal = $this
+            ->toBase()
+            ->map(fn ($i) => abs($i->price_subtotal?->getMinorAmount()->toInt() ?? 0))
+            ->all();
+
+        $ratiosDiscount = $this
+            ->toBase()
+            ->map(fn ($i) => abs($i->price_discount?->getMinorAmount()->toInt() ?? 0))
+            ->all();
+
+        $ratiosTax = $this
+            ->toBase()
+            ->map(fn ($i) => abs($i->price_tax?->getMinorAmount()->toInt() ?? 0))
+            ->all();
+
+        $ratiosPrice = $this
+            ->toBase()
+            ->map(fn ($i) => abs($i->price?->getMinorAmount()->toInt() ?? 0))
+            ->all();
+
+        $subtotals = $subtotal->allocate($ratiosSubtotal, $mode);
+        $discounts = $discount->allocate($ratiosDiscount, $mode);
+        $taxes = $tax->allocate($ratiosTax, $mode);
+        $prices = $total->allocate($ratiosPrice, $mode);
+
+        return $this->each(function ($item, $index) use ($discounts, $prices, $subtotals, $roundingMode, $taxes) {
+
+            $item->unit_price = $subtotals[$index]->dividedBy($item->quantity, $roundingMode);
+            $item->price_subtotal = $subtotals[$index];
+            $item->price_discount = $discounts[$index];
+            $item->price_tax = $taxes[$index];
+            $item->price = $prices[$index];
+
+            $item->discounts?->allocate($item->price_discount);
+            $item->taxes?->allocate($item->price_tax);
+
+        });
     }
 
     /**
