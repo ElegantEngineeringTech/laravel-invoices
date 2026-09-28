@@ -24,7 +24,7 @@ return new class extends Migration
                     ->where('invoice_id', $invoice->id)
                     ->get();
 
-                $discounts = json_decode($invoice->discounts, false) ?? [];
+                $discounts = json_decode($invoice->discounts ?? '[]', false) ?? [];
 
                 foreach ($items as $index => $item) {
                     $items[$index]->discounts = [];

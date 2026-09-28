@@ -43,7 +43,7 @@ return new class extends Migration
                         ->multipliedBy((string) $item->quantity, $roundingMode);
 
                     // migrate discounts
-                    $discounts = json_decode($item->discounts, false) ?? [];
+                    $discounts = json_decode($item->discounts ?? '[]', false) ?? [];
 
                     $subtotal = $item->price_subtotal;
 
@@ -69,7 +69,7 @@ return new class extends Migration
                     // end migrate dicounts
 
                     // migrate taxes
-                    $taxes = json_decode($item->taxes, false) ?? [];
+                    $taxes = json_decode($item->taxes ?? '[]', false) ?? [];
 
                     $subtotal = $item->price_subtotal->minus($item->price_discount, $roundingMode);
 
