@@ -595,6 +595,14 @@ class Invoice extends Model implements Attachable, GOBLable
         ], $except ?? []));
     }
 
+    public function saveWithItems(): static
+    {
+        $this->save();
+        $this->items()->saveMany($this->items);
+
+        return $this;
+    }
+
     /**
      * Mutate the invoice amounts and its items by scaling them.
      * Uses the configured rounding mode when none is provided.
