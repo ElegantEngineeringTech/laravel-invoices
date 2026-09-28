@@ -32,17 +32,16 @@ class InvoiceDiscountCollection extends Collection implements GOBLable
         return $this->map(fn ($item) => clone $item);
     }
 
+    /**
+     * Mutate the items
+     */
     public function multiplyBy(BigNumber|int|string $that, ?RoundingMode $roundingMode = null): static
     {
         $roundingMode ??= InvoiceServiceProvider::getRoundingMode();
 
-        return $this->map(function ($item) use ($roundingMode, $that) {
-            $newItem = clone $item;
-
-            $newItem->amount_subtotal = $item->amount_subtotal?->multipliedBy($that, $roundingMode);
-            $newItem->amount = $item->amount?->multipliedBy($that, $roundingMode);
-
-            return $newItem;
+        return $this->each(function ($item) use ($roundingMode, $that) {
+            $item->amount_subtotal = $item->amount_subtotal?->multipliedBy($that, $roundingMode);
+            $item->amount = $item->amount?->multipliedBy($that, $roundingMode);
         });
     }
 

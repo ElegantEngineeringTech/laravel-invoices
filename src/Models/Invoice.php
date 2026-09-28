@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Elegantly\Invoices\Models;
 
 use BackedEnum;
+use Brick\Math\BigNumber;
+use Brick\Math\RoundingMode;
 use Brick\Money\Money;
 use Carbon\CarbonInterface;
 use Elegantly\Invoices\Collections\Eloquent\InvoiceItemCollection;
@@ -591,6 +593,23 @@ class Invoice extends Model implements Attachable, GOBLable
             'serial_number_count',
             'serial_number_details',
         ], $except ?? []));
+    }
+
+    /**
+     * Mutate the amounts and items
+     */
+    public function multiplyBy(BigNumber|int|string $that, ?RoundingMode $roundingMode = null): static
+    {
+        $roundingMode ??= InvoiceServiceProvider::getRoundingMode();
+
+        $this->subtotal_amount = $this->subtotal_amount?->multipliedBy($that, $roundingMode);
+        $this->discount_amount = $this->discount_amount?->multipliedBy($that, $roundingMode);
+        $this->tax_amount = $this->tax_amount?->multipliedBy($that, $roundingMode);
+        $this->total_amount = $this->total_amount?->multipliedBy($that, $roundingMode);
+
+        $this->items->multiplyBy($that, $roundingMode);
+
+        return $this;
     }
 
     public function toPdfInvoice(): PdfInvoice
