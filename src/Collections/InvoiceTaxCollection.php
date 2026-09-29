@@ -87,10 +87,7 @@ class InvoiceTaxCollection extends Collection implements GOBLable
              */
             if ($tax->percentage !== null) {
                 if ($force || $tax->amount === null) {
-                    $tax->amount = $subtotal->multipliedBy(
-                        (string) ($tax->percentage / 100),
-                        $roundingMode,
-                    );
+                    $tax->amount = $subtotal->multipliedBy((string) ($tax->percentage / 100), $roundingMode);
                 }
             }
         }

@@ -24,7 +24,7 @@ return [
 
     'pdf' => [
         'page' => 'Page',
-        'serial_number' => 'Numéro de facture',
+        'serial_number' => 'Numéro',
         'due_at' => 'Due le',
         'created_at' => 'Créée le',
         'paid_at' => 'Payée le',
