@@ -112,7 +112,7 @@ class Invoice extends Model implements Attachable, GOBLable
             'metadata' => 'array',
             'seller_information' => InvoiceServiceProvider::getSellerClass(),
             'buyer_information' => InvoiceServiceProvider::getBuyerClass(),
-            'payment_instructions' => AsCollection::of(PaymentInstruction::class),
+            'payment_instructions' => AsCollection::of(InvoiceServiceProvider::getPaymentInstructionClass()),
             'subtotal_amount' => MoneyCast::of('currency'),
             'discount_amount' => MoneyCast::of('currency'),
             'tax_amount' => MoneyCast::of('currency'),

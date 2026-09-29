@@ -11,6 +11,7 @@ use Elegantly\Invoices\Models\InvoiceItem;
 use Elegantly\Invoices\Support\Address;
 use Elegantly\Invoices\Support\Identity;
 use Elegantly\Invoices\Support\Party;
+use Elegantly\Invoices\Support\PaymentInstruction;
 use Elegantly\Invoices\Support\TaxId;
 
 return [
@@ -30,6 +31,8 @@ return [
     'address_class' => Address::class,
 
     'tax_id_class' => TaxId::class,
+
+    'payment_instructions_class' => PaymentInstruction::class,
 
     'cascade_invoice_delete_to_invoice_items' => true,
 

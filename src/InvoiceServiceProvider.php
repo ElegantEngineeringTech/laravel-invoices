@@ -12,6 +12,7 @@ use Elegantly\Invoices\Models\InvoiceItem;
 use Elegantly\Invoices\Support\Address;
 use Elegantly\Invoices\Support\Identity;
 use Elegantly\Invoices\Support\Party;
+use Elegantly\Invoices\Support\PaymentInstruction;
 use Elegantly\Invoices\Support\TaxId;
 use Exception;
 use Spatie\LaravelPackageTools\Package;
@@ -190,6 +191,15 @@ class InvoiceServiceProvider extends PackageServiceProvider
     {
         // @phpstan-ignore-next-line
         return config('invoices.tax_class') ?? InvoiceTax::class;
+    }
+
+    /**
+     * @return class-string<PaymentInstruction>
+     */
+    public static function getPaymentInstructionClass(): string
+    {
+        // @phpstan-ignore-next-line
+        return config('invoices.payment_instructions_class') ?? PaymentInstruction::class;
     }
 
     public static function getRoundingMode(): RoundingMode
