@@ -138,13 +138,17 @@
                     {{ __('invoices::invoice.pdf.items.unit_price') }}
                 </th>
 
-                <th class="whitespace-nowrap border-b border-gray-200 p-2 text-left text-xs font-normal">
-                    {{ __('invoices::invoice.pdf.items.discount') }}
-                </th>
+                @if ($discounts->isNotEmpty())
+                    <th class="whitespace-nowrap border-b border-gray-200 p-2 text-left text-xs font-normal">
+                        {{ __('invoices::invoice.pdf.items.discount') }}
+                    </th>
+                @endif
 
-                <th class="whitespace-nowrap border-b border-gray-200 p-2 text-left text-xs font-normal">
-                    {{ __('invoices::invoice.pdf.items.tax') }}
-                </th>
+                @if ($taxes->isNotEmpty())
+                    <th class="whitespace-nowrap border-b border-gray-200 p-2 text-left text-xs font-normal">
+                        {{ __('invoices::invoice.pdf.items.tax') }}
+                    </th>
+                @endif
 
                 <th class="whitespace-nowrap border-b border-gray-200 py-2 pl-2 text-right text-xs font-normal">
                     {{ __('invoices::invoice.pdf.items.amount') }}
@@ -172,31 +176,35 @@
                         <p>{{ format_money($item->unit_price) }}</p>
                     </td>
 
-                    <td class="whitespace-nowrap border-b border-gray-200 p-2 align-top text-xs">
-                        <p>
-                            {{ format_money($item->price_discount) }}
+                    @if ($discounts->isNotEmpty())
+                        <td class="whitespace-nowrap border-b border-gray-200 p-2 align-top text-xs">
+                            <p>
+                                {{ format_money($item->price_discount) }}
 
-                            @foreach ($item->discounts as $discount)
-                                @include('invoices::default.includes.indicator', [
-                                    'index' => $discount->getIndex(),
-                                    'seed' => 4,
-                                ])
-                            @endforeach
-                        </p>
-                    </td>
+                                @foreach ($item->discounts as $discount)
+                                    @include('invoices::default.includes.indicator', [
+                                        'index' => $discount->getIndex(),
+                                        'seed' => 4,
+                                    ])
+                                @endforeach
+                            </p>
+                        </td>
+                    @endif
 
-                    <td class="whitespace-nowrap border-b border-gray-200 p-2 align-top text-xs">
-                        <p>
-                            {{ format_money($item->price_tax) }}
+                    @if ($taxes->isNotEmpty())
+                        <td class="whitespace-nowrap border-b border-gray-200 p-2 align-top text-xs">
+                            <p>
+                                {{ format_money($item->price_tax) }}
 
-                            @foreach ($item->taxes as $tax)
-                                @include('invoices::default.includes.indicator', [
-                                    'index' => $tax->getIndex(),
-                                    'seed' => 104,
-                                ])
-                            @endforeach
-                        </p>
-                    </td>
+                                @foreach ($item->taxes as $tax)
+                                    @include('invoices::default.includes.indicator', [
+                                        'index' => $tax->getIndex(),
+                                        'seed' => 104,
+                                    ])
+                                @endforeach
+                            </p>
+                        </td>
+                    @endif
 
                     <td class="whitespace-nowrap border-b border-gray-200 py-2 pl-2 text-right align-top text-xs">
                         <p>{{ format_money($item->price) }}</p>
