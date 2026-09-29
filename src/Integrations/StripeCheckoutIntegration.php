@@ -66,10 +66,10 @@ class StripeCheckoutIntegration
             )),
             'taxes' => new InvoiceTaxCollection(array_map(
                 fn ($tax) => new $taxClass([
-                    'type' => $tax->rate->tax_type,
+                    'type' => $tax->rate->tax_type ?? mb_strtolower($tax->rate->display_name),
                     'country' => $tax->rate->country,
                     'state' => $tax->rate->state,
-                    'taxability' => $tax->taxability_reason,
+                    'taxability' => $tax->taxability_reason ?? 'standard_rated',
                     'amount' => Money::ofMinor($tax->amount, $currency),
                     'percentage' => $tax->rate->effective_percentage,
                     'label' => $tax->rate->display_name,
