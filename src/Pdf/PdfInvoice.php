@@ -109,8 +109,8 @@ class PdfInvoice implements Attachable
                 });
 
                 return new $class(
-                    code: $code,
-                    percentage: (float) $percentage,
+                    code: $code ?: null,
+                    percentage: $percentage ? (float) $percentage : null,
                     amount: new InvoiceDiscountCollection($discounts)->amount(),
                 )->setIndex($index);
             });
@@ -128,19 +128,22 @@ class PdfInvoice implements Attachable
         $discounts = $this->items
             ->toBase()
             ->flatMap(fn ($item) => $item->taxes)
-            ->groupBy(fn ($tax) => implode('|', [$tax->type, $tax->percentage, $tax->taxability]))
+            ->groupBy(fn ($tax) => implode('|', [$tax->type, $tax->country, $tax->state, $tax->taxability, $tax->percentage, $tax->label]))
             ->map(function ($taxes, $group) use ($class, &$index) {
                 $index++;
-                [$type, $percentage, $taxability] = explode('|', $group);
+                [$type, $country, $state, $taxability, $percentage, $label] = explode('|', $group);
 
                 $taxes->each(function ($tax) use ($index) {
                     $tax->setIndex($index);
                 });
 
                 return new $class(
-                    type: $type,
-                    taxability: $taxability,
-                    percentage: (float) $percentage,
+                    label: $label ?: null,
+                    type: $type ?: null,
+                    country: $country ?: null,
+                    state: $state ?: null,
+                    taxability: $taxability ?: null,
+                    percentage: $percentage ? (float) $percentage : null,
                     amount: new InvoiceTaxCollection($taxes)->amount(),
                 )->setIndex($index);
             });
