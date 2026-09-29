@@ -17,22 +17,6 @@ class InvoiceCollection extends Collection
 {
     use SumMoney;
 
-    public function denormalize(bool $force = false): static
-    {
-        return $this->each(function ($item) use ($force) {
-            $item->denormalize($force);
-        });
-    }
-
-    /**
-     * @param  null|string[]  $except
-     */
-    public function replicate(?array $except = null): static
-    {
-        // @phpstan-ignore-next-line
-        return $this->map(fn ($item) => $item->replicate($except));
-    }
-
     /**
      * @return SupportCollection<int, PdfInvoice>
      */
