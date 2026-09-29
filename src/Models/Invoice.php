@@ -237,24 +237,20 @@ class Invoice extends Model implements Attachable, GOBLable
     }
 
     /**
-     * @param  array<int, InvoiceItem>|InvoiceItemCollection<array-key, InvoiceItem>  $items
+     * @param  iterable<InvoiceItem>  $items
      */
-    public function setItems(array|InvoiceItemCollection $items = []): static
+    public function setItems(iterable $items = []): static
     {
-        $class = InvoiceServiceProvider::getInvoiceItemClass();
-
         return $this->setRelation(
             'items',
-            new $class()->newCollection(
-                is_array($items) ? $items : $items->all()
-            )
+            $this->items()->getRelated()->newCollection([...$items])
         );
     }
 
     /**
-     * @param  array<int, InvoiceItem>|InvoiceItemCollection<array-key, InvoiceItem>  $items
+     * @param  iterable<InvoiceItem>  $items
      */
-    public function addItems(array|InvoiceItemCollection $items = []): static
+    public function addItems(iterable $items = []): static
     {
         return $this->setRelation(
             'items',
