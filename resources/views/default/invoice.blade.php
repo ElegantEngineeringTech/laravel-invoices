@@ -4,6 +4,8 @@
     $dateFormat = config('invoices.date_format');
     $discounts = $invoice->getDiscounts();
     $taxes = $invoice->getTaxes();
+
+    $columns = 4 + ((int) $discounts->isNotEmpty()) + ((int) $taxes->isNotEmpty());
 @endphp
 
 <div>
@@ -213,9 +215,9 @@
             @endforeach
 
             <tr>
-                {{-- empty space --}}
+                {{-- item space --}}
                 <td class="py-2 pr-2"></td>
-                <td class="border-b border-gray-200 p-2 text-xs" colspan="4">
+                <td class="border-b border-gray-200 p-2 text-xs" colspan="{{ $columns - 2 }}">
                     {{ __('invoices::invoice.pdf.summary.subtotal') }}
                 </td>
                 <td class="whitespace-nowrap border-b border-gray-200 py-2 pl-2 text-right text-xs">
@@ -226,9 +228,9 @@
             @if ($discounts->isNotEmpty())
                 @foreach ($discounts as $discount)
                     <tr class="text-gray-500">
-                        {{-- empty space --}}
+                        {{-- item space --}}
                         <td class="py-2 pr-2"></td>
-                        <td class="border-b border-gray-200 p-2 text-xs" colspan="4">
+                        <td class="border-b border-gray-200 p-2 text-xs" colspan="{{ $columns - 2 }}">
                             @if ($label = $discount->getLabel())
                                 {{ $label }}
                             @else
@@ -256,9 +258,9 @@
                 @endforeach
 
                 <tr>
-                    {{-- empty space --}}
+                    {{-- item space --}}
                     <td class="py-2 pr-2"></td>
-                    <td class="border-b border-gray-200 p-2 text-xs" colspan="4">
+                    <td class="border-b border-gray-200 p-2 text-xs" colspan="{{ $columns - 2 }}">
                         {{ __('invoices::invoice.pdf.summary.discounted') }}
                     </td>
                     <td class="whitespace-nowrap border-b border-gray-200 py-2 pl-2 text-right text-xs">
@@ -271,9 +273,9 @@
             @if ($taxes->isNotEmpty())
                 @foreach ($taxes as $tax)
                     <tr class="text-gray-500">
-                        {{-- empty space --}}
+                        {{-- item space --}}
                         <td class="py-2 pr-2"></td>
-                        <td class="border-b border-gray-200 p-2 text-xs" colspan="4">
+                        <td class="border-b border-gray-200 p-2 text-xs" colspan="{{ $columns - 2 }}">
                             @if ($label = $tax->getLabel())
                                 {{ $label }}
                             @else
@@ -306,9 +308,9 @@
             @endif
 
             <tr>
-                {{-- empty space --}}
+                {{-- item space --}}
                 <td class="py-2 pr-2"></td>
-                <td class="p-2 text-sm" colspan="4">
+                <td class="p-2 text-sm" colspan="{{ $columns - 2 }}">
                     <strong>{{ __('invoices::invoice.pdf.summary.total') }}</strong>
                 </td>
                 <td class="whitespace-nowrap py-2 pl-2 text-right text-sm">
