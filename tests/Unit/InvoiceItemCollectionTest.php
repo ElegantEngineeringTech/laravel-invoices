@@ -74,4 +74,4 @@ it('Allocates amounts to items', function () {
     expect($item2->price)->toCost(Money::of(54, 'EUR'));
     expect($item2->unit_price)->toCost(Money::of(5, 'EUR'));
 
-})->only();
+});

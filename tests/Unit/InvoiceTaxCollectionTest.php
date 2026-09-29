@@ -31,4 +31,4 @@ it('Allocates amounts to taxes', function () {
     expect($tax2->amount)->toCost(Money::of(5, 'EUR'));
     expect($tax2->amount_taxable)->toBe(null);
 
-})->only();
+});

@@ -110,25 +110,38 @@ class InvoiceItem extends Model implements GOBLable
             $this->price_discount = $this->discounts
                 ?->denormalize($this, $force)
                 ->amount();
+
+            if ($this->unit_price !== null) {
+                $currency = $this->unit_price->getCurrency();
+
+                $this->price_discount ??= Money::zero($currency);
+            }
         }
 
         if ($force || $this->price_tax === null) {
             $this->price_tax = $this->taxes
                 ?->denormalize($this, $force)
                 ->amount();
+
+            if ($this->unit_price !== null) {
+                $currency = $this->unit_price->getCurrency();
+
+                $this->price_tax ??= Money::zero($currency);
+            }
         }
 
-        if ($this->unit_price !== null) {
-            $currency = $this->unit_price->getCurrency();
+        if ($force || $this->price === null) {
 
-            $this->price_discount ??= Money::zero($currency);
-            $this->price_tax ??= Money::zero($currency);
+            $this->price = $this->price_subtotal;
 
-            if ($force || $this->price === null) {
-                $this->price = $this->price_subtotal
-                    ->minus($this->price_discount)
-                    ->plus($this->price_tax);
+            if ($this->price_discount) {
+                $this->price = $this->price?->minus($this->price_discount);
             }
+
+            if ($this->price_tax) {
+                $this->price = $this->price?->plus($this->price_tax);
+            }
+
         }
 
         return $this;

@@ -9,7 +9,7 @@ use Elegantly\Invoices\InvoiceDiscount;
 use Elegantly\Invoices\InvoiceTax;
 use Elegantly\Invoices\Models\InvoiceItem;
 
-it('[InvoiceItem] can denormalize a simple item without discounts or taxes', function () {
+it('[InvoiceItem] does denormalize an item without discounts or taxes', function () {
     $item = new InvoiceItem([
         'unit_price' => Money::of(10, 'EUR'),
         'quantity' => 10,
@@ -22,6 +22,52 @@ it('[InvoiceItem] can denormalize a simple item without discounts or taxes', fun
     expect($item->price_tax)->toCost(Money::of(0, 'EUR'));
     expect($item->price)->toCost(Money::of(100, 'EUR'));
 
+});
+
+it('[InvoiceItem] does denormalize an item with discounts', function () {
+    $item = new InvoiceItem([
+        'unit_price' => Money::of(10, 'EUR'),
+        'quantity' => 10,
+        'discounts' => new InvoiceDiscountCollection([
+            $discount1 = new InvoiceDiscount(
+                percentage : 10.0,
+                amount: Money::of(10, 'EUR'),
+            ),
+        ]),
+    ]);
+
+    $item->denormalize();
+
+    expect($item->price_subtotal)->toCost(Money::of(100, 'EUR'));
+    expect($item->price_discount)->toCost(Money::of(10, 'EUR'));
+    expect($item->price_tax)->toCost(Money::of(0, 'EUR'));
+    expect($item->price)->toCost(Money::of(90, 'EUR'));
+
+    expect($discount1->percentage)->toBe(10.0);
+    expect($discount1->amount)->toCost(Money::of(10, 'EUR'));
+});
+
+it('[InvoiceItem] does denormalize an item with taxes', function () {
+    $item = new InvoiceItem([
+        'unit_price' => Money::of(10, 'EUR'),
+        'quantity' => 10,
+        'taxes' => new InvoiceTaxCollection([
+            $tax1 = new InvoiceTax(
+                percentage : 20.0,
+                amount: Money::of(20, 'EUR'),
+            ),
+        ]),
+    ]);
+
+    $item->denormalize();
+
+    expect($item->price_subtotal)->toCost(Money::of(100, 'EUR'));
+    expect($item->price_discount)->toCost(Money::of(0, 'EUR'));
+    expect($item->price_tax)->toCost(Money::of(20, 'EUR'));
+    expect($item->price)->toCost(Money::of(120, 'EUR'));
+
+    expect($tax1->percentage)->toBe(20.0);
+    expect($tax1->amount)->toCost(Money::of(20, 'EUR'));
 });
 
 it('[InvoiceItem] does not override values when denormalizing', function () {

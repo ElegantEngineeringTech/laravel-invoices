@@ -31,4 +31,4 @@ it('Allocates amounts to discounts', function () {
     expect($discount2->amount)->toCost(Money::of(5, 'EUR'));
     expect($discount2->amount_subtotal)->toBe(null);
 
-})->only();
+});
