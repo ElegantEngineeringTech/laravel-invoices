@@ -267,6 +267,20 @@ class Invoice extends Model implements Attachable, GOBLable
     }
 
     /**
+     * @param  iterable<string, scalar>  $values
+     */
+    public function mergeFields(iterable $values): static
+    {
+
+        $this->fields = [
+            ...($this->fields ?? []),
+            ...$values,
+        ];
+
+        return $this;
+    }
+
+    /**
      * Generates a new serial number for an invoice.
      *
      * The count value for the new serial number is based on the previous serial number.
