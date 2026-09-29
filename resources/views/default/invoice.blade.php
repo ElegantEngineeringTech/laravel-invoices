@@ -295,7 +295,6 @@
                         </td>
                     </tr>
                 @endforeach
-
             @endif
 
             <tr>
