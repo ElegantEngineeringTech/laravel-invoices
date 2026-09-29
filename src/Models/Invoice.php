@@ -82,7 +82,7 @@ use function Illuminate\Support\enum_value;
  * @property-read ?Model $seller
  * @property-read ?static $parent
  * @property-read ?static $quote
- * @property-read InvoiceItemCollection $items
+ * @property-read InvoiceItemCollection<array-key, InvoiceItem> $items
  * @property-read Collection<int, static> $credits
  */
 #[CollectedBy(InvoiceCollection::class)]
@@ -237,15 +237,22 @@ class Invoice extends Model implements Attachable, GOBLable
     }
 
     /**
-     * @param  array<int, InvoiceItem>|InvoiceItemCollection  $items
+     * @param  array<int, InvoiceItem>|InvoiceItemCollection<array-key, InvoiceItem>  $items
      */
     public function setItems(array|InvoiceItemCollection $items = []): static
     {
-        return $this->setRelation('items', new InvoiceItemCollection($items));
+        $class = InvoiceServiceProvider::getInvoiceItemClass();
+
+        return $this->setRelation(
+            'items',
+            new $class()->newCollection(
+                is_array($items) ? $items : $items->all()
+            )
+        );
     }
 
     /**
-     * @param  array<int, InvoiceItem>|InvoiceItemCollection  $items
+     * @param  array<int, InvoiceItem>|InvoiceItemCollection<array-key, InvoiceItem>  $items
      */
     public function addItems(array|InvoiceItemCollection $items = []): static
     {

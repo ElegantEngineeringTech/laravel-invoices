@@ -11,7 +11,10 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Collection as SupportCollection;
 
 /**
- * @extends Collection<int, Invoice>
+ * @template TKey of array-key
+ * @template TModel of Invoice
+ *
+ * @extends Collection<TKey, TModel>
  */
 class InvoiceCollection extends Collection
 {

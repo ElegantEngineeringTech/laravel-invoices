@@ -19,11 +19,11 @@ class StripeCheckoutIntegration
 {
     /**
      * @param  Collection<LineItem>  $items
+     * @return InvoiceItemCollection<array-key, InvoiceItem>
      */
     public function toInvoiceItemCollection(Collection $items): InvoiceItemCollection
     {
-
-        $items = collect($items->data)->map(fn ($item) => $this->toInvoiceItem($item));
+        $items = collect($items->data)->map(fn ($item) => $this->toInvoiceItem($item))->all();
 
         return new InvoiceItemCollection($items);
     }

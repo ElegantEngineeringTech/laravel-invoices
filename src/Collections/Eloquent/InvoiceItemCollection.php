@@ -16,7 +16,10 @@ use Elegantly\Invoices\Models\InvoiceItem;
 use Illuminate\Database\Eloquent\Collection;
 
 /**
- * @extends Collection<int, InvoiceItem>
+ * @template TKey of array-key
+ * @template TModel of InvoiceItem
+ *
+ * @extends Collection<TKey, TModel>
  */
 class InvoiceItemCollection extends Collection implements GOBLable
 {
