@@ -13,6 +13,8 @@ use Elegantly\Invoices\Collections\PdfInvoiceItemCollection;
 use Elegantly\Invoices\Contracts\HasLabel;
 use Elegantly\Invoices\Enums\InvoiceState;
 use Elegantly\Invoices\Enums\InvoiceType;
+use Elegantly\Invoices\InvoiceDiscount;
+use Elegantly\Invoices\InvoiceTax;
 use Elegantly\Invoices\Support\Party;
 use Elegantly\Invoices\Support\PaymentInstruction;
 use Illuminate\Contracts\Mail\Attachable;
@@ -89,6 +91,9 @@ class PdfInvoice implements Attachable
         return $this;
     }
 
+    /**
+     * @return InvoiceDiscountCollection<InvoiceDiscount>
+     */
     public function getDiscounts(): InvoiceDiscountCollection
     {
         $discounts = $this->items
@@ -98,6 +103,9 @@ class PdfInvoice implements Attachable
         return new InvoiceDiscountCollection($discounts)->group();
     }
 
+    /**
+     * @return InvoiceTaxCollection<InvoiceTax>
+     */
     public function getTaxes(): InvoiceTaxCollection
     {
         $taxes = $this->items

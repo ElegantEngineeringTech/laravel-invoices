@@ -17,7 +17,9 @@ use Elegantly\Invoices\Pdf\PdfInvoiceItem;
 use Illuminate\Support\Collection;
 
 /**
- * @extends Collection<int, InvoiceTax>
+ * @template TValue of InvoiceTax
+ *
+ * @extends Collection<int, TValue>
  */
 class InvoiceTaxCollection extends Collection implements GOBLable
 {
@@ -123,6 +125,7 @@ class InvoiceTaxCollection extends Collection implements GOBLable
                 )->setIndex($index);
             });
 
+        // @phpstan-ignore-next-line
         return static::make($taxes);
 
     }

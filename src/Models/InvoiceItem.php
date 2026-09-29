@@ -11,6 +11,7 @@ use Elegantly\Invoices\Collections\InvoiceDiscountCollection;
 use Elegantly\Invoices\Collections\InvoiceTaxCollection;
 use Elegantly\Invoices\Contracts\GOBLable;
 use Elegantly\Invoices\Database\Factories\InvoiceItemFactory;
+use Elegantly\Invoices\InvoiceDiscount;
 use Elegantly\Invoices\InvoiceServiceProvider;
 use Elegantly\Invoices\InvoiceTax;
 use Elegantly\Invoices\Pdf\PdfInvoiceItem;
@@ -34,8 +35,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property ?Money $price
  * @property int $quantity
  * @property ?string $quantity_unit
- * @property ?InvoiceTaxCollection $taxes
- * @property ?InvoiceDiscountCollection $discounts
+ * @property ?InvoiceTaxCollection<InvoiceTax> $taxes
+ * @property ?InvoiceDiscountCollection<InvoiceDiscount> $discounts
  * @property ?array<array-key, mixed> $metadata
  * @property CarbonInterface $created_at
  * @property CarbonInterface $updated_at
@@ -147,12 +148,31 @@ class InvoiceItem extends Model implements GOBLable
         return $this;
     }
 
-    public function addTaxes(InvoiceTaxCollection|InvoiceTax $taxes): static
+    /**
+     * @param  iterable<int, InvoiceDiscount>|InvoiceDiscount  $discounts
+     */
+    public function addDiscounts(iterable|InvoiceDiscount $discounts): static
     {
-        $taxes = $taxes instanceof InvoiceTax ? new InvoiceTaxCollection([$taxes]) : $taxes;
+        $discounts = $discounts instanceof InvoiceDiscount ? [$discounts] : $discounts;
+
+        if ($this->discounts === null) {
+            $this->discounts = new InvoiceDiscountCollection($discounts);
+        } else {
+            $this->discounts->push(...$discounts);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param  iterable<int, InvoiceTax>|InvoiceTax  $taxes
+     */
+    public function addTaxes(iterable|InvoiceTax $taxes): static
+    {
+        $taxes = $taxes instanceof InvoiceTax ? [$taxes] : $taxes;
 
         if ($this->taxes === null) {
-            $this->taxes = $taxes;
+            $this->taxes = new InvoiceTaxCollection($taxes);
         } else {
             $this->taxes->push(...$taxes);
         }
