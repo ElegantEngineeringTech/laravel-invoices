@@ -16,10 +16,16 @@ function format_money(
 ): ?string {
     $locale ??= App::getLocale();
 
-    return $money?->formatToLocale(
+    $value = $money?->formatToLocale(
         locale: $locale,
         currencyDisplay: $currencyDisplay,
         hideFractionIfWhole: $hideFractionIfWhole
+    );
+
+    return str_replace(
+        ["\u{202F}", "\u{00A0}"],
+        ' ',
+        $value
     );
 }
 
