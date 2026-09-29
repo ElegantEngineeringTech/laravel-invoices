@@ -128,25 +128,25 @@
     <table class="mb-5 w-full">
         <thead>
             <tr class="text-gray-500">
-                <th class="whitespace-nowrap border-b py-2 pr-2 text-left text-xs font-normal">
+                <th class="whitespace-nowrap border-b border-gray-200 py-2 pr-2 text-left text-xs font-normal">
                     {{ __('invoices::invoice.pdf.items.label') }}
                 </th>
-                <th class="whitespace-nowrap border-b p-2 text-left text-xs font-normal">
+                <th class="whitespace-nowrap border-b border-gray-200 p-2 text-left text-xs font-normal">
                     {{ __('invoices::invoice.pdf.items.quantity') }}
                 </th>
-                <th class="whitespace-nowrap border-b p-2 text-left text-xs font-normal">
+                <th class="whitespace-nowrap border-b border-gray-200 p-2 text-left text-xs font-normal">
                     {{ __('invoices::invoice.pdf.items.unit_price') }}
                 </th>
 
-                <th class="whitespace-nowrap border-b p-2 text-left text-xs font-normal">
+                <th class="whitespace-nowrap border-b border-gray-200 p-2 text-left text-xs font-normal">
                     {{ __('invoices::invoice.pdf.items.discount') }}
                 </th>
 
-                <th class="whitespace-nowrap border-b p-2 text-left text-xs font-normal">
+                <th class="whitespace-nowrap border-b border-gray-200 p-2 text-left text-xs font-normal">
                     {{ __('invoices::invoice.pdf.items.tax') }}
                 </th>
 
-                <th class="whitespace-nowrap border-b py-2 pl-2 text-right text-xs font-normal">
+                <th class="whitespace-nowrap border-b border-gray-200 py-2 pl-2 text-right text-xs font-normal">
                     {{ __('invoices::invoice.pdf.items.amount') }}
                 </th>
             </tr>
@@ -154,22 +154,25 @@
         <tbody>
             @foreach ($invoice->items as $item)
                 <tr>
-                    <td @class(['align-top py-2 pr-2', 'border-b' => !$loop->last])>
+                    <td @class([
+                        'align-top py-2 pr-2',
+                        'border-b border-gray-200' => !$loop->last,
+                    ])>
                         <p class="text-xs"><strong>{{ $item->label }}</strong></p>
                         @if ($item->description)
                             <p class="pt-1 text-xs">{{ $item->description }}</p>
                         @endif
                     </td>
 
-                    <td class="whitespace-nowrap border-b p-2 align-top text-xs">
+                    <td class="whitespace-nowrap border-b border-gray-200 p-2 align-top text-xs">
                         <p>{{ $item->quantity }}</p>
                     </td>
 
-                    <td class="whitespace-nowrap border-b p-2 align-top text-xs">
+                    <td class="whitespace-nowrap border-b border-gray-200 p-2 align-top text-xs">
                         <p>{{ format_money($item->unit_price) }}</p>
                     </td>
 
-                    <td class="whitespace-nowrap border-b p-2 align-top text-xs">
+                    <td class="whitespace-nowrap border-b border-gray-200 p-2 align-top text-xs">
                         <p>
                             {{ format_money($item->price_discount) }}
 
@@ -182,7 +185,7 @@
                         </p>
                     </td>
 
-                    <td class="whitespace-nowrap border-b p-2 align-top text-xs">
+                    <td class="whitespace-nowrap border-b border-gray-200 p-2 align-top text-xs">
                         <p>
                             {{ format_money($item->price_tax) }}
 
@@ -195,7 +198,7 @@
                         </p>
                     </td>
 
-                    <td class="whitespace-nowrap border-b py-2 pl-2 text-right align-top text-xs">
+                    <td class="whitespace-nowrap border-b border-gray-200 py-2 pl-2 text-right align-top text-xs">
                         <p>{{ format_money($item->price) }}</p>
                     </td>
                 </tr>
@@ -204,10 +207,10 @@
             <tr>
                 {{-- empty space --}}
                 <td class="py-2 pr-2"></td>
-                <td class="border-b p-2 text-xs" colspan="4">
+                <td class="border-b border-gray-200 p-2 text-xs" colspan="4">
                     {{ __('invoices::invoice.pdf.summary.subtotal') }}
                 </td>
-                <td class="whitespace-nowrap border-b py-2 pl-2 text-right text-xs">
+                <td class="whitespace-nowrap border-b border-gray-200 py-2 pl-2 text-right text-xs">
                     {{ format_money($invoice->subtotal_amount) }}
                 </td>
             </tr>
@@ -217,7 +220,7 @@
                     <tr class="text-gray-500">
                         {{-- empty space --}}
                         <td class="py-2 pr-2"></td>
-                        <td class="border-b p-2 text-xs" colspan="4">
+                        <td class="border-b border-gray-200 p-2 text-xs" colspan="4">
                             @if ($label = $discount->getLabel())
                                 {{ $label }}
                             @else
@@ -238,7 +241,7 @@
                             ])
 
                         </td>
-                        <td class="whitespace-nowrap border-b py-2 pl-2 text-right text-xs">
+                        <td class="whitespace-nowrap border-b border-gray-200 py-2 pl-2 text-right text-xs">
                             {{ format_money($discount->amount) }}
                         </td>
                     </tr>
@@ -247,10 +250,10 @@
                 <tr>
                     {{-- empty space --}}
                     <td class="py-2 pr-2"></td>
-                    <td class="border-b p-2 text-xs" colspan="4">
+                    <td class="border-b border-gray-200 p-2 text-xs" colspan="4">
                         {{ __('invoices::invoice.pdf.summary.discounted') }}
                     </td>
-                    <td class="whitespace-nowrap border-b py-2 pl-2 text-right text-xs">
+                    <td class="whitespace-nowrap border-b border-gray-200 py-2 pl-2 text-right text-xs">
                         {{ format_money($invoice->subtotal_amount->minus($invoice->discount_amount)) }}
                     </td>
                 </tr>
@@ -262,7 +265,7 @@
                     <tr class="text-gray-500">
                         {{-- empty space --}}
                         <td class="py-2 pr-2"></td>
-                        <td class="border-b p-2 text-xs" colspan="4">
+                        <td class="border-b border-gray-200 p-2 text-xs" colspan="4">
                             @if ($label = $tax->getLabel())
                                 {{ $label }}
                             @else
@@ -287,7 +290,7 @@
                             ])
 
                         </td>
-                        <td class="whitespace-nowrap border-b py-2 pl-2 text-right text-xs">
+                        <td class="whitespace-nowrap border-b border-gray-200 py-2 pl-2 text-right text-xs">
                             {{ format_money($tax->amount) }}
                         </td>
                     </tr>

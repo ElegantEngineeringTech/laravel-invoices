@@ -1,4 +1,4 @@
-<div class="-ml-12 -mr-12 -mt-px border-b border-t px-12 py-6">
+<div class="-ml-12 -mr-12 -mt-px border-b border-t border-gray-200 px-12 py-6">
 
     <table class="w-full">
         <tbody>

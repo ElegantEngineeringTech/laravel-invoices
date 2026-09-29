@@ -293,8 +293,13 @@
     }
 
     /* Borders */
+    .border-gray-200 {
+        border-color: #e5e7eb;
+    }
+
     .border-b {
-        border-bottom: 1px solid #e5e7eb;
+        border-bottom-style: solid;
+        border-bottom-width: 1px;
     }
 
     .border-t {
