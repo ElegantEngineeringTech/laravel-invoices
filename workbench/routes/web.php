@@ -34,6 +34,7 @@ $tax20 = new InvoiceTax(
     type: 'vat',
     taxability: 'standard',
     percentage: 20,
+    country: 'FR'
 );
 
 $invoice = new PdfInvoice(

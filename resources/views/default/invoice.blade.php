@@ -278,21 +278,24 @@
                         <td class="border-b border-gray-200 p-2 text-xs" colspan="{{ $columns - 2 }}">
                             @if ($label = $tax->getLabel())
                                 {{ $label }}
-                            @else
-                                {{ __('invoices::invoice.pdf.summary.tax') }}
+                            @elseif($tax->type)
+                                {{ mb_strtoupper($tax->type) }}
 
                                 @if ($tax->country)
                                     {{ $tax->country }}
                                 @endif
 
-                                @if ($tax->type)
-                                    {{ $tax->type }}
+                                @if ($tax->percentage)
+                                    ({{ Number::percentage($tax->percentage) }})
+                                @endif
+                            @else
+                                {{ __('invoices::invoice.pdf.summary.tax') }}
+
+                                @if ($tax->percentage)
+                                    ({{ Number::percentage($tax->percentage) }})
                                 @endif
                             @endif
 
-                            @if ($tax->percentage)
-                                ({{ Number::percentage($tax->percentage) }})
-                            @endif
 
                             @include('invoices::default.includes.indicator', [
                                 'index' => $tax->getIndex(),

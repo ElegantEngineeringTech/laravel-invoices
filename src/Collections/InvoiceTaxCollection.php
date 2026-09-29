@@ -95,6 +95,38 @@ class InvoiceTaxCollection extends Collection implements GOBLable
         return $this;
     }
 
+    public function group(): static
+    {
+        $class = InvoiceServiceProvider::getInvoiceTaxClass();
+
+        $index = -1;
+
+        $taxes = $this
+            ->toBase()
+            ->groupBy(fn ($tax) => implode('|', [$tax->type, $tax->country, $tax->state, $tax->taxability, $tax->percentage, $tax->label]))
+            ->map(function ($taxes, $group) use ($class, &$index) {
+                $index++;
+                [$type, $country, $state, $taxability, $percentage, $label] = explode('|', $group);
+
+                $taxes->each(function ($tax) use ($index) {
+                    $tax->setIndex($index);
+                });
+
+                return new $class(
+                    label: $label ?: null,
+                    type: $type ?: null,
+                    country: $country ?: null,
+                    state: $state ?: null,
+                    taxability: $taxability ?: null,
+                    percentage: $percentage ? (float) $percentage : null,
+                    amount: static::make($taxes)->amount(),
+                )->setIndex($index);
+            });
+
+        return static::make($taxes);
+
+    }
+
     public function toGOBL(array $values = []): array
     {
         return $this

@@ -102,6 +102,33 @@ class InvoiceDiscountCollection extends Collection implements GOBLable
         return $this;
     }
 
+    public function group(): static
+    {
+        $class = InvoiceServiceProvider::getInvoiceDiscountClass();
+
+        $index = -1;
+
+        $discounts = $this
+            ->toBase()
+            ->groupBy(fn ($discount) => implode('|', [$discount->code, $discount->percentage]))
+            ->map(function ($discounts, $group) use ($class, &$index) {
+                $index++;
+                [$code, $percentage] = explode('|', $group);
+
+                $discounts->each(function ($discount) use ($index) {
+                    $discount->setIndex($index);
+                });
+
+                return new $class(
+                    code: $code ?: null,
+                    percentage: $percentage ? (float) $percentage : null,
+                    amount: static::make($discounts)->amount(),
+                )->setIndex($index);
+            });
+
+        return static::make($discounts);
+    }
+
     public function toGOBL(array $values = []): array
     {
         return $this
