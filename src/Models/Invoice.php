@@ -9,6 +9,7 @@ use Brick\Math\BigNumber;
 use Brick\Math\RoundingMode;
 use Brick\Money\Money;
 use Carbon\CarbonInterface;
+use Elegantly\Invoices\Collections\Eloquent\InvoiceCollection;
 use Elegantly\Invoices\Collections\Eloquent\InvoiceItemCollection;
 use Elegantly\Invoices\Contracts\GOBLable;
 use Elegantly\Invoices\Contracts\HasLabel;
@@ -24,6 +25,7 @@ use Elegantly\Money\MoneyCast;
 use Exception;
 use finfo;
 use Illuminate\Contracts\Mail\Attachable;
+use Illuminate\Database\Eloquent\Attributes\CollectedBy;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\AsCollection;
 use Illuminate\Database\Eloquent\Collection;
@@ -83,6 +85,7 @@ use function Illuminate\Support\enum_value;
  * @property-read InvoiceItemCollection $items
  * @property-read Collection<int, static> $credits
  */
+#[CollectedBy(InvoiceCollection::class)]
 class Invoice extends Model implements Attachable, GOBLable
 {
     /**
