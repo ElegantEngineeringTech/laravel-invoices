@@ -22,11 +22,16 @@ function format_money(
         hideFractionIfWhole: $hideFractionIfWhole
     );
 
-    return str_replace(
-        ["\u{202F}", "\u{00A0}"],
-        ' ',
-        $value
-    );
+    if ($value) {
+        return str_replace(
+            ["\u{202F}", "\u{00A0}"],
+            ' ',
+            $value
+        );
+    }
+
+    return null;
+
 }
 
 function random_color(int $index, int $seed = 0): string

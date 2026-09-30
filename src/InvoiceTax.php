@@ -39,7 +39,7 @@ class InvoiceTax implements Arrayable, GOBLable, Jsonable, JsonSerializable
     public ?string $label = null;
 
     /**
-     * @param  string|array{
+     * @param  null|string|array{
      *      type?: null|string,
      *      country?: null|string,
      *      state?: null|string,
