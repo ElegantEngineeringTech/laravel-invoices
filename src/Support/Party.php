@@ -171,7 +171,7 @@ class Party implements Arrayable, Castable, GOBLable, Jsonable, JsonSerializable
      * Get the caster class to use when casting from / to this cast target.
      *
      * @param  array<string, mixed>  $arguments
-     * @return CastsAttributes<null|Party, null|string>
+     * @return CastsAttributes<null|static, null|string>
      */
     public static function castUsing(array $arguments): CastsAttributes
     {
@@ -204,6 +204,7 @@ class Party implements Arrayable, Castable, GOBLable, Jsonable, JsonSerializable
             {
                 return match (true) {
                     $value === null => null,
+                    $value instanceof Party => $value->toJson(),
                     default => json_encode($value) ?: null
                 };
             }
