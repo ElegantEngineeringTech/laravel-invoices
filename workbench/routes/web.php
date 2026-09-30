@@ -22,18 +22,18 @@ use Illuminate\Support\Facades\Route;
 
 $discount10 = new InvoiceDiscount(
     code: 'CODE10',
-    percentage: 10,
+    percentage: 10.0,
 );
 
 $discount20 = new InvoiceDiscount(
     code: 'CODE20',
-    percentage: 20,
+    percentage: 20.0,
 );
 
 $tax20 = new InvoiceTax(
     type: 'vat',
-    taxability: 'standard',
-    percentage: 20,
+    taxability: 'standard_rated',
+    percentage: 20.0,
     country: 'FR'
 );
 
