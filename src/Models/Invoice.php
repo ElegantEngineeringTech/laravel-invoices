@@ -123,7 +123,6 @@ class Invoice extends Model implements Attachable, GOBLable
     public static function booted()
     {
         static::creating(function (Invoice $invoice) {
-            $invoice->denormalize();
 
             if (
                 config('invoices.serial_number.auto_generate') &&
@@ -136,7 +135,6 @@ class Invoice extends Model implements Attachable, GOBLable
         });
 
         static::updating(function (Invoice $invoice) {
-            $invoice->denormalize();
 
             if (
                 config('invoices.serial_number.auto_generate') &&
@@ -264,6 +262,14 @@ class Invoice extends Model implements Attachable, GOBLable
     public function saveItems(): iterable
     {
         return $this->items()->saveMany($this->items);
+    }
+
+    public function saveWithItems(): static
+    {
+        $this->save();
+        $this->saveItems();
+
+        return $this;
     }
 
     /**
@@ -622,14 +628,6 @@ class Invoice extends Model implements Attachable, GOBLable
             'serial_number_count',
             'serial_number_details',
         ], $except ?? []));
-    }
-
-    public function saveWithItems(): static
-    {
-        $this->save();
-        $this->items()->saveMany($this->items);
-
-        return $this;
     }
 
     /**

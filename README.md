@@ -717,6 +717,7 @@ use Elegantly\Invoices\Enums\InvoiceType;
 
 $customer = Team::find(1);
 $order = Order::find(2);
+$payment = Payment::find(3);
 
 $invoice = new Invoice(
     'type' => "invoice",
@@ -769,10 +770,9 @@ $invoice->setLogoFromConfig();
 
 $invoice->buyer()->associate($customer); // optionnally associate the invoice to any model
 $invoice->invoiceable()->associate($order); // optionnally associate the invoice to any model
+$invoice->transaction()->associate($payment); // optionnally associate the invoice to any model
 
-$invoice->save();
-
-$invoice->items()->saveMany([
+$invoice->addItems([
     new InvoiceItem([
         'label' => "Laratranslate Unlimitted",
         'description' => "Elegant All-in-One Translations Manager for Laravel",
@@ -781,6 +781,9 @@ $invoice->items()->saveMany([
         'quantity' => 1,
     ]),
 ]);
+
+$invoice->denormalize()->saveWithItems();
+
 ```
 
 ### Generating Unique Serial Numbers
