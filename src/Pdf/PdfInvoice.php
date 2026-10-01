@@ -36,7 +36,7 @@ class PdfInvoice implements Attachable
     public string $template;
 
     /**
-     * @param  array<string, mixed>  $fields  Additianl fields to display in the header
+     * @param  array<string, mixed>  $fields  Additional fields displayed in the header
      * @param  PaymentInstruction[]  $paymentInstructions
      * @param  ?string  $logo  A local file path. The file must be accessible using file_get_contents.
      * @param  array<string, mixed>  $templateData
@@ -113,8 +113,8 @@ class PdfInvoice implements Attachable
             ));
         }
 
-        $seller = $data['seller'] ?? new Party;
-        $buyer = $data['buyer'] ?? new Party;
+        $seller = $data['seller'] ?? $data['seller_information'] ?? new Party;
+        $buyer = $data['buyer'] ?? $data['buyer_information'] ?? new Party;
 
         return new static(
             type: $data['type'] ?? InvoiceType::Invoice,
