@@ -117,8 +117,8 @@ class PdfInvoice implements Attachable
         $buyer = $data['buyer'] ?? $data['buyer_information'] ?? new Party;
 
         return new static(
-            type: $data['type'] ?? InvoiceType::Invoice,
-            state: $data['state'] ?? InvoiceState::Draft,
+            type: InvoiceType::tryFrom($data['type'] ?? '') ?? InvoiceType::Invoice,
+            state: InvoiceState::tryFrom($data['state'] ?? '') ?? InvoiceState::Draft,
             serial_number: $data['serial_number'] ?? null,
             created_at: $data['created_at'] ?? null,
             due_at: $data['due_at'] ?? null,
