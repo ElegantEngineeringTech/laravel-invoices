@@ -10,16 +10,24 @@ use Elegantly\Invoices\Collections\InvoiceTaxCollection;
 use Elegantly\Invoices\InvoiceDiscount;
 use Elegantly\Invoices\InvoiceServiceProvider;
 use Elegantly\Invoices\InvoiceTax;
+use Elegantly\Money\MoneyParser;
 
 /**
  * @phpstan-consistent-constructor
  *
  * @phpstan-type ItemData array{
- *     label?: ?string, unit_price?: ?Money, price_subtotal?: ?Money,
- *     price_discount?: ?Money, price_tax?: ?Money, price?: ?Money,
- *     quantity?: int|float, quantity_unit?: ?string, description?: ?string,
- *     discounts?: InvoiceDiscountCollection<InvoiceDiscount>|array<InvoiceDiscount|array{code?: ?string, label?: ?string, percentage?: ?float, amount?: Money|int|null, amount_subtotal?: Money|int|null, currency?: ?string}>,
- *     taxes?: InvoiceTaxCollection<InvoiceTax>|array<InvoiceTax|array{type?: ?string, country?: ?string, state?: ?string, taxability?: ?string, amount?: Money|int|null, currency?: ?string, amount_taxable?: Money|int|null, percentage?: ?float, label?: ?string}>
+ *     label?: ?string,
+ *     currency?: ?string,
+ *     unit_price?: Money|float|null,
+ *     price_subtotal?: Money|float|null,
+ *     price_discount?: Money|float|null,
+ *     price_tax?: Money|float|null,
+ *     price?: Money|float|null,
+ *     quantity?: int|float,
+ *     quantity_unit?: ?string,
+ *     description?: ?string,
+ *     discounts?: InvoiceDiscountCollection<InvoiceDiscount>|array<InvoiceDiscount|array{code?: ?string, label?: ?string, percentage?: ?float, amount?: Money|int|float|null, amount_subtotal?: Money|int|float|null, currency?: ?string}>,
+ *     taxes?: InvoiceTaxCollection<InvoiceTax>|array<InvoiceTax|array{type?: ?string, country?: ?string, state?: ?string, taxability?: ?string, amount?: Money|int|float|null, currency?: ?string, amount_taxable?: Money|int|float|null, percentage?: ?float, label?: ?string}>
  * }
  */
 class PdfInvoiceItem
@@ -49,31 +57,53 @@ class PdfInvoiceItem
      */
     public static function make(array $data): static
     {
+        $roundingMode = InvoiceServiceProvider::getRoundingMode();
+        $currency = $data['currency'] ?? InvoiceServiceProvider::getDefaultCurrency();
         $discounts = $data['discounts'] ?? new InvoiceDiscountCollection;
 
         if (is_array($discounts)) {
-            $discounts = new InvoiceDiscountCollection(array_map(
-                fn ($discount) => $discount instanceof InvoiceDiscount ? $discount : new InvoiceDiscount($discount),
-                $discounts
-            ));
+            $discounts = new InvoiceDiscountCollection(array_map(function ($discount) use ($currency, $roundingMode) {
+                if ($discount instanceof InvoiceDiscount) {
+                    return $discount;
+                }
+
+                $discountCurrency = $discount['currency'] ?? $currency;
+
+                return new InvoiceDiscount([
+                    ...$discount,
+                    'amount' => MoneyParser::parse($discount['amount'] ?? null, $discountCurrency, $roundingMode),
+                    'amount_subtotal' => MoneyParser::parse($discount['amount_subtotal'] ?? null, $discountCurrency, $roundingMode),
+                ]);
+            },
+                $discounts));
         }
 
         $taxes = $data['taxes'] ?? new InvoiceTaxCollection;
 
         if (is_array($taxes)) {
-            $taxes = new InvoiceTaxCollection(array_map(
-                fn ($tax) => $tax instanceof InvoiceTax ? $tax : new InvoiceTax($tax),
-                $taxes
-            ));
+            $taxes = new InvoiceTaxCollection(array_map(function ($tax) use ($currency, $roundingMode) {
+                if ($tax instanceof InvoiceTax) {
+                    return $tax;
+                }
+
+                $taxCurrency = $tax['currency'] ?? $currency;
+
+                return new InvoiceTax([
+                    ...$tax,
+                    'amount' => MoneyParser::parse($tax['amount'] ?? null, $taxCurrency, $roundingMode),
+                    'amount_taxable' => MoneyParser::parse($tax['amount_taxable'] ?? null, $taxCurrency, $roundingMode),
+                ]);
+            },
+                $taxes));
         }
 
         return new static(
             label: $data['label'] ?? null,
-            unit_price: $data['unit_price'] ?? null,
-            price_subtotal: $data['price_subtotal'] ?? null,
-            price_discount: $data['price_discount'] ?? null,
-            price_tax: $data['price_tax'] ?? null,
-            price: $data['price'] ?? null,
+            unit_price: MoneyParser::parse($data['unit_price'] ?? null, $currency, $roundingMode),
+            price_subtotal: MoneyParser::parse($data['price_subtotal'] ?? null, $currency, $roundingMode),
+            price_discount: MoneyParser::parse($data['price_discount'] ?? null, $currency, $roundingMode),
+            price_tax: MoneyParser::parse($data['price_tax'] ?? null, $currency, $roundingMode),
+            price: MoneyParser::parse($data['price'] ?? null, $currency, $roundingMode),
             quantity: $data['quantity'] ?? 1,
             quantity_unit: $data['quantity_unit'] ?? null,
             description: $data['description'] ?? null,

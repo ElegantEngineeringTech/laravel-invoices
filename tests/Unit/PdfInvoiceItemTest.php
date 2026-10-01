@@ -9,6 +9,35 @@ use Elegantly\Invoices\InvoiceDiscount;
 use Elegantly\Invoices\InvoiceTax;
 use Elegantly\Invoices\Pdf\PdfInvoiceItem;
 
+it('[PdfInvoiceItem] converts float amounts using its currency', function () {
+    $money = Money::of('12.34', 'EUR');
+
+    $item = PdfInvoiceItem::make([
+        'currency' => 'EUR',
+        'unit_price' => 12.34,
+        'price_subtotal' => 24.68,
+        'price_discount' => 1.25,
+        'price_tax' => 4.68,
+        'price' => $money,
+        'discounts' => [['amount' => 1.25, 'amount_subtotal' => 24.68]],
+        'taxes' => [['amount' => 4.68, 'amount_taxable' => 23.43]],
+    ]);
+
+    expect($item->unit_price)->toCost($money)
+        ->and($item->price_subtotal)->toCost(Money::of('24.68', 'EUR'))
+        ->and($item->price_discount)->toCost(Money::of('1.25', 'EUR'))
+        ->and($item->price_tax)->toCost(Money::of('4.68', 'EUR'))
+        ->and($item->price)->toBe($money)
+        ->and($item->discounts->first()->amount)->toCost(Money::of('1.25', 'EUR'))
+        ->and($item->discounts->first()->amount_subtotal)->toCost(Money::of('24.68', 'EUR'))
+        ->and($item->taxes->first()->amount)->toCost(Money::of('4.68', 'EUR'))
+        ->and($item->taxes->first()->amount_taxable)->toCost(Money::of('23.43', 'EUR'));
+});
+
+it('[PdfInvoiceItem] requires a currency for float amounts', function () {
+    PdfInvoiceItem::make(['unit_price' => 10.5]);
+})->throws(InvalidArgumentException::class);
+
 it('[PdfInvoiceItem] makes an item from data with nested discounts and taxes', function () {
     $discount = new InvoiceDiscount(amount: Money::of(2, 'EUR'));
     $tax = new InvoiceTax(amount: Money::of(4, 'EUR'));

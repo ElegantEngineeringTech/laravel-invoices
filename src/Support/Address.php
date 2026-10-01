@@ -83,6 +83,23 @@ class Address implements Arrayable, GOBLable
     }
 
     /**
+     * @return array{
+     *    company: ?string,
+     *    name: ?string,
+     *    street: null|string|string[],
+     *    state: ?string,
+     *    postal_code: ?string,
+     *    city: ?string,
+     *    country: ?string,
+     *    fields: null|array<array-key, null|int|float|string>,
+     * }
+     */
+    public function toLivewire()
+    {
+        return $this->toArray();
+    }
+
+    /**
      * Convert the address to its GOBL representation.
      *
      * @param  array<array-key, mixed>  $values

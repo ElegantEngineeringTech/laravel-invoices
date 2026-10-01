@@ -103,6 +103,12 @@ class InvoiceServiceProvider extends PackageServiceProvider
         return $format;
     }
 
+    public static function getDefaultCurrency(): string
+    {
+        // @phpstan-ignore-next-line
+        return config('invoices.default_currency') ?? 'USD';
+    }
+
     /**
      * @return class-string<Party>
      */

@@ -15,6 +15,29 @@ use Elegantly\Invoices\Pdf\PdfInvoiceItem;
 use Elegantly\Invoices\Support\Party;
 use Elegantly\Invoices\Support\PaymentInstruction;
 
+it('[PdfInvoice] converts float amounts using its currency', function () {
+    $money = Money::of('12.34', 'USD');
+
+    $invoice = PdfInvoice::make([
+        'currency' => 'USD',
+        'subtotal_amount' => 12.34,
+        'discount_amount' => 1.25,
+        'tax_amount' => 2.5,
+        'total_amount' => $money,
+        'items' => [['unit_price' => 12.34]],
+    ]);
+
+    expect($invoice->subtotal_amount)->toCost($money)
+        ->and($invoice->discount_amount)->toCost(Money::of('1.25', 'USD'))
+        ->and($invoice->tax_amount)->toCost(Money::of('2.50', 'USD'))
+        ->and($invoice->total_amount)->toBe($money)
+        ->and($invoice->items->first()->unit_price)->toCost($money);
+});
+
+it('[PdfInvoice] requires a currency for float amounts', function () {
+    PdfInvoice::make(['total_amount' => 10.5]);
+})->throws(InvalidArgumentException::class);
+
 it('[PdfInvoice] can denormalize amounts', function () {
     $invoice = new PdfInvoice(
         items: new PdfInvoiceItemCollection([

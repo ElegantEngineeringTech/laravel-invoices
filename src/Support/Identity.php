@@ -56,6 +56,17 @@ class Identity implements Arrayable, GOBLable
     }
 
     /**
+     * @return array{
+     *    type: ?string,
+     *    code: ?string,
+     * }
+     */
+    public function toLivewire()
+    {
+        return $this->toArray();
+    }
+
+    /**
      * Convert the identity to its GOBL representation.
      *
      * @param  array<array-key, mixed>  $values

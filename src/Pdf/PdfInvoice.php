@@ -14,9 +14,11 @@ use Elegantly\Invoices\Contracts\HasLabel;
 use Elegantly\Invoices\Enums\InvoiceState;
 use Elegantly\Invoices\Enums\InvoiceType;
 use Elegantly\Invoices\InvoiceDiscount;
+use Elegantly\Invoices\InvoiceServiceProvider;
 use Elegantly\Invoices\InvoiceTax;
 use Elegantly\Invoices\Support\Party;
 use Elegantly\Invoices\Support\PaymentInstruction;
+use Elegantly\Money\MoneyParser;
 use Illuminate\Contracts\Mail\Attachable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Response;
@@ -85,8 +87,11 @@ class PdfInvoice implements Attachable
      *     seller?: Party|array<string, mixed>,
      *     buyer?: Party|array<string, mixed>,
      *     items?: PdfInvoiceItemCollection|array<PdfInvoiceItem|ItemData>,
-     *     subtotal_amount?: ?Money, discount_amount?: ?Money,
-     *     tax_amount?: ?Money, total_amount?: ?Money,
+     *     currency?: ?string,
+     *     subtotal_amount?: Money|float|null,
+     *     discount_amount?: Money|float|null,
+     *     tax_amount?: Money|float|null,
+     *     total_amount?: Money|float|null,
      *     description?: ?string,
      *     paymentInstructions?: array<PaymentInstruction|array{name?: ?string, description?: ?string, qrcode?: ?string, fields?: array<array-key, null|int|float|string>}>,
      *     template?: ?string, templateData?: array<string, mixed>, logo?: ?string
@@ -94,11 +99,16 @@ class PdfInvoice implements Attachable
      */
     public static function make(array $data): static
     {
+        $currency = $data['currency'] ?? InvoiceServiceProvider::getDefaultCurrency();
+
         $items = $data['items'] ?? new PdfInvoiceItemCollection;
 
         if (is_array($items)) {
             $items = new PdfInvoiceItemCollection(array_map(
-                fn ($item) => $item instanceof PdfInvoiceItem ? $item : PdfInvoiceItem::make($item),
+                fn ($item) => $item instanceof PdfInvoiceItem ? $item : PdfInvoiceItem::make([
+                    'currency' => $currency,
+                    ...$item,
+                ]),
                 $items
             ));
         }
@@ -117,10 +127,10 @@ class PdfInvoice implements Attachable
             seller: is_array($seller) ? Party::fromArray($seller) : $seller,
             buyer: is_array($buyer) ? Party::fromArray($buyer) : $buyer,
             items: $items,
-            subtotal_amount: $data['subtotal_amount'] ?? null,
-            discount_amount: $data['discount_amount'] ?? null,
-            tax_amount: $data['tax_amount'] ?? null,
-            total_amount: $data['total_amount'] ?? null,
+            subtotal_amount: MoneyParser::parse($data['subtotal_amount'] ?? null, $currency),
+            discount_amount: MoneyParser::parse($data['discount_amount'] ?? null, $currency),
+            tax_amount: MoneyParser::parse($data['tax_amount'] ?? null, $currency),
+            total_amount: MoneyParser::parse($data['total_amount'] ?? null, $currency),
             description: $data['description'] ?? null,
             paymentInstructions: array_map(
                 fn ($instruction) => $instruction instanceof PaymentInstruction ? $instruction : new PaymentInstruction(

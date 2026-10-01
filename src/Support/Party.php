@@ -116,6 +116,42 @@ class Party implements Arrayable, Castable, GOBLable, Jsonable, JsonSerializable
     }
 
     /**
+     * @return array{
+     *    company: ?string,
+     *    name: ?string,
+     *    address: null|array{
+     *       company: ?string,
+     *       name: ?string,
+     *       street: null|string|string[],
+     *       state: ?string,
+     *       postal_code: ?string,
+     *       city: ?string,
+     *       country: ?string,
+     *       fields: null|array<array-key, null|int|float|string>,
+     *    },
+     *    shipping_address: null|array{
+     *       company: ?string,
+     *       name: ?string,
+     *       street: null|string|string[],
+     *       state: ?string,
+     *       postal_code: ?string,
+     *       city: ?string,
+     *       country: ?string,
+     *       fields: null|array<array-key, null|int|float|string>,
+     *    },
+     *    tax_id: ?array{ country?: null|string, code?: null|string },
+     *    email: ?string,
+     *    phone: ?string,
+     *    identities: array<array-key, array{ type: null|string, code: null|string }>,
+     *    fields: array<array-key, null|int|float|string>,
+     * }
+     */
+    public function toLivewire()
+    {
+        return $this->toArray();
+    }
+
+    /**
      * Convert the party to its GOBL representation.
      *
      * @param  array<array-key, mixed>  $values
