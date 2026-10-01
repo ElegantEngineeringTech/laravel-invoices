@@ -77,11 +77,11 @@ class InvoiceItem extends Model implements GOBLable
     public static function booted()
     {
         static::creating(function (InvoiceItem $item) {
-            //
+            $item->denormalize();
         });
 
         static::updating(function (InvoiceItem $item) {
-            //
+            $item->denormalize();
         });
 
     }
