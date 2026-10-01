@@ -162,19 +162,19 @@ class PdfInvoice implements Attachable
     {
         $this->items->denormalize($force);
 
-        if ($force || $this->subtotal_amount === null) {
+        if ($this->subtotal_amount === null || $force) {
             $this->subtotal_amount = $this->items->sumMoney('price_subtotal');
         }
 
-        if ($force || $this->discount_amount === null) {
+        if ($this->discount_amount === null || $force) {
             $this->discount_amount = $this->items->sumMoney('price_discount');
         }
 
-        if ($force || $this->tax_amount === null) {
+        if ($this->tax_amount === null || $force) {
             $this->tax_amount = $this->items->sumMoney('price_tax');
         }
 
-        if ($force || $this->total_amount === null) {
+        if ($this->total_amount === null || $force) {
             $this->total_amount = $this->items->sumMoney('price');
         }
 
