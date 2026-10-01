@@ -61,18 +61,10 @@
                                 </tr>
                             @endif
 
-                            @foreach ($invoice->fields as $key => $value)
-                                <tr class="text-xs">
-                                    <td class="whitespace-nowrap pr-2">
-                                        @if (is_string($key))
-                                            {{ __($key) }}
-                                        @endif
-                                    </td>
-                                    <td width="100%">
-                                        {{ $value }}
-                                    </td>
-                                </tr>
-                            @endforeach
+                            @include('invoices::default.includes.fields', [
+                                'fields' => $invoice->fields,
+                            ])
+
                         </tbody>
                     </table>
                 </td>

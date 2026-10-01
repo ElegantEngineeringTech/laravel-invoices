@@ -14,14 +14,16 @@ use Illuminate\Database\Eloquent\Model;
 use JsonSerializable;
 
 /**
- * @implements Arrayable<string, null|string|array<string,null|string>>
+ * @phpstan-consistent-constructor
+ *
+ * @implements Arrayable<string, null|string|array<array-key, mixed>>
  *
  * @see https://docs.gobl.org/draft-0/org/party
  */
 class Party implements Arrayable, Castable, GOBLable, Jsonable, JsonSerializable
 {
     /**
-     * @param  array<array-key, null|int|float|string>  $fields
+     * @param  array<array-key, scalar>|list<array{key: string, value: scalar}>  $fields
      * @param  array<array-key, Identity>  $identities
      */
     public function __construct(
@@ -70,6 +72,22 @@ class Party implements Arrayable, Castable, GOBLable, Jsonable, JsonSerializable
     }
 
     /**
+     * @param  Party|array<array-key, mixed>|null  $data
+     */
+    public static function make(Party|array|null $data): self
+    {
+        if ($data === null) {
+            return new self;
+        }
+
+        if ($data instanceof Party) {
+            return $data;
+        }
+
+        return self::fromArray($data);
+    }
+
+    /**
      * @return array{
      *    company: ?string,
      *    name: ?string,
@@ -81,7 +99,7 @@ class Party implements Arrayable, Castable, GOBLable, Jsonable, JsonSerializable
      *       postal_code: ?string,
      *       city: ?string,
      *       country: ?string,
-     *       fields: null|array<array-key, null|int|float|string>,
+     *       fields: array<array-key, scalar>|list<array{key: string, value: scalar}>,
      *    },
      *    shipping_address: null|array{
      *       company: ?string,
@@ -91,13 +109,13 @@ class Party implements Arrayable, Castable, GOBLable, Jsonable, JsonSerializable
      *       postal_code: ?string,
      *       city: ?string,
      *       country: ?string,
-     *       fields: null|array<array-key, null|int|float|string>,
+     *       fields: array<array-key, scalar>|list<array{key: string, value: scalar}>,
      *    },
      *    tax_id: ?array{ country?: null|string, code?: null|string },
      *    email: ?string,
      *    phone: ?string,
      *    identities: array<array-key, array{ type: null|string, code: null|string }>,
-     *    fields: array<array-key, null|int|float|string>,
+     *    fields: array<array-key, scalar>|list<array{key: string, value: scalar}>,
      * }
      */
     public function toArray(): array
@@ -127,7 +145,7 @@ class Party implements Arrayable, Castable, GOBLable, Jsonable, JsonSerializable
      *       postal_code: ?string,
      *       city: ?string,
      *       country: ?string,
-     *       fields: null|array<array-key, null|int|float|string>,
+     *       fields: array<array-key, scalar>|list<array{key: string, value: scalar}>,
      *    },
      *    shipping_address: null|array{
      *       company: ?string,
@@ -137,13 +155,13 @@ class Party implements Arrayable, Castable, GOBLable, Jsonable, JsonSerializable
      *       postal_code: ?string,
      *       city: ?string,
      *       country: ?string,
-     *       fields: null|array<array-key, null|int|float|string>,
+     *       fields: array<array-key, scalar>|list<array{key: string, value: scalar}>,
      *    },
      *    tax_id: ?array{ country?: null|string, code?: null|string },
      *    email: ?string,
      *    phone: ?string,
      *    identities: array<array-key, array{ type: null|string, code: null|string }>,
-     *    fields: array<array-key, null|int|float|string>,
+     *    fields: array<array-key, scalar>|list<array{key: string, value: scalar}>,
      * }
      */
     public function toLivewire()

@@ -36,7 +36,7 @@ class PdfInvoice implements Attachable
     public string $template;
 
     /**
-     * @param  array<string, mixed>  $fields  Additional fields displayed in the header
+     * @param  array<array-key, scalar>|list<array{key: string, value: scalar}>  $fields  Additional fields displayed in the header
      * @param  PaymentInstruction[]  $paymentInstructions
      * @param  ?string  $logo  A local file path. The file must be accessible using file_get_contents.
      * @param  array<string, mixed>  $templateData
@@ -83,9 +83,11 @@ class PdfInvoice implements Attachable
      *     created_at?: ?CarbonInterface,
      *     due_at?: ?CarbonInterface,
      *     paid_at?: ?CarbonInterface,
-     *     fields?: array<string, mixed>,
+     *     fields?: array<array-key, scalar>|list<array{key: string, value: scalar}>,
      *     seller?: Party|array<string, mixed>,
+     *     seller_information?: Party|array<string, mixed>,
      *     buyer?: Party|array<string, mixed>,
+     *     buyer_information?: Party|array<string, mixed>,
      *     items?: PdfInvoiceItemCollection|array<PdfInvoiceItem|ItemData>,
      *     currency?: ?string,
      *     subtotal_amount?: Money|float|null,
@@ -113,19 +115,28 @@ class PdfInvoice implements Attachable
             ));
         }
 
-        $seller = $data['seller'] ?? $data['seller_information'] ?? new Party;
-        $buyer = $data['buyer'] ?? $data['buyer_information'] ?? new Party;
+        $type = $data['type'] ?? null;
+
+        if (is_string($type)) {
+            $type = InvoiceType::tryFrom($type) ?? $type;
+        }
+
+        $state = $data['state'] ?? null;
+
+        if (is_string($state)) {
+            $state = InvoiceState::tryFrom($state) ?? $state;
+        }
 
         return new static(
-            type: InvoiceType::tryFrom($data['type'] ?? '') ?? InvoiceType::Invoice,
-            state: InvoiceState::tryFrom($data['state'] ?? '') ?? InvoiceState::Draft,
+            type: $type ?? InvoiceType::Invoice,
+            state: $state ?? InvoiceState::Draft,
             serial_number: $data['serial_number'] ?? null,
             created_at: $data['created_at'] ?? null,
             due_at: $data['due_at'] ?? null,
             paid_at: $data['paid_at'] ?? null,
             fields: $data['fields'] ?? [],
-            seller: is_array($seller) ? Party::fromArray($seller) : $seller,
-            buyer: is_array($buyer) ? Party::fromArray($buyer) : $buyer,
+            seller: Party::make($data['seller'] ?? $data['seller_information'] ?? null),
+            buyer: Party::make($data['buyer'] ?? $data['buyer_information'] ?? null),
             items: $items,
             subtotal_amount: MoneyParser::parse($data['subtotal_amount'] ?? null, $currency),
             discount_amount: MoneyParser::parse($data['discount_amount'] ?? null, $currency),

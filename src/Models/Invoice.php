@@ -49,7 +49,7 @@ use function Illuminate\Support\enum_value;
  * @property string $type
  * @property string $state
  * @property ?CarbonInterface $state_set_at
- * @property ?array<array-key, mixed> $fields
+ * @property null|array<array-key, scalar>|list<array{key: string, value: scalar}> $fields
  * @property string $description
  * @property ?Party $seller_information
  * @property ?Party $buyer_information
@@ -267,9 +267,9 @@ class Invoice extends Model implements Attachable, GOBLable
     }
 
     /**
-     * @param  iterable<string, scalar>  $values
+     * @param  array<array-key, scalar>|list<array{key: string, value: scalar}>  $values
      */
-    public function mergeFields(iterable $values): static
+    public function mergeFields(array $values): static
     {
 
         $this->fields = [

@@ -16,7 +16,7 @@ class Address implements Arrayable, GOBLable
 {
     /**
      * @param  null|string|string[]  $street
-     * @param  array<array-key, null|int|float|string>  $fields
+     * @param  array<array-key, scalar>|list<array{key: string, value: scalar}>  $fields
      */
     public function __construct(
         public ?string $company = null,
@@ -65,7 +65,7 @@ class Address implements Arrayable, GOBLable
      *    postal_code: ?string,
      *    city: ?string,
      *    country: ?string,
-     *    fields: null|array<array-key, null|int|float|string>,
+     *    fields: array<array-key, scalar>|list<array{key: string, value: scalar}>,
      * }
      */
     public function toArray(): array
@@ -91,7 +91,7 @@ class Address implements Arrayable, GOBLable
      *    postal_code: ?string,
      *    city: ?string,
      *    country: ?string,
-     *    fields: null|array<array-key, null|int|float|string>,
+     *    fields: array<array-key, scalar>|list<array{key: string, value: scalar}>,
      * }
      */
     public function toLivewire()

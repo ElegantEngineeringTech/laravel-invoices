@@ -35,11 +35,20 @@
 
 @if ($party->fields)
     @foreach ($party->fields as $key => $value)
-        <p class="p-px text-xs">
-            @if (is_string($key))
-                {{ __($key) }}
-            @endif
-            {{ $value }}
-        </p>
+        @if (is_array($value))
+            <p class="p-px text-xs">
+                @if (is_string($k = $value['key'] ?? null))
+                    {{ __($k) }}
+                @endif
+                {{ $value['value'] ?? null }}
+            </p>
+        @else
+            <p class="p-px text-xs">
+                @if (is_string($key))
+                    {{ __($key) }}
+                @endif
+                {{ $value }}
+            </p>
+        @endif
     @endforeach
 @endif
