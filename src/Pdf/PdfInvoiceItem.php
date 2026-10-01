@@ -11,6 +11,17 @@ use Elegantly\Invoices\InvoiceDiscount;
 use Elegantly\Invoices\InvoiceServiceProvider;
 use Elegantly\Invoices\InvoiceTax;
 
+/**
+ * @phpstan-consistent-constructor
+ *
+ * @phpstan-type ItemData array{
+ *     label?: ?string, unit_price?: ?Money, price_subtotal?: ?Money,
+ *     price_discount?: ?Money, price_tax?: ?Money, price?: ?Money,
+ *     quantity?: int|float, quantity_unit?: ?string, description?: ?string,
+ *     discounts?: InvoiceDiscountCollection<InvoiceDiscount>|array<InvoiceDiscount|array{code?: ?string, label?: ?string, percentage?: ?float, amount?: Money|int|null, amount_subtotal?: Money|int|null, currency?: ?string}>,
+ *     taxes?: InvoiceTaxCollection<InvoiceTax>|array<InvoiceTax|array{type?: ?string, country?: ?string, state?: ?string, taxability?: ?string, amount?: Money|int|null, currency?: ?string, amount_taxable?: Money|int|null, percentage?: ?float, label?: ?string}>
+ * }
+ */
 class PdfInvoiceItem
 {
     /**
@@ -31,6 +42,44 @@ class PdfInvoiceItem
         public InvoiceTaxCollection $taxes = new InvoiceTaxCollection,
     ) {
         //
+    }
+
+    /**
+     * @param  ItemData  $data
+     */
+    public static function make(array $data): static
+    {
+        $discounts = $data['discounts'] ?? new InvoiceDiscountCollection;
+
+        if (is_array($discounts)) {
+            $discounts = new InvoiceDiscountCollection(array_map(
+                fn ($discount) => $discount instanceof InvoiceDiscount ? $discount : new InvoiceDiscount($discount),
+                $discounts
+            ));
+        }
+
+        $taxes = $data['taxes'] ?? new InvoiceTaxCollection;
+
+        if (is_array($taxes)) {
+            $taxes = new InvoiceTaxCollection(array_map(
+                fn ($tax) => $tax instanceof InvoiceTax ? $tax : new InvoiceTax($tax),
+                $taxes
+            ));
+        }
+
+        return new static(
+            label: $data['label'] ?? null,
+            unit_price: $data['unit_price'] ?? null,
+            price_subtotal: $data['price_subtotal'] ?? null,
+            price_discount: $data['price_discount'] ?? null,
+            price_tax: $data['price_tax'] ?? null,
+            price: $data['price'] ?? null,
+            quantity: $data['quantity'] ?? 1,
+            quantity_unit: $data['quantity_unit'] ?? null,
+            description: $data['description'] ?? null,
+            discounts: $discounts,
+            taxes: $taxes,
+        );
     }
 
     public function denormalize(bool $force = false): static

@@ -189,7 +189,7 @@ class InvoiceItem extends Model implements GOBLable
             price_discount: $this->price_discount,
             price_tax: $this->price_tax,
             price: $this->price,
-            quantity: $this->quantity,
+            quantity: $this->quantity ?: 0,
             quantity_unit: $this->quantity_unit,
             description: $this->description,
             discounts: $this->discounts?->clone() ?? new InvoiceDiscountCollection,

@@ -24,6 +24,11 @@ use Illuminate\Mail\Attachment;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\HeaderUtils;
 
+/**
+ * @phpstan-consistent-constructor
+ *
+ * @phpstan-import-type ItemData from PdfInvoiceItem
+ */
 class PdfInvoice implements Attachable
 {
     public string $template;
@@ -66,6 +71,70 @@ class PdfInvoice implements Attachable
         $this->template = sprintf('invoices::%s', $template ?? config('invoices.pdf.template') ?? config('invoices.default_template'));
         // @phpstan-ignore-next-line
         $this->templateData = $templateData ?: config('invoices.pdf.template_data') ?: [];
+    }
+
+    /**
+     * @param  array{
+     *     type?: HasLabel|string,
+     *     state?: HasLabel|string,
+     *     serial_number?: ?string,
+     *     created_at?: ?CarbonInterface,
+     *     due_at?: ?CarbonInterface,
+     *     paid_at?: ?CarbonInterface,
+     *     fields?: array<string, mixed>,
+     *     seller?: Party|array<string, mixed>,
+     *     buyer?: Party|array<string, mixed>,
+     *     items?: PdfInvoiceItemCollection|array<PdfInvoiceItem|ItemData>,
+     *     subtotal_amount?: ?Money, discount_amount?: ?Money,
+     *     tax_amount?: ?Money, total_amount?: ?Money,
+     *     description?: ?string,
+     *     paymentInstructions?: array<PaymentInstruction|array{name?: ?string, description?: ?string, qrcode?: ?string, fields?: array<array-key, null|int|float|string>}>,
+     *     template?: ?string, templateData?: array<string, mixed>, logo?: ?string
+     * }  $data
+     */
+    public static function make(array $data): static
+    {
+        $items = $data['items'] ?? new PdfInvoiceItemCollection;
+
+        if (is_array($items)) {
+            $items = new PdfInvoiceItemCollection(array_map(
+                fn ($item) => $item instanceof PdfInvoiceItem ? $item : PdfInvoiceItem::make($item),
+                $items
+            ));
+        }
+
+        $seller = $data['seller'] ?? new Party;
+        $buyer = $data['buyer'] ?? new Party;
+
+        return new static(
+            type: $data['type'] ?? InvoiceType::Invoice,
+            state: $data['state'] ?? InvoiceState::Draft,
+            serial_number: $data['serial_number'] ?? null,
+            created_at: $data['created_at'] ?? null,
+            due_at: $data['due_at'] ?? null,
+            paid_at: $data['paid_at'] ?? null,
+            fields: $data['fields'] ?? [],
+            seller: is_array($seller) ? Party::fromArray($seller) : $seller,
+            buyer: is_array($buyer) ? Party::fromArray($buyer) : $buyer,
+            items: $items,
+            subtotal_amount: $data['subtotal_amount'] ?? null,
+            discount_amount: $data['discount_amount'] ?? null,
+            tax_amount: $data['tax_amount'] ?? null,
+            total_amount: $data['total_amount'] ?? null,
+            description: $data['description'] ?? null,
+            paymentInstructions: array_map(
+                fn ($instruction) => $instruction instanceof PaymentInstruction ? $instruction : new PaymentInstruction(
+                    name: $instruction['name'] ?? null,
+                    description: $instruction['description'] ?? null,
+                    qrcode: $instruction['qrcode'] ?? null,
+                    fields: $instruction['fields'] ?? [],
+                ),
+                $data['paymentInstructions'] ?? []
+            ),
+            template: $data['template'] ?? null,
+            templateData: $data['templateData'] ?? [],
+            logo: $data['logo'] ?? null,
+        );
     }
 
     public function denormalize(bool $force = false): static

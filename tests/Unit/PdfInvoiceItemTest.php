@@ -9,6 +9,51 @@ use Elegantly\Invoices\InvoiceDiscount;
 use Elegantly\Invoices\InvoiceTax;
 use Elegantly\Invoices\Pdf\PdfInvoiceItem;
 
+it('[PdfInvoiceItem] makes an item from data with nested discounts and taxes', function () {
+    $discount = new InvoiceDiscount(amount: Money::of(2, 'EUR'));
+    $tax = new InvoiceTax(amount: Money::of(4, 'EUR'));
+    $unitPrice = Money::of(20, 'EUR');
+
+    $item = PdfInvoiceItem::make([
+        'label' => 'Service',
+        'unit_price' => $unitPrice,
+        'price_subtotal' => Money::of(40, 'EUR'),
+        'price_discount' => Money::of(2, 'EUR'),
+        'price_tax' => Money::of(4, 'EUR'),
+        'price' => Money::of(42, 'EUR'),
+        'quantity' => 2,
+        'quantity_unit' => 'hours',
+        'description' => 'Consulting',
+        'discounts' => [$discount, ['percentage' => 5.0]],
+        'taxes' => [$tax, ['percentage' => 10.0]],
+    ]);
+
+    expect($item->label)->toBe('Service')
+        ->and($item->unit_price)->toBe($unitPrice)
+        ->and($item->price_subtotal)->toCost(Money::of(40, 'EUR'))
+        ->and($item->price_discount)->toCost(Money::of(2, 'EUR'))
+        ->and($item->price_tax)->toCost(Money::of(4, 'EUR'))
+        ->and($item->price)->toCost(Money::of(42, 'EUR'))
+        ->and($item->quantity)->toBe(2)
+        ->and($item->quantity_unit)->toBe('hours')
+        ->and($item->description)->toBe('Consulting')
+        ->and($item->discounts)->toBeInstanceOf(InvoiceDiscountCollection::class)
+        ->and($item->discounts->first())->toBe($discount)
+        ->and($item->discounts->last()->percentage)->toBe(5.0)
+        ->and($item->taxes)->toBeInstanceOf(InvoiceTaxCollection::class)
+        ->and($item->taxes->first())->toBe($tax)
+        ->and($item->taxes->last()->percentage)->toBe(10.0);
+});
+
+it('[PdfInvoiceItem] makes an item with constructor defaults', function () {
+    $item = PdfInvoiceItem::make([]);
+
+    expect($item->quantity)->toBe(1)
+        ->and($item->unit_price)->toBeNull()
+        ->and($item->discounts)->toBeInstanceOf(InvoiceDiscountCollection::class)
+        ->and($item->taxes)->toBeInstanceOf(InvoiceTaxCollection::class);
+});
+
 it('[PdfInvoiceItem] can denormalize a simple item without discounts or taxes', function () {
     $item = new PdfInvoiceItem(
         unit_price: Money::of(10, 'EUR'),
