@@ -26,22 +26,16 @@ class TestCase extends Orchestra
         ];
     }
 
-    public function getEnvironmentSetUp($app)
+    protected function defineEnvironment($app): void
     {
-        config()->set('database.default', 'testing');
-        config()->set('money.default_currency', 'USD');
+        $app['config']->set('database.default', 'testing');
+        $app['config']->set('money.default_currency', 'USD');
+    }
 
-        $migration = include __DIR__.'/../database/migrations/create_invoices_table.php.stub';
-        $migration->up();
-        $migration = include __DIR__.'/../database/migrations/create_invoice_items_table.php.stub';
-        $migration->up();
-        $migration = include __DIR__.'/../database/migrations/add_type_column_to_invoices_table.php.stub';
-        $migration->up();
-        $migration = include __DIR__.'/../database/migrations/add_discounts_column_to_invoices_table.php.stub';
-        $migration->up();
-        $migration = include __DIR__.'/../database/migrations/add_denormalized_columns_to_invoices_table.php.stub';
-        $migration->up();
-        $migration = include __DIR__.'/../database/migrations/add_serial_number_details_columns_to_invoices_table.php.stub';
-        $migration->up();
+    protected function defineDatabaseMigrations(): void
+    {
+        foreach (InvoiceServiceProvider::MIGRATIONS as $migration) {
+            (require __DIR__."/../database/migrations/{$migration}.php.stub")->up();
+        }
     }
 }

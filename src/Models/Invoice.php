@@ -4,13 +4,18 @@ declare(strict_types=1);
 
 namespace Elegantly\Invoices\Models;
 
+use BackedEnum;
+use Brick\Math\BigNumber;
+use Brick\Math\RoundingMode;
 use Brick\Money\Money;
 use Carbon\CarbonInterface;
+use Elegantly\Invoices\Collections\Eloquent\InvoiceCollection;
+use Elegantly\Invoices\Collections\Eloquent\InvoiceItemCollection;
+use Elegantly\Invoices\Contracts\GOBLable;
 use Elegantly\Invoices\Contracts\HasLabel;
 use Elegantly\Invoices\Database\Factories\InvoiceFactory;
 use Elegantly\Invoices\Enums\InvoiceState;
 use Elegantly\Invoices\Enums\InvoiceType;
-use Elegantly\Invoices\InvoiceDiscount;
 use Elegantly\Invoices\InvoiceServiceProvider;
 use Elegantly\Invoices\Pdf\PdfInvoice;
 use Elegantly\Invoices\SerialNumberGenerator;
@@ -20,6 +25,7 @@ use Elegantly\Money\MoneyCast;
 use Exception;
 use finfo;
 use Illuminate\Contracts\Mail\Attachable;
+use Illuminate\Database\Eloquent\Attributes\CollectedBy;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\AsCollection;
 use Illuminate\Database\Eloquent\Collection;
@@ -33,36 +39,29 @@ use Illuminate\Http\File;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Mail\Attachment;
 use Illuminate\Support\Collection as SupportCollection;
+use LogicException;
+
+use function Illuminate\Support\enum_value;
 
 /**
  * @property int $id
  * @property ?int $parent_id
- * @property ?Invoice $parent
- * @property ?Invoice $quote
- * @property ?Invoice $credit
  * @property string $type
  * @property string $state
  * @property ?CarbonInterface $state_set_at
- * @property ?array<array-key, mixed> $fields
+ * @property null|array<array-key, scalar>|list<array{key: string, value: scalar}> $fields
  * @property string $description
  * @property ?Party $seller_information
  * @property ?Party $buyer_information
- * @property ?CarbonInterface $due_at
- * @property ?string $tax_type
- * @property ?string $tax_exempt
- * @property Collection<int, InvoiceItem> $items
- * @property ?Model $buyer
  * @property ?int $buyer_id
  * @property ?string $buyer_type
- * @property ?Model $seller
  * @property ?int $seller_id
  * @property ?string $seller_type
- * @property ?Model $invoiceable
  * @property ?int $invoiceable_id
  * @property ?string $invoiceable_type
+ * @property ?CarbonInterface $due_at
  * @property CarbonInterface $created_at
  * @property CarbonInterface $updated_at
- * @property ?SupportCollection<int, InvoiceDiscount> $discounts
  * @property ?array<array-key, mixed> $metadata
  * @property ?Money $subtotal_amount
  * @property ?Money $discount_amount
@@ -78,8 +77,16 @@ use Illuminate\Support\Collection as SupportCollection;
  * @property int $serial_number_count
  * @property ?string $logo Binary format
  * @property ?SupportCollection<int, PaymentInstruction> $payment_instructions
+ * @property-read ?Model $invoiceable
+ * @property-read ?Model $buyer
+ * @property-read ?Model $seller
+ * @property-read ?static $parent
+ * @property-read ?static $quote
+ * @property-read InvoiceItemCollection<array-key, InvoiceItem> $items
+ * @property-read Collection<int, static> $credits
  */
-class Invoice extends Model implements Attachable
+#[CollectedBy(InvoiceCollection::class)]
+class Invoice extends Model implements Attachable, GOBLable
 {
     /**
      * @use HasFactory<InvoiceFactory>
@@ -102,21 +109,21 @@ class Invoice extends Model implements Attachable
             'state_set_at' => 'datetime',
             'due_at' => 'datetime',
             'fields' => 'array',
+            'metadata' => 'array',
             'seller_information' => InvoiceServiceProvider::getSellerClass(),
             'buyer_information' => InvoiceServiceProvider::getBuyerClass(),
-            'metadata' => 'array',
-            'discounts' => AsCollection::of(InvoiceDiscount::class),
-            'subtotal_amount' => MoneyCast::class.':currency',
-            'discount_amount' => MoneyCast::class.':currency',
-            'tax_amount' => MoneyCast::class.':currency',
-            'total_amount' => MoneyCast::class.':currency',
-            'payment_instructions' => AsCollection::of(PaymentInstruction::class),
+            'payment_instructions' => AsCollection::of(InvoiceServiceProvider::getPaymentInstructionClass()),
+            'subtotal_amount' => MoneyCast::of('currency'),
+            'discount_amount' => MoneyCast::of('currency'),
+            'tax_amount' => MoneyCast::of('currency'),
+            'total_amount' => MoneyCast::of('currency'),
         ];
     }
 
     public static function booted()
     {
         static::creating(function (Invoice $invoice) {
+
             if (
                 config('invoices.serial_number.auto_generate') &&
                 blank($invoice->serial_number)
@@ -128,7 +135,16 @@ class Invoice extends Model implements Attachable
         });
 
         static::updating(function (Invoice $invoice) {
-            $invoice->denormalize();
+
+            if (
+                config('invoices.serial_number.auto_generate') &&
+                blank($invoice->serial_number)
+            ) {
+                $invoice->generateSerialNumber();
+            } else {
+                $invoice->denormalizeSerialNumber();
+            }
+
         });
 
         static::deleting(function (Invoice $invoice) {
@@ -143,10 +159,7 @@ class Invoice extends Model implements Attachable
      */
     public function items(): HasMany
     {
-        /** @var class-string<InvoiceItem> */
-        $model = config()->string('invoices.model_invoice_item');
-
-        return $this->hasMany($model);
+        return $this->hasMany(InvoiceServiceProvider::getInvoiceItemClass());
     }
 
     /**
@@ -192,10 +205,7 @@ class Invoice extends Model implements Attachable
      */
     public function parent(): BelongsTo
     {
-        /** @var class-string<Invoice> */
-        $model = config()->string('invoices.model_invoice');
-
-        return $this->belongsTo($model);
+        return $this->belongsTo(InvoiceServiceProvider::getInvoiceClass());
     }
 
     /**
@@ -203,23 +213,9 @@ class Invoice extends Model implements Attachable
      */
     public function quote(): HasOne
     {
-        /** @var class-string<Invoice> */
-        $model = config()->string('invoices.model_invoice');
-
-        return $this->hasOne($model, 'parent_id')->where('type', InvoiceType::Quote);
-    }
-
-    /**
-     * @deprecated Use `credits` instead
-     *
-     * @return HasOne<Invoice, $this>
-     */
-    public function credit(): HasOne
-    {
-        /** @var class-string<Invoice> */
-        $model = config()->string('invoices.model_invoice');
-
-        return $this->hasOne($model, 'parent_id')->where('type', InvoiceType::Credit);
+        return $this
+            ->hasOne(InvoiceServiceProvider::getInvoiceClass(), 'parent_id')
+            ->where('type', InvoiceType::Quote);
     }
 
     /**
@@ -227,10 +223,7 @@ class Invoice extends Model implements Attachable
      */
     public function children(): HasMany
     {
-        /** @var class-string<Invoice> */
-        $model = config()->string('invoices.model_invoice');
-
-        return $this->hasMany($model, 'parent_id');
+        return $this->hasMany(InvoiceServiceProvider::getInvoiceClass(), 'parent_id');
     }
 
     /**
@@ -239,6 +232,58 @@ class Invoice extends Model implements Attachable
     public function credits(): HasMany
     {
         return $this->children()->where('type', InvoiceType::Credit);
+    }
+
+    /**
+     * @param  iterable<InvoiceItem>  $items
+     */
+    public function setItems(iterable $items = []): static
+    {
+        return $this->setRelation(
+            'items',
+            $this->items()->getRelated()->newCollection([...$items])
+        );
+    }
+
+    /**
+     * @param  iterable<InvoiceItem>  $items
+     */
+    public function addItems(iterable $items = []): static
+    {
+        return $this->setRelation(
+            'items',
+            $this->items->push(...$items)
+        );
+    }
+
+    /**
+     * @return iterable<InvoiceItem>
+     */
+    public function saveItems(): iterable
+    {
+        return $this->items()->saveMany($this->items);
+    }
+
+    public function saveWithItems(): static
+    {
+        $this->save();
+        $this->saveItems();
+
+        return $this;
+    }
+
+    /**
+     * @param  array<array-key, scalar>|list<array{key: string, value: scalar}>  $values
+     */
+    public function mergeFields(array $values): static
+    {
+
+        $this->fields = [
+            ...($this->fields ?? []),
+            ...$values,
+        ];
+
+        return $this;
     }
 
     /**
@@ -262,17 +307,34 @@ class Invoice extends Model implements Attachable
         return $invoice;
     }
 
+    /**
+     * Manually set the serial number
+     */
+    public function setSerialNumber(
+        string $value,
+        string|BackedEnum $format,
+    ): static {
+        $format = $format instanceof BackedEnum ? ((string) $format->value) : $format;
+
+        $this->serial_number = $value;
+        $this->serial_number_format = $format;
+
+        return $this->denormalizeSerialNumber();
+    }
+
     public function setSerialNumberPrefix(
-        ?string $value = null,
+        null|string|BackedEnum $value = null,
         bool $throw = true,
     ): static {
+
+        $value = $value instanceof BackedEnum ? ((string) $value->value) : $value;
 
         if ($value === null) {
             $this->serial_number_prefix = null;
         } elseif ($length = mb_substr_count($this->serial_number_format, 'P')) {
             $this->serial_number_prefix = mb_substr($value, -$length);
         } elseif ($throw) {
-            throw new Exception('The Serial Number Format does not contain a prefix.');
+            throw new LogicException('The Serial Number Format does not contain a prefix.');
         }
 
         return $this;
@@ -327,14 +389,16 @@ class Invoice extends Model implements Attachable
     }
 
     public function configureSerialNumber(
-        ?string $format = null,
-        ?string $prefix = null,
+        null|string|BackedEnum $format = null,
+        null|string|BackedEnum $prefix = null,
         string|int|null $serie = null,
         string|int|null $year = null,
         string|int|null $month = null,
         bool $throw = false,
     ): static {
-        $this->serial_number_format = $format ?? $this->serial_number_format ?? InvoiceServiceProvider::getSerialNumberFormatConfiguration($this->type);
+        $format = $format instanceof BackedEnum ? ((string) $format->value) : $format;
+
+        $this->serial_number_format = $format ?? InvoiceServiceProvider::getSerialNumberFormatConfiguration($this->type);
 
         return $this
             ->setSerialNumberPrefix($prefix, $throw)
@@ -346,16 +410,16 @@ class Invoice extends Model implements Attachable
     public function generateSerialNumber(): static
     {
         $this->configureSerialNumber(
-            format: $this->serial_number_format,
-            prefix: $this->serial_number_prefix ?? InvoiceServiceProvider::getSerialNumberPrefixConfiguration($this->type),
+            format: $this->serial_number_format ?: InvoiceServiceProvider::getSerialNumberFormatConfiguration($this->type),
+            prefix: $this->serial_number_prefix ?: InvoiceServiceProvider::getSerialNumberPrefixConfiguration($this->type),
             serie: $this->serial_number_serie,
             year: $this->serial_number_year ?? now()->format('Y'),
             month: $this->serial_number_month ?? now()->format('m'),
         );
 
-        $generator = new SerialNumberGenerator($this->serial_number_format);
-
         $previousCount = (int) $this->getPreviousInvoice()?->serial_number_count;
+
+        $generator = new SerialNumberGenerator($this->serial_number_format);
 
         $this->serial_number = $generator->generate(
             prefix: $this->serial_number_prefix,
@@ -365,28 +429,18 @@ class Invoice extends Model implements Attachable
             count: $previousCount + 1
         );
 
-        $this->denormalizeSerialNumber();
-
-        return $this;
-    }
-
-    /**
-     * @return array{ 'prefix': ?string, 'serie': ?int, 'month': ?int, 'year': ?int, 'count': ?int}
-     */
-    public function parseSerialNumber(): array
-    {
-        $format = $this->serial_number_format ?? InvoiceServiceProvider::getSerialNumberFormatConfiguration($this->type);
-
-        $generator = new SerialNumberGenerator($format);
-
-        return $generator->parse($this->serial_number);
+        return $this->denormalizeSerialNumber();
     }
 
     public function denormalizeSerialNumber(): static
     {
-        $this->serial_number_format ??= InvoiceServiceProvider::getSerialNumberFormatConfiguration($this->type);
+        if (! $this->serial_number_format || ! $this->serial_number) {
+            return $this;
+        }
 
-        $values = $this->parseSerialNumber();
+        $generator = new SerialNumberGenerator($this->serial_number_format);
+
+        $values = $generator->parse($this->serial_number);
 
         $this->serial_number_prefix = $values['prefix'];
         $this->serial_number_serie = $values['serie'];
@@ -397,31 +451,25 @@ class Invoice extends Model implements Attachable
         return $this;
     }
 
-    public function getTaxLabel(): ?string
+    public function denormalize(bool $force = false): static
     {
-        return null;
-    }
+        $this->items->denormalize($force);
 
-    /**
-     * @return InvoiceDiscount[]
-     */
-    public function getDiscounts(): array
-    {
-        return $this->discounts?->all() ?? [];
-    }
+        if ($this->subtotal_amount === null || $force) {
+            $this->subtotal_amount = $this->items->sumMoney('price_subtotal');
+        }
 
-    /**
-     * Denormalize amounts computed from items to the invoice table
-     * Allowing easier query
-     */
-    public function denormalize(): static
-    {
-        $pdfInvoice = $this->toPdfInvoice();
-        $this->currency = $pdfInvoice->getCurrency();
-        $this->subtotal_amount = $pdfInvoice->subTotalAmount();
-        $this->discount_amount = $pdfInvoice->totalDiscountAmount();
-        $this->tax_amount = $pdfInvoice->totalTaxAmount();
-        $this->total_amount = $pdfInvoice->totalAmount();
+        if ($this->discount_amount === null || $force) {
+            $this->discount_amount = $this->items->sumMoney('price_discount');
+        }
+
+        if ($this->tax_amount === null || $force) {
+            $this->tax_amount = $this->items->sumMoney('price_tax');
+        }
+
+        if ($this->total_amount === null || $force) {
+            $this->total_amount = $this->items->sumMoney('price');
+        }
 
         return $this;
     }
@@ -457,24 +505,6 @@ class Invoice extends Model implements Attachable
      * @param  Builder<Invoice>  $query
      * @return Builder<Invoice>
      */
-    public function scopePaid(Builder $query): Builder
-    {
-        return $query->where('state', InvoiceState::Paid);
-    }
-
-    /**
-     * @param  Builder<Invoice>  $query
-     * @return Builder<Invoice>
-     */
-    public function scopeRefunded(Builder $query): Builder
-    {
-        return $query->where('state', InvoiceState::Refunded);
-    }
-
-    /**
-     * @param  Builder<Invoice>  $query
-     * @return Builder<Invoice>
-     */
     public function scopeDraft(Builder $query): Builder
     {
         return $query->where('state', InvoiceState::Draft);
@@ -490,26 +520,29 @@ class Invoice extends Model implements Attachable
     }
 
     /**
+     * @param  Builder<Invoice>  $query
+     * @return Builder<Invoice>
+     */
+    public function scopePaid(Builder $query): Builder
+    {
+        return $query->where('state', InvoiceState::Paid);
+    }
+
+    /**
+     * @param  Builder<Invoice>  $query
+     * @return Builder<Invoice>
+     */
+    public function scopeRefunded(Builder $query): Builder
+    {
+        return $query->where('state', InvoiceState::Refunded);
+    }
+
+    /**
      * Get the attachable representation of the model.
      */
     public function toMailAttachment(): Attachment
     {
         return $this->toPdfInvoice()->toMailAttachment();
-    }
-
-    /**
-     * Store the default logo in database
-     */
-    public function setLogoFromConfig(): static
-    {
-        /** @var ?string */
-        $path = config('invoices.pdf.logo');
-
-        if ($path) {
-            return $this->setLogoFromPath($path);
-        }
-
-        return $this;
     }
 
     public function setLogoFromFile(File|UploadedFile $file): static
@@ -541,6 +574,21 @@ class Invoice extends Model implements Attachable
     }
 
     /**
+     * Store the default logo in database
+     */
+    public function setLogoFromConfig(): static
+    {
+        /** @var ?string $path */
+        $path = config('invoices.pdf.logo');
+
+        if ($path) {
+            return $this->setLogoFromPath($path);
+        }
+
+        return $this;
+    }
+
+    /**
      * @return string|null A base64 encoded data url or a path to a local file
      */
     public function getLogo(): ?string
@@ -565,6 +613,41 @@ class Invoice extends Model implements Attachable
         return InvoiceState::tryFrom($this->state) ?? $this->state;
     }
 
+    /**
+     * @param  null|string[]  $except
+     */
+    public function replicate(?array $except = null): static
+    {
+        return parent::replicate(array_merge([
+            'serial_number',
+            'serial_number_format',
+            'serial_number_prefix',
+            'serial_number_serie',
+            'serial_number_year',
+            'serial_number_month',
+            'serial_number_count',
+            'serial_number_details',
+        ], $except ?? []));
+    }
+
+    /**
+     * Mutate the invoice amounts and its items by scaling them.
+     * Uses the configured rounding mode when none is provided.
+     */
+    public function multiplyBy(BigNumber|int|string $that, ?RoundingMode $roundingMode = null): static
+    {
+        $roundingMode ??= InvoiceServiceProvider::getRoundingMode();
+
+        $this->subtotal_amount = $this->subtotal_amount?->multipliedBy($that, $roundingMode);
+        $this->discount_amount = $this->discount_amount?->multipliedBy($that, $roundingMode);
+        $this->tax_amount = $this->tax_amount?->multipliedBy($that, $roundingMode);
+        $this->total_amount = $this->total_amount?->multipliedBy($that, $roundingMode);
+
+        $this->items->multiplyBy($that, $roundingMode);
+
+        return $this;
+    }
+
     public function toPdfInvoice(): PdfInvoice
     {
         return new PdfInvoice(
@@ -577,11 +660,56 @@ class Invoice extends Model implements Attachable
             buyer: $this->buyer_information ?? new Party,
             seller: $this->seller_information ?? new Party,
             description: $this->description,
-            items: $this->items->values()->map(fn ($item) => $item->toPdfInvoiceItem())->all(),
-            tax_label: $this->getTaxLabel(),
-            discounts: $this->getDiscounts(),
+            items: $this->items->toPdfItems()->values(),
             logo: $this->getLogo(),
             paymentInstructions: $this->payment_instructions?->all() ?? [],
+            subtotal_amount: $this->subtotal_amount,
+            discount_amount: $this->discount_amount,
+            tax_amount: $this->tax_amount,
+            total_amount: $this->total_amount,
         );
+    }
+
+    /**
+     * @see https://docs.gobl.org/draft-0/bill/invoice#invoice
+     */
+    public function toGOBL(array $values = []): array
+    {
+        return array_filter([
+            '$schema' => 'https://gobl.org/draft-0/bill/invoice',
+            'type' => match (enum_value($this->type)) {
+                InvoiceType::Invoice->value => 'standard',
+                InvoiceType::Quote->value, InvoiceType::Proforma->value => 'proforma',
+                InvoiceType::Credit->value => 'credit-note',
+                default => 'other',
+            },
+            'code' => $this->serial_number,
+            'issue_date' => $this->created_at->toDateString(),
+            'currency' => $this->currency,
+            'preceding' => $this->parent ? [
+                array_filter([
+                    'code' => $this->parent->serial_number,
+                    'issue_date' => $this->parent->created_at->toDateString(),
+                ], fn ($value) => filled($value)),
+            ] : null,
+            'supplier' => $this->seller_information?->toGOBL(),
+            'customer' => $this->buyer_information?->toGOBL(),
+            'lines' => $this->items->toGOBL(),
+            'payment' => $this->due_at ? [
+                'terms' => [
+                    'key' => 'due-date',
+                    'due_dates' => [
+                        ['date' => $this->due_at->toDateString()],
+                    ],
+                ],
+            ] : null,
+            'notes' => $this->description ? [
+                [
+                    'key' => 'general',
+                    'text' => $this->description,
+                ],
+            ] : null,
+            ...$values,
+        ], fn ($value) => filled($value));
     }
 }

@@ -1,0 +1,152 @@
+<?php
+
+declare(strict_types=1);
+
+use Brick\Math\RoundingMode;
+use Brick\Money\Money;
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\DB;
+
+use function Elegantly\Money\sumMoney;
+
+/**
+ * Invoice items now introduce denormalized amounts
+ */
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        $roundingMode = RoundingMode::HalfUp;
+
+        $query = DB::table('invoices');
+
+        $query->chunkById(100, function ($invoices) use ($roundingMode) {
+
+            foreach ($invoices as $invoice) {
+
+                $items = DB::table('invoice_items')
+                    ->where('invoice_id', $invoice->id)
+                    ->where('unit_price', '!=', null)
+                    ->where('currency', '!=', null)
+                    ->get();
+
+                foreach ($items as $item) {
+
+                    if ($item->unit_price === null || $item->currency === null) {
+                        continue;
+                    }
+
+                    $item->price_subtotal = Money::ofMinor($item->unit_price, $item->currency)
+                        ->multipliedBy((string) $item->quantity, $roundingMode);
+
+                    // migrate discounts
+                    $discounts = json_decode($item->discounts ?? '[]', false) ?? [];
+
+                    $subtotal = $item->price_subtotal;
+
+                    // denormalize discounts
+                    foreach ($discounts as $discount) {
+
+                        if ($discount->amount === null && $discount->percentage !== null) {
+                            $discount->amount_subtotal = $subtotal;
+
+                            $discount->percentage = (float) $discount->percentage;
+                            $discount->amount = $discount->amount_subtotal->multipliedBy((string) ($discount->percentage / 100.0), $roundingMode);
+                        } elseif ($discount->amount !== null && $discount->currency !== null) {
+                            $discount->amount = Money::ofMinor($discount->amount, $discount->currency);
+                        }
+
+                        if ($discount->amount !== null) {
+                            $subtotal = $subtotal->minus($discount->amount, $roundingMode);
+                        }
+
+                    }
+
+                    $item->price_discount = sumMoney($discounts, 'amount', $roundingMode) ?? Money::zero($item->currency);
+                    // end migrate dicounts
+
+                    // migrate taxes
+                    $taxes = json_decode($item->taxes ?? '[]', false) ?? [];
+
+                    $subtotal = $item->price_subtotal->minus($item->price_discount, $roundingMode);
+
+                    foreach ($taxes as $tax) {
+
+                        if ($tax->amount === null && $tax->percentage !== null) {
+                            $tax->percentage = (float) $tax->percentage;
+                            $tax->amount = $subtotal->multipliedBy((string) ($tax->percentage / 100), $roundingMode);
+                        } elseif ($tax->amount !== null && $tax->currency !== null) {
+                            $tax->amount = Money::ofMinor($tax->amount, $tax->currency);
+                        }
+
+                    }
+
+                    $item->price_tax = sumMoney($taxes, 'amount', $roundingMode) ?? Money::zero($item->currency);
+                    // end migrate taxes
+
+                    $item->price = $item->price_subtotal->minus($item->price_discount)->plus($item->price_tax);
+
+                    DB::table('invoice_items')
+                        ->where('id', $item->id)
+                        ->update([
+                            'price_subtotal' => $item->price_subtotal->getMinorAmount()->toInt(),
+                            'price_discount' => $item->price_discount->getMinorAmount()->toInt(),
+                            'price_tax' => $item->price_tax->getMinorAmount()->toInt(),
+                            'price' => $item->price->getMinorAmount()->toInt(),
+                            'currency' => $item->price->getCurrency()->getCurrencyCode(),
+                            'discounts' => json_encode(array_map(
+                                fn ($discount) => [
+                                    'code' => $discount->code,
+                                    'label' => $discount->label,
+                                    'percentage' => $discount->percentage === null ? null : (round((float) $discount->percentage, 2)),
+                                    'amount' => $discount->amount?->getMinorAmount()->toInt(),
+                                    'currency' => $discount->amount?->getCurrency()->getCurrencyCode(),
+                                    'amount_subtotal' => $discount->amount_subtotal?->getMinorAmount()->toInt(),
+                                ],
+                                $discounts
+                            )),
+                            'taxes' => json_encode(array_map(
+                                fn ($tax) => [
+                                    'type' => $tax->type,
+                                    'taxability' => $tax->taxability,
+                                    'amount' => $tax->amount?->getMinorAmount()->toInt(),
+                                    'currency' => $tax->amount?->getCurrency()->getCurrencyCode(),
+                                    'percentage' => $tax->percentage === null ? null : round($tax->percentage, 2),
+                                ],
+                                $taxes
+                            )),
+                        ]);
+
+                }
+
+                $invoice->subtotal_amount = sumMoney($items, 'price_subtotal', $roundingMode);
+                $invoice->discount_amount = sumMoney($items, 'price_discount', $roundingMode);
+                $invoice->tax_amount = sumMoney($items, 'price_tax', $roundingMode);
+                $invoice->total_amount = sumMoney($items, 'price', $roundingMode);
+
+                DB::table('invoices')
+                    ->where('id', $invoice->id)
+                    ->update([
+                        'subtotal_amount' => $invoice->subtotal_amount?->getMinorAmount()->toInt(),
+                        'discount_amount' => $invoice->discount_amount?->getMinorAmount()->toInt(),
+                        'tax_amount' => $invoice->tax_amount?->getMinorAmount()->toInt(),
+                        'total_amount' => $invoice->total_amount?->getMinorAmount()->toInt(),
+                        'currency' => $invoice->total_amount?->getCurrency()->getCurrencyCode(),
+                    ]);
+
+            }
+
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        //
+    }
+};

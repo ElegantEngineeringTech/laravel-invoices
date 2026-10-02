@@ -62,6 +62,19 @@ class PaymentInstruction implements Arrayable, JsonSerializable
     }
 
     /**
+     * @return array{
+     *    name: ?string,
+     *    description: ?string,
+     *    qrcode: ?string,
+     *    fields: null|array<array-key, null|int|float|string>,
+     * }
+     */
+    public function toLivewire()
+    {
+        return $this->toArray();
+    }
+
+    /**
      * Specify the data which should be serialized to JSON.
      *
      * @return array{

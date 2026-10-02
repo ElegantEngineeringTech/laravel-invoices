@@ -17,9 +17,9 @@
         }
     ],
     "require": {
-        "php": "^8.3",
+        "php": "^8.4",
         "dompdf/dompdf": "^3.1",
-        "elegantly/laravel-money": "^4.0.0",
+        "elegantly/laravel-money": "^4.2.0",
         "illuminate/contracts": "^13.0",
         "spatie/laravel-package-tools": "^1.14"
     },
@@ -27,19 +27,26 @@
         "larastan/larastan": "^3.0",
         "laravel/pint": "^1.14",
         "nunomaduro/collision": "^8.1.1",
-        "orchestra/testbench": "^11.1",
-        "pestphp/pest": "^4.0",
-        "pestphp/pest-plugin-arch": "^4.0",
-        "pestphp/pest-plugin-laravel": "^4.0",
+        "orchestra/testbench": "^11.0",
+        "pestphp/pest": "^5.0",
+        "pestphp/pest-plugin-arch": "^5.0",
+        "pestphp/pest-plugin-laravel": "^5.0",
         "phpstan/extension-installer": "^1.4",
         "phpstan/phpstan-deprecation-rules": "^2.0",
-        "phpstan/phpstan-phpunit": "^2.0"
+        "phpstan/phpstan-phpunit": "^2.0",
+        "stripe/stripe-php": "^21.0"
+    },
+    "suggest": {
+        "stripe/stripe-php": "Stripe SDK is required to use the invoice from stripe checkout feature."
     },
     "autoload": {
         "psr-4": {
             "Elegantly\\Invoices\\": "src",
             "Elegantly\\Invoices\\Database\\Factories\\": "database/factories"
-        }
+        },
+        "files": [
+            "src/helpers.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {

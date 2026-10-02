@@ -1,0 +1,74 @@
+<?php
+
+declare(strict_types=1);
+
+use Brick\Math\RoundingMode;
+use Brick\Money\Money;
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\DB;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        $roundingMode = RoundingMode::HalfUp;
+
+        $query = DB::table('invoices');
+
+        $query->chunkById(100, function ($invoices) use ($roundingMode) {
+            foreach ($invoices as $invoice) {
+
+                $items = DB::table('invoice_items')
+                    ->where('invoice_id', $invoice->id)
+                    ->where(function ($query) {
+                        return $query
+                            ->where('tax_percentage', '!=', null)
+                            ->orWhere('unit_tax', '!=', null);
+                    })
+                    ->get();
+
+                foreach ($items as $item) {
+
+                    $amount = null;
+                    $percentage = null;
+
+                    if ($item->unit_tax !== null && $item->currency !== null) {
+                        $amount = Money::ofMinor($item->unit_tax, $item->currency)
+                            ->multipliedBy((string) $item->quantity, $roundingMode);
+                    }
+
+                    if ($item->tax_percentage !== null) {
+                        $percentage = round((float) $item->tax_percentage, 2);
+                    }
+
+                    DB::table('invoice_items')
+                        ->where('id', $item->id)
+                        ->update([
+                            'taxes' => json_encode([
+                                [
+                                    'type' => $invoice->tax_type,
+                                    'taxability' => $invoice->tax_exempt ?: 'standard_rated',
+                                    'amount' => $amount?->getMinorAmount()->toInt(),
+                                    'currency' => $amount?->getCurrency()->getCurrencyCode(),
+                                    'percentage' => $percentage,
+                                ],
+                            ]),
+                        ]);
+
+                }
+
+            }
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        //
+    }
+};

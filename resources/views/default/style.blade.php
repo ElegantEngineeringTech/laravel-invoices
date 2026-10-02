@@ -1,63 +1,31 @@
 <style type="text/css">
+    /* Page */
     @page {
-        margin: 48px 48px 56px 48px;
+        /* margin-bottom gives space for the footer */
+        margin: 48px 48px 80px 48px;
+    }
+
+    /* Base */
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
+
+    html {
+        font-size: 16px;
+        line-height: 24px;
     }
 
     body {
-        margin: 0;
-        line-height: inherit;
+        margin: 0px;
         color: #050038;
         background-color: #fff;
-        text-align: left;
+        font-size: 16px;
         font-feature-settings: normal;
         font-variation-settings: normal;
-    }
-
-    h1,
-    h2,
-    h3,
-    h4,
-    h5,
-    h6 {
-        font-size: inherit;
-        font-weight: inherit;
-    }
-
-    b,
-    strong {
-        font-weight: bolder;
-    }
-
-    small {
-        font-size: 80%;
-    }
-
-    sub,
-    sup {
-        font-size: 75%;
-        line-height: 0;
-        position: relative;
-        vertical-align: baseline;
-    }
-
-    sub {
-        bottom: -0.25em;
-    }
-
-    sup {
-        top: -0.5em;
-    }
-
-    img {
-        display: block;
-        vertical-align: middle;
-        border-style: none;
-    }
-
-    table {
-        text-indent: 0;
-        border-color: inherit;
-        border-collapse: collapse;
+        line-height: 24px;
+        text-align: left;
     }
 
     blockquote,
@@ -73,7 +41,37 @@
     figure,
     p,
     pre {
-        margin: 0;
+        margin: 0px;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        font-size: inherit;
+        font-weight: inherit;
+    }
+
+    p {
+        margin: 0px;
+    }
+
+    strong,
+    b {
+        font-weight: 700;
+    }
+
+    a {
+        color: #1d4ed8;
+        text-decoration: none;
+    }
+
+    table {
+        border-color: inherit;
+        border-collapse: collapse;
+        text-indent: 0px;
     }
 
     img,
@@ -88,17 +86,173 @@
         vertical-align: middle;
     }
 
+
     img,
     video {
+        display: block;
+        border-style: none;
         max-width: 100%;
         height: auto;
+        vertical-align: middle;
     }
 
-    a {
-        color: #1d4ed8;
-        text-decoration: none,
+    /* Display */
+    .block {
+        display: block;
     }
 
+    .inline-block {
+        display: inline-block;
+    }
+
+    /* Positioning */
+    .fixed {
+        position: fixed;
+    }
+
+    .-top-12 {
+        top: -48px;
+    }
+
+    .-left-12 {
+        left: -48px;
+    }
+
+    .-right-12 {
+        right: -48px;
+    }
+
+    .-bottom-14 {
+        bottom: -56px;
+    }
+
+    .-bottom-20 {
+        bottom: -80px;
+    }
+
+    /* Sizing */
+    .w-full {
+        width: 100%;
+    }
+
+    .min-w-28 {
+        min-width: 112px;
+    }
+
+    .w-28 {
+        width: 112px;
+    }
+
+    .size-1 {
+        width: 4px;
+        height: 4px;
+    }
+
+    /* Margin */
+    .-mt-px {
+        margin-top: -1px;
+    }
+
+    .mx-12 {
+        margin-right: 48px;
+        margin-left: 48px;
+    }
+
+    .mt-12 {
+        margin-top: 48px;
+    }
+
+    .mb-1 {
+        margin-bottom: 4px;
+    }
+
+    .mb-2 {
+        margin-bottom: 8px;
+    }
+
+    .mb-3 {
+        margin-bottom: 12px;
+    }
+
+    .mb-5 {
+        margin-bottom: 24px;
+    }
+
+    .mb-6 {
+        margin-bottom: 24px;
+    }
+
+    .mb-8 {
+        margin-bottom: 32px;
+    }
+
+    .mb-12 {
+        margin-bottom: 48px;
+    }
+
+    .-ml-12 {
+        margin-left: -48px;
+    }
+
+    .-mr-12 {
+        margin-right: -48px;
+    }
+
+    /* Padding */
+    .p-0 {
+        padding: 0px;
+    }
+
+    .p-px {
+        padding: 1px;
+    }
+
+    .py-px {
+        padding-top: 1px;
+        padding-bottom: 1px;
+    }
+
+    .py-1,
+    .pt-1 {
+        padding-top: 4px;
+    }
+
+    .pb-1 {
+        padding-bottom: 4px;
+    }
+
+    .pr-2 {
+        padding-right: 8px;
+    }
+
+    .pl-2 {
+        padding-left: 8px;
+    }
+
+    .py-2 {
+        padding-top: 8px;
+        padding-bottom: 8px;
+    }
+
+    .p-2 {
+        padding: 8px;
+    }
+
+    .pr-5 {
+        padding-right: 20px;
+    }
+
+    .py-6 {
+        padding-top: 24px;
+        padding-bottom: 24px;
+    }
+
+    .px-12 {
+        padding-right: 48px;
+        padding-left: 48px;
+    }
+
+    /* Typography */
     .font-normal {
         font-weight: normal;
     }
@@ -118,17 +272,12 @@
         line-height: 32px;
     }
 
-    .text-3xl {
-        font-size: 30px;
-        line-height: 36px;
+    .text-left {
+        text-align: left;
     }
 
     .text-right {
         text-align: right;
-    }
-
-    .text-left {
-        text-align: left;
     }
 
     .align-top {
@@ -143,250 +292,25 @@
         white-space: pre-line;
     }
 
-    .w-full {
-        width: 100%;
-    }
-
-    .h-2 {
-        height: 8px;
-    }
-
-    .h-3 {
-        height: 12px;
-    }
-
-    .m-12 {
-        margin: 48px;
-    }
-
-    .mx-12 {
-        margin-left: 48px;
-        margin-right: 48px;
-    }
-
-    .mb-12 {
-        margin-bottom: 48px;
-    }
-
-    .mt-12 {
-        margin-top: 48px;
-    }
-
-    .-ml-12 {
-        margin-left: -48px;
-    }
-
-    .-mr-12 {
-        margin-right: -48px;
-    }
-
-    .p-0 {
-        padding: 0;
-    }
-
-    .pr-0,
-    .px-0 {
-        padding-right: 0;
-    }
-
-    .pl-0,
-    .px-0 {
-        padding-left: 0;
-    }
-
-    .py-0.5,
-    .pt-0.5 {
-        padding-top: 2px;
-    }
-
-    .py-0.5,
-    .pb-0.5 {
-        padding-bottom: 2px;
-    }
-
-    .pb-1 {
-        padding-bottom: 4px;
-    }
-
-    .pr-1 {
-        padding-right: 4px;
-    }
-
-    .p-1 {
-        padding: 4px;
-    }
-
-    .py-1,
-    .pt-1 {
-        padding-top: 4px;
-    }
-
-    .pr-2,
-    .p-2 {
-        padding-right: 0.5rem;
-    }
-
-    .pl-2,
-    .p-2 {
-        padding-left: 0.5rem;
-    }
-
-    .py-2,
-    .pb-2,
-    .p-2 {
-        padding-bottom: 0.5rem;
-    }
-
-    .py-2,
-    .pt-2,
-    .p-2 {
-        padding-top: 0.5rem;
-    }
-
-    .pt-5,
-    .p-5 {
-        padding-top: 1.25rem;
-    }
-
-    .pb-5,
-    .p-5 {
-        padding-bottom: 1.25rem;
-    }
-
-    .pl-5,
-    .p-5 {
-        padding-left: 1.25rem;
-    }
-
-    .pr-5,
-    .p-5 {
-        padding-right: 1.25rem;
-    }
-
-    .pt-6,
-    .py-6,
-    .p-6 {
-        padding-top: 1.5rem;
-    }
-
-    .pb-6,
-    .py-6,
-    .p-6 {
-        padding-bottom: 1.5rem;
-    }
-
-    .pl-6,
-    .px-6,
-    .p-6 {
-        padding-left: 1.5rem;
-    }
-
-    .pr-6,
-    .px-6,
-    .p-6 {
-        padding-right: 1.5rem;
-    }
-
-    .px-12,
-    .pl-12,
-    .p-12 {
-        padding-left: 48px;
-    }
-
-    .px-12,
-    .pr-12,
-    .p-12 {
-        padding-right: 48px;
-    }
-
-    .mb-1 {
-        margin-bottom: 4px;
-    }
-
-    .mt-1 {
-        margin-top: 4px;
-    }
-
-    .mb-2 {
-        margin-bottom: 8px;
-    }
-
-    .mb-3 {
-        margin-bottom: 0.75rem;
-    }
-
-    .mt-3 {
-        margin-top: 0.75rem;
-    }
-
-    .mb-5 {
-        margin-bottom: 1.5rem;
-    }
-
-    .mt-5 {
-        margin-top: 1.5rem;
-    }
-
-    .mb-6 {
-        margin-bottom: 24px;
-    }
-
-    .mb-8 {
-        margin-bottom: 32px;
+    /* Borders */
+    .border-gray-200 {
+        border-color: #e5e7eb;
     }
 
     .border-b {
-        border-bottom: 1px solid #e5e7eb;
+        border-bottom-style: solid;
+        border-bottom-width: 1px;
     }
 
-    .fixed {
-        position: fixed;
+    .border-t {
+        border-top: 1px solid #e5e7eb;
     }
 
-    .-left-12 {
-        left: -48px;
+    .rounded-full {
+        border-radius: 9999px;
     }
 
-    .-right-12 {
-        right: -48px;
-    }
-
-    .-top-12 {
-        top: -48px;
-    }
-
-    .-bottom-12 {
-        bottom: -48px;
-    }
-
-    .-bottom-14 {
-        bottom: -56px;
-    }
-
-    .left-0 {
-        left: 0;
-    }
-
-    .right-0 {
-        right: 0;
-    }
-
-    .bottom-0 {
-        bottom: 0;
-    }
-
-    .top-0 {
-        top: 0;
-    }
-
-    .min-w-28 {
-        min-width: 7rem;
-    }
-
-    .w-28 {
-        width: 7rem;
-    }
-
+    /* Colors */
     .text-gray-500 {
         color: #6b7280;
     }
@@ -395,14 +319,11 @@
         background-color: #fff;
     }
 
-    .bg-zinc-50 {
-        background-color: #fafafa
-    }
-
     .bg-zinc-100 {
         background-color: #f4f4f5;
     }
 
+    /* Generated content */
     .dompdf-page:after {
         content: counter(page);
     }

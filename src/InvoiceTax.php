@@ -1,0 +1,223 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Elegantly\Invoices;
+
+use Brick\Money\Money;
+use Elegantly\Invoices\Contracts\GOBLable;
+use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Contracts\Support\Jsonable;
+use JsonSerializable;
+
+/**
+ * @implements Arrayable<string, mixed>
+ *
+ * @phpstan-consistent-constructor
+ */
+class InvoiceTax implements Arrayable, GOBLable, Jsonable, JsonSerializable
+{
+    /**
+     * Used internally to identify items in aggregate
+     */
+    protected int $index;
+
+    public ?string $type = null;
+
+    public ?string $country = null;
+
+    public ?string $state = null;
+
+    public ?string $taxability = null;
+
+    public ?Money $amount = null;
+
+    public ?Money $amount_taxable = null;
+
+    public ?float $percentage = null;
+
+    public ?string $label = null;
+
+    /**
+     * @param  null|string|array{
+     *      type?: null|string,
+     *      country?: null|string,
+     *      state?: null|string,
+     *      taxability?: null|string,
+     *      amount?: null|int|Money,
+     *      currency?: null|string,
+     *      amount_taxable?: null|int|Money,
+     *      percentage?: null|float|string,
+     *      label?: null|string,
+     * }  $type
+     */
+    public function __construct(
+        null|string|array $type = null,
+        ?string $country = null,
+        ?string $state = null,
+        ?string $taxability = null,
+        ?Money $amount = null,
+        ?Money $amount_taxable = null,
+        ?float $percentage = null,
+        ?string $label = null,
+    ) {
+        if (is_array($type)) {
+
+            $this->type = $type['type'] ?? null;
+            $this->taxability = $type['taxability'] ?? null;
+            $this->country = $type['country'] ?? null;
+            $this->state = $type['state'] ?? null;
+
+            $percentage = $type['percentage'] ?? null;
+            $this->percentage = $percentage === null ? null : round((float) $percentage, 2);
+
+            $this->label = $type['label'] ?? null;
+
+            $amount = $type['amount'] ?? null;
+            $currency = $type['currency'] ?? null;
+
+            if ($amount instanceof Money) {
+                $this->amount = $amount;
+            } elseif ($amount !== null && $currency) {
+                $this->amount = Money::ofMinor($amount, $currency);
+            }
+
+            $amount_taxable = $type['amount_taxable'] ?? null;
+
+            if ($amount_taxable instanceof Money) {
+                $this->amount_taxable = $amount_taxable;
+            } elseif ($amount_taxable !== null && $currency) {
+                $this->amount_taxable = Money::ofMinor($amount_taxable, $currency);
+            }
+
+        } else {
+            $this->type = $type;
+            $this->country = $country;
+            $this->state = $state;
+            $this->taxability = $taxability;
+            $this->amount = $amount;
+            $this->amount_taxable = $amount_taxable;
+            $this->percentage = $percentage === null ? null : round($percentage, 2);
+            $this->label = $label;
+        }
+    }
+
+    public function getLabel(): ?string
+    {
+        return $this->label;
+    }
+
+    public function setIndex(int $value): static
+    {
+        $this->index = $value;
+
+        return $this;
+    }
+
+    public function getIndex(): int
+    {
+        return $this->index;
+    }
+
+    /**
+     * @return array{
+     *      type: ?string,
+     *      country: ?string,
+     *      state: ?string,
+     *      taxability: ?string,
+     *      amount: ?int,
+     *      currency: ?string,
+     *      amount_taxable: ?int,
+     *      percentage: ?float,
+     *      label: ?string,
+     * }
+     */
+    public function toArray(): array
+    {
+        return [
+            'type' => $this->type,
+            'country' => $this->country,
+            'state' => $this->state,
+            'taxability' => $this->taxability,
+            'amount' => $this->amount?->getMinorAmount()->toInt(),
+            'currency' => $this->amount?->getCurrency()->getCurrencyCode(),
+            'amount_taxable' => $this->amount_taxable?->getMinorAmount()->toInt(),
+            'percentage' => $this->percentage,
+            'label' => $this->label,
+        ];
+    }
+
+    /**
+     * @return array{
+     *      type: ?string,
+     *      country: ?string,
+     *      state: ?string,
+     *      taxability: ?string,
+     *      amount: ?int,
+     *      currency: ?string,
+     *      amount_taxable: ?int,
+     *      percentage: ?float,
+     *      label: ?string,
+     * }
+     */
+    public function jsonSerialize(): array
+    {
+        return $this->toArray();
+    }
+
+    public function toJson($options = 0)
+    {
+        return json_encode($this->jsonSerialize(), $options) ?: '';
+    }
+
+    /**
+     * @return array{
+     *      type: ?string,
+     *      country: ?string,
+     *      state: ?string,
+     *      taxability: ?string,
+     *      amount: ?int,
+     *      currency: ?string,
+     *      amount_taxable: ?int,
+     *      percentage: ?float,
+     *      label: ?string,
+     * }
+     */
+    public function toLivewire()
+    {
+        return $this->toArray();
+    }
+
+    /**
+     * @param array{
+     *      type: ?string,
+     *      country: ?string,
+     *      state: ?string,
+     *      taxability: ?string,
+     *      amount: ?int,
+     *      currency: ?string,
+     *      amount_taxable: ?int,
+     *      percentage: ?float,
+     *      label: ?string,
+     * } $value
+     */
+    // @phpstan-ignore-next-line
+    public static function fromLivewire($value)
+    {
+        return new static($value);
+    }
+
+    /**
+     * @see https://docs.gobl.org/draft-0/tax/combo
+     */
+    public function toGOBL(array $values = []): array
+    {
+        return array_filter([
+            'cat' => $this->type,
+            'country' => $this->country ? mb_strtoupper($this->country) : null,
+            'key' => $this->taxability,
+            'percent' => $this->percentage !== null ? "{$this->percentage}%" : null,
+            ...$values,
+        ], fn ($value) => filled($value));
+    }
+}

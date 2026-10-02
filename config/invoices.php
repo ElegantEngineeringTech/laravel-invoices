@@ -5,26 +5,34 @@ declare(strict_types=1);
 use Brick\Math\RoundingMode;
 use Elegantly\Invoices\Enums\InvoiceType;
 use Elegantly\Invoices\InvoiceDiscount;
+use Elegantly\Invoices\InvoiceTax;
 use Elegantly\Invoices\Models\Invoice;
 use Elegantly\Invoices\Models\InvoiceItem;
 use Elegantly\Invoices\Support\Address;
 use Elegantly\Invoices\Support\Identity;
 use Elegantly\Invoices\Support\Party;
+use Elegantly\Invoices\Support\PaymentInstruction;
 use Elegantly\Invoices\Support\TaxId;
 
 return [
 
     'model_invoice' => Invoice::class,
+
     'model_invoice_item' => InvoiceItem::class,
 
     'discount_class' => InvoiceDiscount::class,
+
+    'tax_class' => InvoiceTax::class,
 
     'party_class' => Party::class,
 
     'identity_class' => Identity::class,
 
     'address_class' => Address::class,
+
     'tax_id_class' => TaxId::class,
+
+    'payment_instructions_class' => PaymentInstruction::class,
 
     'cascade_invoice_delete_to_invoice_items' => true,
 
@@ -66,7 +74,10 @@ return [
 
     ],
 
-    'date_format' => 'Y-m-d',
+    /**
+     * @see https://carbon.nesbot.com/guide/getting-started/localization.html
+     */
+    'date_format' => 'YYYY-MM-DD',
 
     'rounding_mode' => RoundingMode::HalfUp,
 
@@ -113,7 +124,7 @@ return [
             'isPhpEnabled' => false,
 
             // Adjusts line-height rendering to prevent text from looking vertically "cramped"
-            'fontHeightRatio' => 0.8,
+            'fontHeightRatio' => 1.1,
 
             /**
              * Supported values are: 'DejaVu Sans', 'Helvetica', 'Courier', 'Times', 'Symbol', 'ZapfDingbats'.
@@ -140,11 +151,6 @@ return [
         'template' => 'default.layout',
 
         'template_data' => [
-            /**
-             * The color used for the PDF header/accent.
-             */
-            'color' => '#050038',
-
             /**
              * The CSS font-family name.
              *

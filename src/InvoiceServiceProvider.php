@@ -5,10 +5,14 @@ declare(strict_types=1);
 namespace Elegantly\Invoices;
 
 use BackedEnum;
+use Brick\Math\RoundingMode;
 use Elegantly\Invoices\Commands\DenormalizeInvoicesCommand;
+use Elegantly\Invoices\Models\Invoice;
+use Elegantly\Invoices\Models\InvoiceItem;
 use Elegantly\Invoices\Support\Address;
 use Elegantly\Invoices\Support\Identity;
 use Elegantly\Invoices\Support\Party;
+use Elegantly\Invoices\Support\PaymentInstruction;
 use Elegantly\Invoices\Support\TaxId;
 use Exception;
 use Spatie\LaravelPackageTools\Package;
@@ -18,6 +22,26 @@ use function Illuminate\Support\enum_value;
 
 class InvoiceServiceProvider extends PackageServiceProvider
 {
+    public const array MIGRATIONS = [
+        'create_invoices_table',
+        'create_invoice_items_table',
+        'add_discounts_column_to_invoices_table',
+        'add_type_column_to_invoices_table',
+        'add_denormalized_columns_to_invoices_table',
+        'add_serial_number_details_columns_to_invoices_table',
+        'migrate_serial_number_details_columns_to_invoices_table',
+        'add_payment_instructions_to_invoices_table',
+        'add_fields_column_to_invoices_table',
+        'migrate_tax_number_column_in_invoices_table',
+        'drop_unit_discount_column_in_invoice_items_table',
+        'add_price_column_to_invoice_items_table',
+        'add_discounts_to_invoice_items_table',
+        'add_taxes_to_invoice_items_table',
+        'migrate_discounts_to_invoice_items_table',
+        'migrate_taxes_to_invoice_items_table',
+        'migrate_prices_columns_to_invoice_items_table',
+    ];
+
     public function configurePackage(Package $package): void
     {
         /*
@@ -31,22 +55,17 @@ class InvoiceServiceProvider extends PackageServiceProvider
             ->hasViews()
             ->hasTranslations()
             ->hasCommand(DenormalizeInvoicesCommand::class)
-            ->hasMigration('create_invoices_table')
-            ->hasMigration('create_invoice_items_table')
-            ->hasMigration('add_discounts_column_to_invoices_table')
-            ->hasMigration('add_type_column_to_invoices_table')
-            ->hasMigration('add_denormalized_columns_to_invoices_table')
-            ->hasMigration('add_serial_number_details_columns_to_invoices_table')
-            ->hasMigration('migrate_serial_number_details_columns_to_invoices_table')
-            ->hasMigration('add_payment_instructions_to_invoices_table')
-            ->hasMigration('add_fields_column_to_invoices_table')
-            ->hasMigration('migrate_tax_number_column_in_invoices_table');
+            ->hasMigrations(self::MIGRATIONS);
     }
 
     public static function getSerialNumberPrefixConfiguration(null|string|BackedEnum $type): ?string
     {
         /** @var null|int|string */
         $value = enum_value($type);
+
+        if ($value === null) {
+            return null;
+        }
 
         /** @var string|array<string, string> $prefixes */
         $prefixes = config('invoices.serial_number.prefix', '');
@@ -63,6 +82,10 @@ class InvoiceServiceProvider extends PackageServiceProvider
         /** @var null|int|string */
         $value = enum_value($type);
 
+        if ($value === null) {
+            throw new Exception("No serial number format defined in config for type: {$value}.");
+        }
+
         /** @var string|array<string, string> $formats */
         $formats = config('invoices.serial_number.format') ?? '';
 
@@ -78,6 +101,12 @@ class InvoiceServiceProvider extends PackageServiceProvider
         }
 
         return $format;
+    }
+
+    public static function getDefaultCurrency(): string
+    {
+        // @phpstan-ignore-next-line
+        return config('invoices.default_currency') ?? 'USD';
     }
 
     /**
@@ -132,5 +161,56 @@ class InvoiceServiceProvider extends PackageServiceProvider
     {
         // @phpstan-ignore-next-line
         return config('invoices.tax_id_class') ?? TaxId::class;
+    }
+
+    /**
+     * @return class-string<Invoice>
+     */
+    public static function getInvoiceClass(): string
+    {
+        // @phpstan-ignore-next-line
+        return config('invoices.model_invoice') ?? Invoice::class;
+    }
+
+    /**
+     * @return class-string<InvoiceItem>
+     */
+    public static function getInvoiceItemClass(): string
+    {
+        // @phpstan-ignore-next-line
+        return config('invoices.model_invoice_item') ?? InvoiceItem::class;
+    }
+
+    /**
+     * @return class-string<InvoiceDiscount>
+     */
+    public static function getInvoiceDiscountClass(): string
+    {
+        // @phpstan-ignore-next-line
+        return config('invoices.discount_class') ?? InvoiceDiscount::class;
+    }
+
+    /**
+     * @return class-string<InvoiceTax>
+     */
+    public static function getInvoiceTaxClass(): string
+    {
+        // @phpstan-ignore-next-line
+        return config('invoices.tax_class') ?? InvoiceTax::class;
+    }
+
+    /**
+     * @return class-string<PaymentInstruction>
+     */
+    public static function getPaymentInstructionClass(): string
+    {
+        // @phpstan-ignore-next-line
+        return config('invoices.payment_instructions_class') ?? PaymentInstruction::class;
+    }
+
+    public static function getRoundingMode(): RoundingMode
+    {
+        // @phpstan-ignore-next-line
+        return config('invoices.rounding_mode') ?? RoundingMode::HalfUp;
     }
 }

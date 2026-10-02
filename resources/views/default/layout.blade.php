@@ -1,5 +1,4 @@
 @php
-    $color = data_get($invoice->templateData, 'color');
     $font = data_get($invoice->templateData, 'font');
     $fonts = data_get($invoice->templateData, 'fonts', []);
 @endphp
@@ -29,25 +28,14 @@
 <body>
 
     <div class="fixed -left-12 -right-12 -top-12">
-        <div class="h-2 w-full" style="background-color: {{ $color }}"></div>
+        @include('invoices::default.includes.header', ['invoice' => $invoice])
     </div>
 
-    <div class="fixed -bottom-14 -left-12 -right-12 mx-12 mb-12">
-        <table class="w-full">
-            <tbody>
-                <tr class="text-xs text-gray-500">
-                    <td class="">
-                        {{ $invoice->serial_number }} • {{ $invoice->formatMoney($invoice->totalAmount()) }}
-                    </td>
-                    <td class="text-right">
-                        <p class="dompdf-page p-2">{{ __('invoices::invoice.page') }} </p>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+    <div class="fixed -bottom-20 -left-12 -right-12 mx-12 mb-12">
+        @include('invoices::default.includes.footer', ['invoice' => $invoice])
     </div>
 
-    @include('invoices::default.invoice')
+    @include('invoices::default.invoice', ['invoice' => $invoice])
 
 </body>
 

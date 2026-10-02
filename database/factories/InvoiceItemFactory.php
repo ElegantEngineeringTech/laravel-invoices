@@ -18,20 +18,15 @@ class InvoiceItemFactory extends Factory
     public function definition()
     {
         $currency = config()->string('invoices.default_currency');
-
-        $price = Money::ofMinor(fake()->numberBetween(1000, 100000), $currency);
-        $unit_tax = Money::ofMinor(fake()->numberBetween(0, $price->getAmount()->toFloat()), $currency);
-
-        $useTaxPercentage = fake()->boolean();
+        $unitPrice = Money::of(fake()->numberBetween(1, 1000), $currency);
+        $quantity = fake()->numberBetween(1, 10);
 
         return [
             'label' => fake()->sentence(),
             'description' => fake()->sentence(),
-            'unit_price' => $price->getMinorAmount()->toInt(),
-            'currency' => $price->getCurrency()->getCurrencyCode(),
-            'unit_tax' => ! $useTaxPercentage ? $unit_tax : null,
-            'tax_percentage' => $useTaxPercentage ? fake()->numberBetween(0, 100) : null,
-            'quantity' => fake()->numberBetween(1, 10),
+            'unit_price' => $unitPrice->getMinorAmount()->toInt(),
+            'currency' => $unitPrice->getCurrency()->getCurrencyCode(),
+            'quantity' => $quantity,
         ];
     }
 }
