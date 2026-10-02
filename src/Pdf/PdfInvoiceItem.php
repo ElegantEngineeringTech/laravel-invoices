@@ -23,7 +23,7 @@ use Elegantly\Money\MoneyParser;
  *     price_discount?: Money|float|null,
  *     price_tax?: Money|float|null,
  *     price?: Money|float|null,
- *     quantity?: int|float,
+ *     quantity?: string|int|float,
  *     quantity_unit?: ?string,
  *     description?: ?string,
  *     discounts?: InvoiceDiscountCollection<InvoiceDiscount>|array<InvoiceDiscount|array{code?: ?string, label?: ?string, percentage?: ?float, amount?: Money|int|float|null, amount_subtotal?: Money|int|float|null, currency?: ?string}>,
@@ -74,8 +74,7 @@ class PdfInvoiceItem
                     'amount' => MoneyParser::parse($discount['amount'] ?? null, $discountCurrency, $roundingMode),
                     'amount_subtotal' => MoneyParser::parse($discount['amount_subtotal'] ?? null, $discountCurrency, $roundingMode),
                 ]);
-            },
-                $discounts));
+            }, $discounts));
         }
 
         $taxes = $data['taxes'] ?? new InvoiceTaxCollection;
@@ -93,8 +92,7 @@ class PdfInvoiceItem
                     'amount' => MoneyParser::parse($tax['amount'] ?? null, $taxCurrency, $roundingMode),
                     'amount_taxable' => MoneyParser::parse($tax['amount_taxable'] ?? null, $taxCurrency, $roundingMode),
                 ]);
-            },
-                $taxes));
+            }, $taxes));
         }
 
         return new static(
@@ -104,7 +102,7 @@ class PdfInvoiceItem
             price_discount: MoneyParser::parse($data['price_discount'] ?? null, $currency, $roundingMode),
             price_tax: MoneyParser::parse($data['price_tax'] ?? null, $currency, $roundingMode),
             price: MoneyParser::parse($data['price'] ?? null, $currency, $roundingMode),
-            quantity: $data['quantity'] ?? 1,
+            quantity: (float) ($data['quantity'] ?? 1),
             quantity_unit: $data['quantity_unit'] ?? null,
             description: $data['description'] ?? null,
             discounts: $discounts,
