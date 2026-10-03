@@ -56,7 +56,10 @@ class InvoiceDiscountCollection extends Collection implements GOBLable
     ): static {
         $roundingMode ??= InvoiceServiceProvider::getRoundingMode();
 
-        $ratios = $this->toBase()->map(fn ($discount) => abs($discount->amount?->getMinorAmount()->toInt() ?? 0))->all();
+        $ratios = $this
+            ->toBase()
+            ->map(fn ($discount) => abs($discount->amount?->getMinorAmount()->toInt() ?? 0))
+            ->all();
 
         $amounts = $amount->allocate($ratios, $mode);
 

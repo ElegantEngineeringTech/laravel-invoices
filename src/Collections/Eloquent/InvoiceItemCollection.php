@@ -53,28 +53,28 @@ class InvoiceItemCollection extends Collection implements GOBLable
 
         $ratiosSubtotal = $this
             ->toBase()
-            ->map(fn ($i) => abs($i->price_subtotal?->getMinorAmount()->toInt() ?? 0))
+            ->map(fn ($item) => abs($item->price_subtotal?->getMinorAmount()->toInt() ?? 0))
             ->all();
 
         $ratiosDiscount = $this
             ->toBase()
-            ->map(fn ($i) => abs($i->price_discount?->getMinorAmount()->toInt() ?? 0))
+            ->map(fn ($item) => abs($item->price_discount?->getMinorAmount()->toInt() ?? 0))
             ->all();
 
         $ratiosTax = $this
             ->toBase()
-            ->map(fn ($i) => abs($i->price_tax?->getMinorAmount()->toInt() ?? 0))
+            ->map(fn ($item) => abs($item->price_tax?->getMinorAmount()->toInt() ?? 0))
             ->all();
 
         $ratiosPrice = $this
             ->toBase()
-            ->map(fn ($i) => abs($i->price?->getMinorAmount()->toInt() ?? 0))
+            ->map(fn ($item) => abs($item->price?->getMinorAmount()->toInt() ?? 0))
             ->all();
 
-        $subtotals = $subtotal->allocate($ratiosSubtotal, $mode);
-        $discounts = $discount->allocate($ratiosDiscount, $mode);
-        $taxes = $tax->allocate($ratiosTax, $mode);
-        $prices = $total->allocate($ratiosPrice, $mode);
+        $subtotals = $subtotal->isZero() ? array_fill(0, count($ratiosSubtotal), $subtotal) : $subtotal->allocate($ratiosSubtotal, $mode);
+        $discounts = $discount->isZero() ? array_fill(0, count($ratiosDiscount), $discount) : $discount->allocate($ratiosDiscount, $mode);
+        $taxes = $tax->isZero() ? array_fill(0, count($ratiosTax), $tax) : $tax->allocate($ratiosTax, $mode);
+        $prices = $total->isZero() ? array_fill(0, count($ratiosPrice), $total) : $total->allocate($ratiosPrice, $mode);
 
         return $this->each(function ($item, $index) use ($discounts, $prices, $subtotals, $roundingMode, $taxes) {
 
