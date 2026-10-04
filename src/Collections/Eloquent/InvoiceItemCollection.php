@@ -53,28 +53,24 @@ class InvoiceItemCollection extends Collection implements GOBLable
 
         $ratiosSubtotal = $this
             ->toBase()
-            ->map(fn ($item) => abs($item->price_subtotal?->getMinorAmount()->toInt() ?? 0))
-            ->all();
+            ->map(fn ($item) => abs($item->price_subtotal?->getMinorAmount()->toInt() ?? 0));
 
         $ratiosDiscount = $this
             ->toBase()
-            ->map(fn ($item) => abs($item->price_discount?->getMinorAmount()->toInt() ?? 0))
-            ->all();
+            ->map(fn ($item) => abs($item->price_discount?->getMinorAmount()->toInt() ?? 0));
 
         $ratiosTax = $this
             ->toBase()
-            ->map(fn ($item) => abs($item->price_tax?->getMinorAmount()->toInt() ?? 0))
-            ->all();
+            ->map(fn ($item) => abs($item->price_tax?->getMinorAmount()->toInt() ?? 0));
 
         $ratiosPrice = $this
             ->toBase()
-            ->map(fn ($item) => abs($item->price?->getMinorAmount()->toInt() ?? 0))
-            ->all();
+            ->map(fn ($item) => abs($item->price?->getMinorAmount()->toInt() ?? 0));
 
-        $subtotals = $subtotal->isZero() ? array_fill(0, count($ratiosSubtotal), $subtotal) : $subtotal->allocate($ratiosSubtotal, $mode);
-        $discounts = $discount->isZero() ? array_fill(0, count($ratiosDiscount), $discount) : $discount->allocate($ratiosDiscount, $mode);
-        $taxes = $tax->isZero() ? array_fill(0, count($ratiosTax), $tax) : $tax->allocate($ratiosTax, $mode);
-        $prices = $total->isZero() ? array_fill(0, count($ratiosPrice), $total) : $total->allocate($ratiosPrice, $mode);
+        $subtotals = $subtotal->isZero() ? array_fill(0, $ratiosSubtotal->count(), $subtotal) : $subtotal->allocate($ratiosSubtotal->all(), $mode);
+        $discounts = $discount->isZero() ? array_fill(0, $ratiosDiscount->count(), $discount) : $discount->allocate($ratiosDiscount->all(), $mode);
+        $taxes = $tax->isZero() ? array_fill(0, $ratiosTax->count(), $tax) : $tax->allocate($ratiosTax->all(), $mode);
+        $prices = $total->isZero() ? array_fill(0, $ratiosPrice->count(), $total) : $total->allocate($ratiosPrice->all(), $mode);
 
         return $this->each(function ($item, $index) use ($discounts, $prices, $subtotals, $roundingMode, $taxes) {
 

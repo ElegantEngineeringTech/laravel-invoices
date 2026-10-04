@@ -26,6 +26,7 @@ Try [the interactive demo](https://elegantly.dev/laravel-invoices) to explore th
 - [Requirements](#requirements)
 - [Installation](#installation)
     - [Configuration](#configuration)
+- [Upgrading from v5](#upgrading-from-v5)
 - [The `PdfInvoice` Class](#the-pdfinvoice-class)
     - [Full Example](#full-example)
     - [Creating PDFs from Arrays](#creating-pdfs-from-arrays)
@@ -110,6 +111,10 @@ php artisan vendor:publish --tag="invoices-config"
 ```
 
 Use `config/invoices.php` to configure your default seller, currency, rounding, serial numbers, and PDF appearance. See the [configuration file](config/invoices.php) for all settings and defaults.
+
+## Upgrading from v5
+
+See the [migration guide](UPGRADE.md) for breaking changes, database conversions, and examples for upgrading from `v5` to `v6`.
 
 ## The `PdfInvoice` Class
 
