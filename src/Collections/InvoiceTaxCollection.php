@@ -56,9 +56,9 @@ class InvoiceTaxCollection extends Collection implements GOBLable
     ): static {
         $roundingMode ??= InvoiceServiceProvider::getRoundingMode();
 
-        $ratios = $this->toBase()->map(fn ($tax) => abs($tax->amount?->getMinorAmount()->toInt() ?? 0))->all();
+        $ratios = $this->toBase()->map(fn ($tax) => abs($tax->amount?->getMinorAmount()->toInt() ?? 0));
 
-        $amounts = $amount->allocate($ratios, $mode);
+        $amounts = $amount->isZero() ? array_fill(0, $ratios->count(), $amount) : $amount->allocate($ratios->all(), $mode);
 
         return $this->each(function ($tax, $index) use ($amounts) {
             $tax->amount_taxable = null;
