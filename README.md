@@ -5,52 +5,73 @@
 [![Laravel Pint](https://img.shields.io/github/actions/workflow/status/ElegantEngineeringTech/laravel-invoices/pint.yml?label=laravel%20pint&style=flat-square)](https://github.com/ElegantEngineeringTech/laravel-invoices/actions?query=workflow%3Apint)
 [![Total Downloads](https://img.shields.io/packagist/dt/elegantly/laravel-invoices.svg?style=flat-square)](https://packagist.org/packages/elegantly/laravel-invoices)
 
-Create, store, calculate, and render invoices in Laravel. The package supports item-level discounts and taxes, automatic totals, serial numbers, PDF generation, mail attachments, polymorphic relations, and [GOBL](https://gobl.org/) export.
+Create, store, calculate, and render invoices, quotes, proformas, and credit notes in Laravel. The package supports multiple item-level discounts and taxes, serial numbers, PDF generation, mail attachments, polymorphic relations, Stripe Checkout imports, and [GOBL](https://gobl.org/) export.
+
+Amounts are **denormalized**: items and invoices hold their calculated amounts. Supply precomputed values from your application or payment provider, or call `denormalize()` to calculate missing amounts. Existing values are preserved unless you request recalculation.
+
+There are two independent ways to use the package:
+
+- **`PdfInvoice`**: build and render invoices without a database.
+- **`Invoice`**: store invoices and their items with Eloquent, then optionally generate PDFs or export them.
 
 ![laravel-invoices](https://repository-images.githubusercontent.com/527661364/f98e92f9-62a6-48a1-a7b1-1a587b92a430)
 
 ## Interactive Demo
 
-Try out [the interactive demo](https://elegantly.dev/laravel-invoices) to explore package capabilities.
+Try [the interactive demo](https://elegantly.dev/laravel-invoices) to explore the package.
 
 ## Table of Contents
 
+- [Interactive Demo](#interactive-demo)
 - [Requirements](#requirements)
 - [Installation](#installation)
+    - [Configuration](#configuration)
 - [The `PdfInvoice` Class](#the-pdfinvoice-class)
     - [Full Example](#full-example)
-    - [Rendering the Invoice as a PDF](#rendering-the-invoice-as-a-pdf)
-    - [Storing the PDF in a file](#storing-the-pdf-in-a-file)
-    - [Downloading the Invoice as a PDF](#downloading-the-invoice-as-a-pdf)
-        - [From a controller](#from-a-controller)
-        - [From a Livewire component](#from-a-livewire-component)
-    - [Rendering the Invoice as a view](#rendering-the-invoice-as-a-view)
-    - [Rendering the Invoice within a View](#rendering-the-invoice-within-a-view)
-    - [Adding Taxes](#adding-taxes)
-        - [Tax by Percentage](#tax-by-percentage)
-        - [Tax as a Fixed Amount](#tax-as-a-fixed-amount)
-    - [Adding Discounts](#adding-discounts)
-        - [Discount by Percentage](#discount-by-percentage)
-        - [Discount as a Fixed Amount](#discount-as-a-fixed-amount)
-    - [Adding Payment Instructions](#adding-payment-instructions)
-        - [QR Code Generation](#qr-code-generation)
-    - [Customization](#customization)
-        - [Customizing Fonts](#customizing-fonts)
-        - [Customizing the Invoice Template](#customizing-the-invoice-template)
+    - [Creating PDFs from Arrays](#creating-pdfs-from-arrays)
+    - [PDF Amounts and Denormalization](#pdf-amounts-and-denormalization)
+    - [PDF Discounts and Taxes](#pdf-discounts-and-taxes)
+    - [Parties, Addresses, and Custom Fields](#parties-addresses-and-custom-fields)
+    - [Types, States, and Dates](#types-states-and-dates)
+    - [Payment Instructions and QR Codes](#payment-instructions-and-qr-codes)
+    - [Rendering, Downloading, and Storing PDFs](#rendering-downloading-and-storing-pdfs)
+        - [Livewire Downloads](#livewire-downloads)
+        - [Accessing Dompdf](#accessing-dompdf)
+    - [Rendering Blade Views](#rendering-blade-views)
+    - [PDF Mail Attachments](#pdf-mail-attachments)
+        - [Attaching PDFs to Mailables](#attaching-pdfs-to-mailables)
+        - [Attaching PDFs to Notifications](#attaching-pdfs-to-notifications)
+    - [PDF Customization and Localization](#pdf-customization-and-localization)
+        - [Logos, Templates, and Template Data](#logos-templates-and-template-data)
+        - [Fonts and PDF Options](#fonts-and-pdf-options)
+        - [Localization and Money Formatting](#localization-and-money-formatting)
+        - [Extending PdfInvoice](#extending-pdfinvoice)
 - [The `Invoice` Eloquent Model](#the-invoice-eloquent-model)
     - [Complete Example](#complete-example)
-    - [Generating Unique Serial Numbers](#generating-unique-serial-numbers)
-    - [Using Multiple Prefixes and Series for Serial Numbers](#using-multiple-prefixes-and-series-for-serial-numbers)
-    - [Customizing the Serial Number Format](#customizing-the-serial-number-format)
-    - [Storing the Logo](#storing-the-logo)
-    - [Storing a Dynamic Logo](#storing-a-dynamic-logo)
-    - [Converting an `Invoice` Model to a `PdfInvoice`](#converting-an-invoice-model-to-a-pdfinvoice)
-    - [Display, Download, and Store Invoices](#display-download-and-store-invoices)
-    - [Attaching Invoices to Mailables](#attaching-invoices-to-mailables)
-    - [Attaching Invoices to Notifications](#attaching-invoices-to-notifications)
-    - [Customizing PDF Output from the Model](#customizing-pdf-output-from-the-model)
-        - [Using a Custom PdfInvoice Class](#using-a-custom-pdfinvoice-class)
-    - [Casting `state` and `type` to Enums](#casting-state-and-type-to-enums)
+    - [Stored Amounts and Denormalization](#stored-amounts-and-denormalization)
+    - [Managing Invoice Items](#managing-invoice-items)
+    - [Stored Discounts and Taxes](#stored-discounts-and-taxes)
+    - [Stored Parties, Fields, and Payment Instructions](#stored-parties-fields-and-payment-instructions)
+    - [Relations, Quotes, and Credits](#relations-quotes-and-credits)
+    - [Types, States, and Query Scopes](#types-states-and-query-scopes)
+    - [Generating Serial Numbers](#generating-serial-numbers)
+        - [Multiple Prefixes and Series](#multiple-prefixes-and-series)
+        - [Manual Serial Numbers and Parsing](#manual-serial-numbers-and-parsing)
+    - [Storing Logos](#storing-logos)
+    - [Converting Models to PDFs](#converting-models-to-pdfs)
+        - [Livewire Downloads from a Model](#livewire-downloads-from-a-model)
+        - [Customizing PDF Output from the Model](#customizing-pdf-output-from-the-model)
+    - [Model Mail Attachments](#model-mail-attachments)
+        - [Mailables](#mailables)
+        - [Notifications](#notifications)
+    - [Replicating, Scaling, and Allocating Amounts](#replicating-scaling-and-allocating-amounts)
+        - [Replicating and Scaling](#replicating-and-scaling)
+        - [Allocating Amounts](#allocating-amounts)
+    - [Collections and Money Totals](#collections-and-money-totals)
+    - [Importing Stripe Checkout Line Items](#importing-stripe-checkout-line-items)
+    - [GOBL Export](#gobl-export)
+    - [Custom Models and Value Objects](#custom-models-and-value-objects)
+    - [Casting Types and States to Enums](#casting-types-and-states-to-enums)
 - [Testing](#testing)
 - [Changelog](#changelog)
 - [Contributing](#contributing)
@@ -63,343 +84,335 @@ Try out [the interactive demo](https://elegantly.dev/laravel-invoices) to explor
 - PHP 8.4+
 - Laravel 13.x
 - `dompdf/dompdf` 3.1+
-- `elegantly/laravel-money` 4.1+
+- `elegantly/laravel-money` 4.2+
 
-Money values use [`brick/money`](https://github.com/brick/money) through `elegantly/laravel-money`.
+The Stripe integration additionally requires `stripe/stripe-php`.
 
 ## Installation
-
-You can install the package via composer:
 
 ```bash
 composer require elegantly/laravel-invoices
 ```
 
-If you intent to store your invoices using the Eloquent Model, you must publish and run the migrations with:
+For Eloquent storage, publish and run the migrations:
 
 ```bash
 php artisan vendor:publish --tag="invoices-migrations"
 php artisan migrate
 ```
 
-You can publish the config file with:
+Standalone `PdfInvoice` usage does not require migrations.
+
+### Configuration
 
 ```bash
 php artisan vendor:publish --tag="invoices-config"
 ```
 
-This is the contents of the published config file:
-
-```php
-use Brick\Math\RoundingMode;
-use Elegantly\Invoices\Enums\InvoiceType;
-use Elegantly\Invoices\InvoiceDiscount;
-use Elegantly\Invoices\InvoiceTax;
-use Elegantly\Invoices\Models\Invoice;
-use Elegantly\Invoices\Models\InvoiceItem;
-use Elegantly\Invoices\Support\Address;
-use Elegantly\Invoices\Support\Identity;
-use Elegantly\Invoices\Support\Party;
-use Elegantly\Invoices\Support\TaxId;
-
-return [
-
-    'model_invoice' => Invoice::class,
-
-    'model_invoice_item' => InvoiceItem::class,
-
-    'discount_class' => InvoiceDiscount::class,
-
-    'tax_class' => InvoiceTax::class,
-
-    'party_class' => Party::class,
-
-    'identity_class' => Identity::class,
-
-    'address_class' => Address::class,
-
-    'tax_id_class' => TaxId::class,
-
-    'cascade_invoice_delete_to_invoice_items' => true,
-
-    'serial_number' => [
-        /**
-         * If true, will generate a serial number on creation
-         * If false, you will have to set the serial_number yourself
-         */
-        'auto_generate' => true,
-
-        /**
-         * Define the serial number format used for each invoice type
-         *
-         * P: Prefix
-         * S: Serie
-         * M: Month
-         * Y: Year
-         * C: Count
-         * Example: IN0012-220234
-         * Repeat letter to set the length of each information
-         * Examples of formats:
-         * - PPYYCCCC : IN220123 (default)
-         * - PPPYYCCCC : INV220123
-         * - PPSSSS-YYCCCC : INV0001-220123
-         * - SSSS-CCCC: 0001-0123
-         * - YYCCCC: 220123
-         */
-        'format' => 'PPYYCCCC',
-
-        /**
-         * Define the default prefix used for each invoice type
-         */
-        'prefix' => [
-            InvoiceType::Invoice->value => 'IN',
-            InvoiceType::Quote->value => 'QO',
-            InvoiceType::Credit->value => 'CR',
-            InvoiceType::Proforma->value => 'PF',
-        ],
-
-    ],
-
-    /**
-     * @see https://carbon.nesbot.com/guide/getting-started/localization.html
-     */
-    'date_format' => 'YYYY-MM-DD',
-
-    'rounding_mode' => RoundingMode::HalfUp,
-
-    'default_seller' => [
-        'company' => null,
-        'name' => null,
-        'address' => [
-            'street' => null,
-            'city' => null,
-            'postal_code' => null,
-            'state' => null,
-            'country' => null,
-        ],
-        'email' => null,
-        'phone' => null,
-        'tax_id' => null,
-        'fields' => [
-            //
-        ],
-    ],
-
-    /**
-     * ISO 4217 currency code
-     */
-    'default_currency' => 'USD',
-
-    'pdf' => [
-
-        'paper' => [
-            'size' => 'a4',
-            'orientation' => 'portrait',
-        ],
-
-        /**
-         * Default DOM PDF options
-         *
-         * @see Available options https://github.com/barryvdh/laravel-dompdf#configuration
-         */
-        'options' => [
-            // Required to load external CSS or images (e.g., from a URL or storage path)
-            'isRemoteEnabled' => true,
-
-            // Security: Keep false unless you specifically need to execute PHP inside the PDF template
-            'isPhpEnabled' => false,
-
-            // Adjusts line-height rendering to prevent text from looking vertically "cramped"
-            'fontHeightRatio' => 1.1,
-
-            /**
-             * Supported values are: 'DejaVu Sans', 'Helvetica', 'Courier', 'Times', 'Symbol', 'ZapfDingbats'.
-             */
-            'defaultFont' => 'Helvetica',
-
-            // Custom font storage: Required if using Google Fonts
-            'fontDir' => storage_path('app/dompdf'),
-            'fontCache' => storage_path('app/dompdf'),
-
-            // System paths for temporary file processing and security boundaries
-            'tempDir' => sys_get_temp_dir(),
-            'chroot' => realpath(base_path()), // Limits Dompdf's file access to the project root
-        ],
-
-        /**
-         * The logo displayed in the PDF
-         */
-        'logo' => null,
-
-        /**
-         * The template used to render the PDF
-         */
-        'template' => 'default.layout',
-
-        'template_data' => [
-            /**
-             * The CSS font-family name.
-             *
-             * Note: 'Arimo' is recommended as it provides superior symbol support
-             * compared to Helvetica, while maintaining a similar aesthetic.
-             */
-            'font' => null,
-
-            /**
-             * List of Google Font URLs to be imported into the document.
-             */
-            'fonts' => [
-                // 'https://fonts.googleapis.com/css2?family=Arimo:ital,wght@0,400..700;1,400..700&display=swap',
-            ],
-        ],
-
-    ],
-
-];
-```
+Use `config/invoices.php` to configure your default seller, currency, rounding, serial numbers, and PDF appearance. See the [configuration file](config/invoices.php) for all settings and defaults.
 
 ## The `PdfInvoice` Class
 
-This package provides a powerful, standalone `PdfInvoice` class. Its main functionalities include the ability to:
-
-- Display your invoice as a PDF document.
-- Render your invoice within a Blade view.
-
-The `PdfInvoice` class is also integrated with the `Invoice` Eloquent Model, allowing you to easily convert an `Invoice` model instance into its PDF representation.
-
-You can even use this package exclusively for the `PdfInvoice` class if you don't require database storage for your invoices.
+Build PDFs, Blade previews, and mail attachments from your own data, without database storage.
 
 ### Full Example
 
 ```php
-use \Elegantly\Invoices\Pdf\PdfInvoice;
-use \Elegantly\Invoices\Pdf\PdfInvoiceItem;
-use \Elegantly\Invoices\Support\Seller;
-use \Elegantly\Invoices\Support\Buyer;
-use \Elegantly\Invoices\Support\Address;
-use \Elegantly\Invoices\Support\PaymentInstruction;
-use \Elegantly\Invoices\InvoiceDiscount;
 use Brick\Money\Money;
+use Elegantly\Invoices\Collections\InvoiceDiscountCollection;
+use Elegantly\Invoices\Collections\InvoiceTaxCollection;
+use Elegantly\Invoices\Collections\PdfInvoiceItemCollection;
+use Elegantly\Invoices\Enums\InvoiceState;
+use Elegantly\Invoices\Enums\InvoiceType;
+use Elegantly\Invoices\InvoiceDiscount;
+use Elegantly\Invoices\InvoiceTax;
+use Elegantly\Invoices\Pdf\PdfInvoice;
+use Elegantly\Invoices\Pdf\PdfInvoiceItem;
+use Elegantly\Invoices\Support\Address;
+use Elegantly\Invoices\Support\Identity;
+use Elegantly\Invoices\Support\Party;
+use Elegantly\Invoices\Support\PaymentInstruction;
+use Elegantly\Invoices\Support\TaxId;
 
 $pdfInvoice = new PdfInvoice(
-    name: "Invoice",
-    state: "paid",
-    serial_number: "INV-241200001",
-    seller: new Seller(
-        company: 'elegantly',
-        name: 'Quentin Gabriele', // (optional)
+    type: InvoiceType::Invoice,
+    state: InvoiceState::Pending,
+    serial_number: 'INV-260001',
+    created_at: now(),
+    due_at: now()->addDays(30),
+    fields: ['Order' => 'PO0234'],
+    seller: new Party(
+        company: 'Acme Studio',
+        name: 'Jane Doe',
         address: new Address(
             street: "Place de l'Opéra",
             city: 'Paris',
             postal_code: '75009',
-            country: 'France',
-        ),
-        email: 'john.doe@example.com',
-        tax_id: new TaxId(
             country: 'FR',
-            code: '123456789'
         ),
-        fields: [
-            // Custom fields to display with the seller
-            "foo" => "bar"
-        ]
+        tax_id: new TaxId(country: 'FR', code: '123456789'),
+        email: 'billing@example.com',
+        phone: '+33 1 23 45 67 89',
+        identities: [new Identity(type: 'SIREN', code: '732829320')],
+        fields: ['Website' => 'https://example.com'],
     ),
-    buyer: new Buyer(
-        company: "Doe Corporation" // (optional)
-        name: 'John Doe', // (optional)
+    buyer: new Party(
+        company: 'Doe Corporation',
+        name: 'John Doe',
         address: new Address(
-            street: '8405 Old James St.Rochester',
+            street: '8405 Old James St',
             city: 'New York',
             postal_code: '14609',
             state: 'NY',
-            country: 'United States',
+            country: 'US',
         ),
-        shipping_address: new Address( // (optional)
-            street: [ // multiple lines street
-                '8405 Old James St.Rochester',
-                'Apartment 1',
-            ],
+        shipping_address: new Address(
+            street: ['8405 Old James St', 'Apartment 1'],
             city: 'New York',
             postal_code: '14609',
             state: 'NY',
-            country: 'United States',
+            country: 'US',
         ),
         email: 'john.doe@example.com',
-        fields: [
-            // Custom fields to display with the buyer
-            "foo" => "bar"
-        ]
     ),
-    description: "An invoice description",
-    created_at: now(),
-    due_at: now(),
-    paid_at: now(),
-    tax_label: "VAT France (20%)",
-    fields: [ // custom fields to display at the top
-        'Order' => "PO0234"
-    ],
-    items: [
+    items: new PdfInvoiceItemCollection([
         new PdfInvoiceItem(
-            label: "Laratranslate Unlimitted" ,
-            unit_price: Money::of(99.0, 'USD'),
-            tax_percentage: 20.0,
-            quantity: 1,
-            description: "Elegant All-in-One Translations Manager for Laravel",
+            label: 'Consulting',
+            unit_price: Money::of('100.00', 'EUR'),
+            quantity: 2,
+            quantity_unit: 'hours',
+            description: 'Application development',
+            discounts: new InvoiceDiscountCollection([
+                new InvoiceDiscount(
+                    code: 'WELCOME',
+                    label: 'Welcome offer',
+                    percentage: 10,
+                ),
+            ]),
+            taxes: new InvoiceTaxCollection([
+                new InvoiceTax(
+                    type: 'vat',
+                    country: 'FR',
+                    percentage: 20,
+                    label: 'VAT France (20%)',
+                ),
+            ]),
         ),
-    ],
-    discounts: [
-        new InvoiceDiscount(
-            name: "Summer offer",
-            code: "SUMMER",
-            percent_off: 50,
-        )
-    ],
+    ]),
+    description: 'Thank you for your business.',
     paymentInstructions: [
         new PaymentInstruction(
-            name: 'Bank Transfer',
-            description: 'Make a direct bank transfer using the details below.',
-            qrcode: 'data:image/png;base64,' . base64_encode(
-                file_get_contents(__DIR__.'/../resources/images/qrcode.png')
-            ),
+            name: 'Bank transfer',
+            description: 'Use the invoice number as the payment reference.',
             fields: [
-                'Bank Name' => 'Acme Bank',
-                'Account Number' => '12345678',
                 'IBAN' => 'GB12ACME12345678123456',
                 'SWIFT/BIC' => 'ACMEGB2L',
-                'Reference' => 'INV-0032/001',
-                '<a href="#">Pay online</a>',
+                'Reference' => 'INV-260001',
             ],
         ),
     ],
-    logo: public_path('/images/logo.png'), // local path or base64 string
-    template: "default.layout", // use the default template or use your own
-    templateData: [ // custom data to pass to the template
-        'color' => '#050038'
+    // Optional: logo: public_path('images/logo.png'),
+    template: 'default.layout',
+    templateData: ['font' => 'DejaVu Sans'],
+);
+
+$pdfInvoice->denormalize();
+
+// Subtotal: EUR 200.00; discount: EUR 20.00;
+// tax: EUR 36.00; total: EUR 216.00.
+
+return $pdfInvoice->stream();
+```
+
+### Creating PDFs from Arrays
+
+Use `PdfInvoice::make()` to build an invoice from nested arrays. Numeric amounts are in **major units**, using `currency` or `invoices.default_currency` (`USD` by default).
+
+```php
+use Elegantly\Invoices\Pdf\PdfInvoice;
+
+$pdfInvoice = PdfInvoice::make([
+    'type' => 'invoice',
+    'state' => 'pending',
+    'serial_number' => 'INV-260002',
+    'currency' => 'EUR',
+    'created_at' => now(),
+    'seller' => config('invoices.default_seller'),
+    'buyer' => [
+        'company' => 'Doe Corporation',
+        'email' => 'john.doe@example.com',
     ],
+    'items' => [
+        [
+            'label' => 'Consulting',
+            'unit_price' => 100.00,
+            'quantity' => 2,
+            'discounts' => [['code' => 'WELCOME', 'percentage' => 10]],
+            'taxes' => [['type' => 'vat', 'country' => 'FR', 'percentage' => 20]],
+        ],
+    ],
+])->denormalize();
+```
+
+### PDF Amounts and Denormalization
+
+Each item holds its amounts, and the invoice holds their totals:
+
+| Item property | Meaning | Invoice total |
+| --- | --- | --- |
+| `unit_price` | Price of one unit before discounts and taxes. | — |
+| `price_subtotal` | Line subtotal, normally `unit_price × quantity`. | `subtotal_amount` |
+| `price_discount` | Sum of the line's discount amounts. | `discount_amount` |
+| `price_tax` | Sum of the line's tax amounts. | `tax_amount` |
+| `price` | Final line amount: `price_subtotal − price_discount + price_tax`. | `total_amount` |
+
+#### Letting the Package Calculate Amounts
+
+Call `denormalize()` to calculate line amounts and invoice totals before rendering:
+
+```php
+$pdfInvoice->denormalize();
+```
+
+- Only missing (`null`) amounts are calculated; existing amounts, including zero, are preserved.
+- If you supply only `price_subtotal`, the unit price is derived from the quantity.
+- Calculations use `invoices.rounding_mode`, defaulting to `RoundingMode::HalfUp`.
+
+Rendering does not calculate amounts automatically.
+
+#### Using Precomputed Amounts
+
+Supply line amounts and invoice totals directly when they have already been calculated:
+
+```php
+use Brick\Money\Money;
+use Elegantly\Invoices\Collections\PdfInvoiceItemCollection;
+use Elegantly\Invoices\Pdf\PdfInvoice;
+use Elegantly\Invoices\Pdf\PdfInvoiceItem;
+
+$pdfInvoice = new PdfInvoice(
+    serial_number: 'INV-260003',
+    items: new PdfInvoiceItemCollection([
+        new PdfInvoiceItem(
+            label: 'Consulting',
+            quantity: 2,
+            unit_price: Money::of('100.00', 'EUR'),
+            price_subtotal: Money::of('200.00', 'EUR'),
+            price_discount: Money::of('20.00', 'EUR'),
+            price_tax: Money::of('36.00', 'EUR'),
+            price: Money::of('216.00', 'EUR'),
+        ),
+    ]),
+    subtotal_amount: Money::of('200.00', 'EUR'),
+    discount_amount: Money::of('20.00', 'EUR'),
+    tax_amount: Money::of('36.00', 'EUR'),
+    total_amount: Money::of('216.00', 'EUR'),
 );
 ```
 
-### Rendering the Invoice as a PDF
+You can mix precomputed and calculated amounts: `denormalize()` fills the gaps. To display discount and tax breakdowns, also supply the corresponding entries with their amounts.
+
+#### Recalculating after Changes
+
+After changing a quantity, unit price, discount, or tax percentage, request recalculation explicitly:
 
 ```php
-namespace App\Http\Controllers;
-
-use Elegantly\Invoices\Pdf\PdfInvoice;
-
-class InvoiceController extends Controller
-{
-    public function showAsPdf()
-    {
-        $pdfInvoice = new PdfInvoice(
-            // ...
-        );
-
-        return $pdfInvoice->stream();
-    }
-}
+$pdfInvoice->items->first()->quantity = 3;
+$pdfInvoice->denormalize(force: true);
 ```
 
-### Storing the PDF in a file
+`force: true` recalculates line amounts and invoice totals. Percentage discounts and taxes are recalculated; fixed amounts remain inputs.
+
+### PDF Discounts and Taxes
+
+Add percentage or fixed-amount discounts and taxes to each item:
+
+```php
+use Brick\Money\Money;
+use Elegantly\Invoices\Collections\InvoiceDiscountCollection;
+use Elegantly\Invoices\Collections\InvoiceTaxCollection;
+use Elegantly\Invoices\InvoiceDiscount;
+use Elegantly\Invoices\InvoiceTax;
+use Elegantly\Invoices\Pdf\PdfInvoiceItem;
+
+$item = new PdfInvoiceItem(
+    label: 'Consulting',
+    unit_price: Money::of('100.00', 'EUR'),
+    quantity: 2,
+    discounts: new InvoiceDiscountCollection([
+        new InvoiceDiscount(code: 'SUMMER', label: 'Summer offer', percentage: 10),
+        new InvoiceDiscount(label: 'Loyalty credit', amount: Money::of('5.00', 'EUR')),
+    ]),
+    taxes: new InvoiceTaxCollection([
+        new InvoiceTax(type: 'vat', country: 'FR', percentage: 20),
+        new InvoiceTax(label: 'Fixed levy', amount: Money::of('2.00', 'EUR')),
+    ]),
+);
+
+$item->denormalize();
+// Subtotal: 200.00; discounts: 25.00; taxes: 37.00; final amount: 212.00.
+```
+
+- Fixed amounts apply to the **whole line**, not each unit.
+- Percentage discounts are applied sequentially, in the order provided.
+- Each percentage tax is calculated on the subtotal after all discounts; taxes are not compounded.
+- For an invoice-wide promotion, distribute its discount across the items.
+
+The default template groups discount and tax breakdowns automatically. Use `getDiscounts()` and `getTaxes()` for these summaries in custom templates. Taxes can include `country`, `state`, and `taxability` for jurisdiction and exemption information.
+
+Use `Money::of('19.80', 'EUR')` for major units or `Money::ofMinor(1980, 'EUR')` for minor units. If you use direct discount/tax array constructors instead of `Money`, their numeric amounts are in **minor units**; `PdfInvoice::make()` uses major units throughout.
+
+### Parties, Addresses, and Custom Fields
+
+Use `Party` for the seller and buyer. Add billing and shipping addresses, contact details, tax IDs, registration identities, and custom fields as shown in the full example.
+
+Custom fields can appear in the invoice header, party details, or addresses:
+
+```php
+$pdfInvoice->fields = [
+    'Order' => 'PO0234',
+    'Customer reference' => 'ACME-42',
+];
+```
+
+### Types, States, and Dates
+
+Built-in document types and states have translated labels:
+
+- `InvoiceType`: `Invoice`, `Quote`, `Credit`, `Proforma`.
+- `InvoiceState`: `Draft`, `Pending`, `Paid`, `Refunded`.
+
+For custom labels, use your own enum implementing `Elegantly\Invoices\Contracts\HasLabel`.
+
+Set `created_at`, `due_at`, and `paid_at` to display dates. Change their format with `invoices.date_format`.
+
+### Payment Instructions and QR Codes
+
+Add bank details, payment links, and QR codes with `paymentInstructions`:
+
+```php
+use Elegantly\Invoices\Support\PaymentInstruction;
+
+$pdfInvoice->paymentInstructions = [
+    new PaymentInstruction(
+        name: 'Bank transfer',
+        description: 'Pay using the bank details below.',
+        qrcode: 'data:image/png;base64,'.base64_encode(
+            file_get_contents(public_path('images/payment-qr.png'))
+        ),
+        fields: [
+            'Bank' => 'Acme Bank',
+            'IBAN' => 'GB12ACME12345678123456',
+            'SWIFT/BIC' => 'ACMEGB2L',
+            '<a href="https://example.com/pay">Pay online</a>',
+        ],
+    ),
+];
+```
+
+Payment fields and invoice descriptions support HTML. Generate QR codes with a package such as [`chillerlan/php-qrcode`](https://github.com/chillerlan/php-qrcode).
+
+### Rendering, Downloading, and Storing PDFs
 
 ```php
 namespace App\Http\Controllers;
@@ -407,631 +420,828 @@ namespace App\Http\Controllers;
 use Elegantly\Invoices\Pdf\PdfInvoice;
 use Illuminate\Support\Facades\Storage;
 
-class InvoiceController extends Controller
+class PdfInvoiceController extends Controller
 {
+    public function show()
+    {
+        return $this->makeInvoice()->stream();
+    }
+
+    public function download()
+    {
+        return $this->makeInvoice()->download(filename: 'invoice.pdf');
+    }
+
     public function store()
     {
-        $pdfInvoice = new PdfInvoice(
-            // ...
+        $pdfInvoice = $this->makeInvoice();
+
+        Storage::disk('local')->put(
+            'invoices/'.$pdfInvoice->getFilename(),
+            $pdfInvoice->getPdfOutput(),
         );
 
-        Storage::put(
-            "path/to/{$pdfInvoice->getFilename()}",
-            $pdfInvoice->getPdfOutput()
-        );
+        return response()->noContent();
+    }
 
-        // ...
+    private function makeInvoice(): PdfInvoice
+    {
+        return PdfInvoice::make([
+            'serial_number' => 'INV-260001',
+            'currency' => 'EUR',
+            'created_at' => now(),
+            'seller' => config('invoices.default_seller'),
+            'buyer' => ['company' => 'Doe Corporation'],
+            'items' => [
+                ['label' => 'Consulting', 'unit_price' => 100, 'quantity' => 2],
+            ],
+        ])->denormalize();
     }
 }
 ```
 
-### Downloading the Invoice as a PDF
+`stream()` displays the PDF inline; `download()` downloads it. The default filename is the serial number followed by `.pdf`.
 
-#### From a controller
-
-To download the PDF, simply return the `download` method.
+#### Livewire Downloads
 
 ```php
-namespace App\Http\Controllers;
+namespace App\Livewire;
 
 use Elegantly\Invoices\Pdf\PdfInvoice;
+use Livewire\Component;
 
-class InvoiceController extends Controller
+class InvoicePreview extends Component
 {
     public function download()
     {
-        $pdfInvoice = new PdfInvoice(
-            // ...
-        );
-
-        return $pdfInvoice->download(
-            /**
-             * (optional)
-             * The default filename is the serial_number
-             */
-            filename: 'invoice.pdf'
-        );
-    }
-}
-```
-
-#### From a Livewire component
-
-To download the PDF from a Livewire component, use the `streamDownload` method as shown below:
-
-```php
-namespace App\Http\Controllers;
-
-use Elegantly\Invoices\Pdf\PdfInvoice;
-
-class Invoice extends Component
-{
-    public function download()
-    {
-        $pdfInvoice = new PdfInvoice(
-            // ...
-        );
+        $pdfInvoice = PdfInvoice::make([
+            'serial_number' => 'INV-260001',
+            'currency' => 'EUR',
+            'seller' => config('invoices.default_seller'),
+            'buyer' => ['company' => 'Doe Corporation'],
+            'items' => [
+                ['label' => 'Consulting', 'unit_price' => 100, 'quantity' => 2],
+            ],
+        ])->denormalize();
 
         return response()->streamDownload(function () use ($pdfInvoice) {
-            echo $pdf->getPdfOutput();
-        }, $pdf->getFilename()); // The default filename is the serial number
+            echo $pdfInvoice->getPdfOutput();
+        }, $pdfInvoice->getFilename(), ['Content-Type' => 'application/pdf']);
+    }
+
+    public function render()
+    {
+        return view('livewire.invoice-preview');
     }
 }
 ```
 
-### Rendering the Invoice as a view
+In `resources/views/livewire/invoice-preview.blade.php`:
+
+```blade
+<div>
+    <button wire:click="download" wire:loading.attr="disabled">
+        Download invoice
+    </button>
+</div>
+```
+
+#### Accessing Dompdf
+
+`pdf()` returns an unrendered `Dompdf` instance. Override configured options, paper settings, or view data for a particular render:
+
+```php
+$dompdf = $pdfInvoice->pdf(
+    options: ['defaultFont' => 'DejaVu Sans'],
+    paper: ['size' => 'a4', 'orientation' => 'landscape'],
+    data: ['footerText' => 'Thank you for your business'],
+);
+
+$dompdf->render();
+$output = $dompdf->output();
+```
+
+### Rendering Blade Views
 
 ```php
 namespace App\Http\Controllers;
 
 use Elegantly\Invoices\Pdf\PdfInvoice;
 
-class InvoiceController extends Controller
+class InvoicePreviewController extends Controller
 {
-    public function showAsView()
+    public function show()
     {
-        $pdfInvoice = new PdfInvoice(
-            // ...
-        );
+        $pdfInvoice = PdfInvoice::make([
+            'serial_number' => 'INV-260001',
+            'currency' => 'EUR',
+            'seller' => config('invoices.default_seller'),
+            'buyer' => ['company' => 'Doe Corporation'],
+            'items' => [
+                ['label' => 'Consulting', 'unit_price' => 100, 'quantity' => 2],
+            ],
+        ])->denormalize();
 
         return $pdfInvoice->view();
     }
 }
 ```
 
-### Rendering the Invoice within a View
+To embed the invoice in another Blade view:
 
-You can embed the invoice within a larger Blade view to create interfaces like an "invoice builder," similar to the [interactive demo](https://elegantly.devlaravel-invoices).
-
-To do this, include the main invoice partial in your view as shown below:
-
-```php
+```blade
 <div class="aspect-[210/297] bg-white shadow-md">
-    @include('invoices::default.invoice', ['invoice' => $invoice])
+    @include('invoices::default.invoice', ['invoice' => $pdfInvoice])
 </div>
 ```
 
-This approach allows for seamless integration of the invoice into a dynamic and customizable user interface.
+The partial uses Tailwind CSS classes. Include the package's `invoices::default.style` partial or provide equivalent styles in your application. The complete default layout already includes the package's CSS.
 
-> [!NOTE]  
-> The default template uses Tailwind CSS for styling. This ensures seamless integration with websites already using Tailwind.
-> If your project doesn't use Tailwind, the invoice styling may not appear as intended.
+### PDF Mail Attachments
 
-### Adding Taxes
-
-Taxes are applied to individual `PdfInvoiceItem` item. You can define them either as a percentage or a fixed amount.
-
-#### Tax by Percentage
-
-To add a tax as a percentage, set the `tax_percentage` property on the `PdfInvoiceItem`. This value should be a float between 0 and 100.
-
-```php
-use \Elegantly\Invoices\Pdf\PdfInvoiceItem;
-
-new PdfInvoiceItem(
-    label: "Laratranslate Unlimitted" ,
-    unit_price: Money::of(99.0, 'USD'),
-    tax_percentage: 20.0, // a float between 0.0 and 100.0
-),
-```
-
-#### Tax as a Fixed Amount
-
-To apply a tax as a specific monetary amount, set the `unit_tax` property on the `PdfInvoiceItem`.
-
-```php
-use \Elegantly\Invoices\Pdf\PdfInvoiceItem;
-
-new PdfInvoiceItem(
-    label: "Laratranslate Unlimitted" ,
-    unit_price: Money::of(99.0, 'USD'),
-    unit_tax: Money::of(19.8, 'USD'),
-),
-```
-
-### Adding Discounts
-
-Discounts are represented by the `InvoiceDiscount` class and are applied to the entire `PdfInvoice`. They cannot be attached to individual `PdfInvoiceItem`s at this time.
-
-- You can add multiple discounts to a single invoice.
-- Discounts can be specified as a fixed amount (`amount_off`) or a percentage (`percent_off`). If both are provided for the same discount, the `amount_off` value takes precedence.
-
-#### Discount by Percentage
-
-To apply a discount as a percentage, set the `percent_off` property.
-
-```php
-use \Elegantly\Invoices\Pdf\PdfInvoice;
-use \Elegantly\Invoices\InvoiceDiscount;
-use Brick\Money\Money;
-
-$pdfInvoice = new PdfInvoice(
-    // ...
-    discounts: [
-        new InvoiceDiscount(
-            name: "Summer offer",
-            code: "SUMMER",
-            percent_off: 20.0,
-        )
-    ],
-);
-```
-
-#### Discount as a Fixed Amount
-
-To apply a discount as a fixed amount, set the `amount_off` property.
-
-```php
-use \Elegantly\Invoices\Pdf\PdfInvoice;
-use \Elegantly\Invoices\InvoiceDiscount;
-use Brick\Money\Money;
-
-$pdfInvoice = new PdfInvoice(
-    // ...
-    discounts: [
-        new InvoiceDiscount(
-            name: "Summer offer",
-            code: "SUMMER",
-            amount_off: Money::of(20.0, 'USD'),
-        )
-    ],
-);
-```
-
-### Adding Payment Instructions
-
-You can include detailed payment instructions directly within the generated PDF invoice. This can be helpful for providing bank transfer details, QR codes for quick payments, and custom payment links.
-
-Here’s an example of how to add a payment instruction:
-
-```php
-use \Elegantly\Invoices\Pdf\PdfInvoice;
-use \Elegantly\Invoices\Support\PaymentInstruction;
-
-$pdfInvoice = new PdfInvoice(
-    // ...
-    paymentInstructions: [
-        new PaymentInstruction(
-            name: 'Bank Transfer',
-            description: 'Make a direct bank transfer using the details below.',
-            qrcode: 'data:image/png;base64,' . base64_encode(
-                file_get_contents(__DIR__.'/../resources/images/qrcode.png')
-            ),
-            fields: [
-                'Bank Name' => 'Acme Bank',
-                'Account Number' => '12345678',
-                'IBAN' => 'GB12ACME12345678123456',
-                'SWIFT/BIC' => 'ACMEGB2L',
-                'Reference' => 'INV-0032/001',
-                '<a href="#">Pay online</a>',
-            ],
-        ),
-    ]
-);
-```
-
-> **Note:** You can include HTML tags (e.g., links) within the `fields` array for interactive content.
-
-#### QR Code Generation
-
-To dynamically generate QR codes, I recommend using the [`chillerlan/php-qrcode`](https://github.com/chillerlan/php-qrcode) package. It provides a simple and flexible API for generating QR codes in various formats.
-
-### Customization
-
-#### Customizing Fonts
-
-See the [Dompdf font guide](https://github.com/dompdf/dompdf/wiki/About-Fonts-and-Character-Encoding).
-
-#### Customizing the Invoice Template
-
-To customize the invoice template, first publish the package's views:
-
-```bash
-php artisan vendor:publish --tag="invoices-views"
-```
-
-After publishing, you can modify the Blade files in `resources/views/vendor/invoices/` to suit your needs.
-
-> [!NOTE]
-> If you introduce new CSS classes in your custom template, ensure you define their styles in the style.blade.php file.
-
-Alternatively, to use a completely different custom template, you can specify its path in the configuration file:
-
-> [!WARNING]
-> Your custom template file must be in `resources/views/vendor/invoices`
-
-```php
-return [
-
-    // ...
-
-    'pdf' => [
-
-        /**
-         * The template used to render the PDF
-         */
-        'template' => 'my-custom.layout',
-
-        'template_data' => [
-            'color' => '#050038',
-        ],
-
-    ],
-
-];
-```
-
-Ensure that your custom template follows the same structure and conventions as the default one to maintain compatibility with various use cases.
-
-## The `Invoice` Eloquent Model
-
-The design of the `Invoice` Eloquent Model closely mirrors that of the `PdfInvoice` class.
-
-This model provides powerful features for:
-
-- Generating unique and complex serial numbers.
-- Attaching your invoice to any other Eloquent model.
-- Easily including your invoice as an attachment in emails.
-
-> [!NOTE]
-> Remember to publish and run the database migrations
-
-### Complete Example
-
-The following example demonstrates how to create and store an invoice.
-
-For this illustration, let's assume the following application structure:
-
-- `Team` models have `User` models.
-- `Team` models can have multiple `Invoice` models.
-- `Invoice` models can be attached to `Order` models.
-
-```php
-use App\Models\Team;
-use App\Models\Order;
-
-use Brick\Money\Money;
-use Elegantly\Invoices\Models\Invoice;
-use Elegantly\Invoices\Enums\InvoiceState;
-use Elegantly\Invoices\Enums\InvoiceType;
-
-$customer = Team::find(1);
-$order = Order::find(2);
-$payment = Payment::find(3);
-
-$invoice = new Invoice(
-    'type' => "invoice",
-    'state' => "paid",
-    'seller_information' => config('invoices.default_seller'),
-    'buyer_information' =>[
-        'company' => "Doe Corporation" // (optional)
-        'name' => 'John Doe', // (optional)
-        'address' => [
-            'street' => '8405 Old James St.Rochester',
-            'city' => 'New York',
-            'postal_code' => '14609',
-            'state' => 'NY',
-            'country' => 'United States',
-        ],
-        'shipping_address' => [ // (optional)
-            'street' => [ // multiple lines street
-                '8405 Old James St.Rochester',
-                'Apartment 1',
-            ],
-            'city' => 'New York',
-            'postal_code' => '14609',
-            'state' => 'NY',
-            'country' => 'United States',
-        ]
-        'email' => 'john.doe@example.com',
-        'fields' => [
-            // Custom fields to display with the buyer
-            "foo" => "bar"
-        ]
-    ],
-    'description' => "An invoice description",
-    'due_at' => now(),
-    'paid_at' => now(),
-    'tax_type' => "eu_VAT_FR",
-    'tax_exempt' => null,
-);
-
-// Learn more about the serial number in the next section
-$invoice->configureSerialNumber(
-    prefix: "ORD",
-    serie: $customer->id,
-    year: now()->format('Y'),
-    month: now()->format('m')
-);
-
-// Optional
-// Learn more about the logo in the next section
-$invoice->setLogoFromConfig();
-
-$invoice->buyer()->associate($customer); // optionnally associate the invoice to any model
-$invoice->invoiceable()->associate($order); // optionnally associate the invoice to any model
-$invoice->transaction()->associate($payment); // optionnally associate the invoice to any model
-
-$invoice->addItems([
-    new InvoiceItem([
-        'label' => "Laratranslate Unlimitted",
-        'description' => "Elegant All-in-One Translations Manager for Laravel",
-        'unit_price' => Money::of(99.0, 'USD'),
-        'tax_percentage' => 20.0,
-        'quantity' => 1,
-    ]),
-]);
-
-$invoice->denormalize()->saveWithItems();
-
-```
-
-### Generating Unique Serial Numbers
-
-This package provides a simple and reliable way to generate serial numbers automatically, such as "INV240001".
-
-You can configure the format of your serial numbers in the configuration file. The default format is `PPYYCCCC`, where each letter has a specific meaning (see the config file for details).
-
-When `invoices.serial_number.auto_generate` is set to `true`, a unique serial number is assigned to each new invoice automatically.
-
-Serial numbers are generated sequentially, with each new serial number based on the latest available one. To define what qualifies as the `previous` serial number, you can extend the `Elegantly\Invoices\Models\Invoice` class and override the `getPreviousInvoice` method.
-
-By default, the previous invoice is determined based on criteria such as prefix, series, year, and month for accurate, scoped numbering.
-
-### Using Multiple Prefixes and Series for Serial Numbers
-
-In more complex applications, you may need to use different prefixes and/or series for your invoices.
-
-For instance, you might want to define a unique series for each user, creating serial numbers that look like: `INV0001-2400X`, where `0001` represents the user’s ID, `24` the year and `X` the index of the invoice.
-
-> [!NOTE]
-> When using IDs for series, it's recommended to plan for future growth to avoid overflow.
-> Even if you have a limited number of users now, ensure that the ID can accommodate the maximum number of digits allowed by the serial number format.
-
-When creating an invoice, you can dynamically specify the prefix and series with `configureSerialNumber` method:
-
-```php
-use Elegantly\Invoices\Models\Invoice;
-
-$invoice = new Invoice();
-
-$invoice->configureSerialNumber(
-    prefix: "ORG",
-    serie: $buyerId,
-);
-```
-
-### Customizing the Serial Number Format
-
-In most cases, the format of your serial numbers should remain consistent, so it's recommended to set it in the configuration file.
-
-The format you choose will determine the types of information you need to provide to `configureSerialNumber`.
-
-Below is an example of the most complex serial number format you can create with this package:
-
-```php
-use Elegantly\Invoices\Models\Invoice;
-
-$invoice = new Invoice();
-
-$invoice->configureSerialNumber(
-    format: "PP-SSSSSS-YYMMCCCC",
-    prefix: "IN",
-    serie: 100,
-    year: now()->format('Y'),
-    month: now()->format('m')
-);
-
-$invoice->save();
-
-$invoice->serial_number; // IN-000100-24010001
-```
-
-### Storing the Logo
-
-By default, the PDF logo is loaded from the configuration defined in your config file.
-
-If you want the logo to remain consistent over time, even if the config changes, you can store it directly in the database:
-
-```php
-use Elegantly\Invoices\Models\Invoice;
-
-$invoice = new Invoice();
-
-// Store the current config logo in the database
-$invoice->setLogoFromConfig();
-
-// ...
-
-$invoice->save();
-```
-
-### Storing a Dynamic Logo
-
-If your application allows users to upload or select their own company logos, you can dynamically set the logo on each invoice by updating the `logo` attribute on the `Invoice` model.
-
-You can do this in several ways:
-
-```php
-use Elegantly\Invoices\Models\Invoice;
-
-$invoice = new Invoice();
-
-// Set the logo from an uploaded file (e.g., Illuminate\Http\UploadedFile)
-$invoice->setLogoFromFile($file);
-
-// Set the logo from a local filesystem path
-$invoice->setLogoFromPath($path);
-
-// Set the logo directly from raw file content (string or binary data)
-$invoice->logo = $rawFileContent;
-
-// ...
-
-$invoice->save();
-```
-
-### Converting an `Invoice` Model to a `PdfInvoice`
-
-You can obtained a `PdfInvoice` class from your `Invoice` model by calling the `toPdfInvoice` method:
-
-```php
-$invoice = Invoice::first();
-
-$pdfInvoice = $invoice->toPdfInvoice();
-```
-
-### Display, Download, and Store Invoices
-
-You can then stream the `PdfInvoice` instance directly or initiate a download:
-
-```php
-namespace App\Http\Controllers;
-
-use App\Models\Invoice;
-use Illuminate\Http\Request;
-
-class InvoiceController extends Controller
-{
-    public function show(Request $request, string $serial)
-    {
-        /** @var Invoice $invoice */
-        $invoice = Invoice::where('serial_number', $serial)->firstOrFail();
-
-        $this->authorize('view', $invoice);
-
-        return $invoice->toPdfInvoice()->stream();
-    }
-
-    public function download(Request $request, string $serial)
-    {
-        /** @var Invoice $invoice */
-        $invoice = Invoice::where('serial_number', $serial)->firstOrFail();
-
-        $this->authorize('view', $invoice);
-
-        return $invoice->toPdfInvoice()->download();
-    }
-
-    public function store(Request $request, string $serial)
-    {
-        /** @var Invoice $invoice */
-        $invoice = Invoice::where('serial_number', $serial)->firstOrFail();
-
-        Storage::put(
-            "path/to/invoice.pdf",
-            $invoice->toPdfInvoice()->getPdfOutput()
-        );
-
-        // ...
-    }
-}
-```
-
-### Attaching Invoices to Mailables
-
-You can easily attach an invoice to your `Mailable` as follows:
+#### Attaching PDFs to Mailables
 
 ```php
 namespace App\Mail;
 
-use App\Models\Invoice;
-use Illuminate\Bus\Queueable;
+use Elegantly\Invoices\Pdf\PdfInvoice;
 use Illuminate\Mail\Mailable;
-use Illuminate\Queue\SerializesModels;
+use Illuminate\Mail\Mailables\Content;
 
-class PaymentInvoice extends Mailable
+class PdfInvoiceMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    public function __construct(public PdfInvoice $pdfInvoice) {}
 
-    /**
-     * Create a new message instance.
-     */
-    public function __construct(
-        protected Invoice $invoice,
-    ) {}
-
+    public function content(): Content
+    {
+        return new Content(htmlString: '<p>Your invoice is attached.</p>');
+    }
 
     public function attachments(): array
     {
         return [
-            $this->invoice->toMailAttachment()
+            $this->pdfInvoice->toMailAttachment(filename: 'invoice.pdf'),
         ];
     }
 }
 ```
 
-### Attaching Invoices to Notifications
-
-You can easily attach an invoice to your `Notification` as follows:
+Send the PDF built in the full example:
 
 ```php
-namespace App\Mail;
+use App\Mail\PdfInvoiceMail;
+use Illuminate\Support\Facades\Mail;
 
-use App\Models\Invoice;
-use Illuminate\Bus\Queueable;
-use Illuminate\Notifications\Notification;
+Mail::to('john.doe@example.com')->send(new PdfInvoiceMail($pdfInvoice));
+```
+
+#### Attaching PDFs to Notifications
+
+```php
+namespace App\Notifications;
+
+use Elegantly\Invoices\Pdf\PdfInvoice;
 use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Notifications\Notification;
 
-class PaymentInvoice extends Notification implements ShouldQueue
+class PdfInvoiceNotification extends Notification
 {
-    use Queueable;
+    public function __construct(public PdfInvoice $pdfInvoice) {}
 
-    /**
-     * Create a new message instance.
-     */
-    public function __construct(
-        protected Invoice $invoice,
-    ) {}
+    public function via(object $notifiable): array
+    {
+        return ['mail'];
+    }
 
-    public function toMail($notifiable)
+    public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->attach($this->invoice);
+            ->subject('Your invoice')
+            ->line('Your invoice is attached.')
+            ->attach($this->pdfInvoice);
     }
 }
 ```
 
-### Customizing PDF Output from the Model
+```php
+use App\Notifications\PdfInvoiceNotification;
+use Illuminate\Support\Facades\Notification;
 
-To customize how your `Invoice` model is converted into a `PdfInvoice` object, follow these steps:
+Notification::route('mail', 'john.doe@example.com')
+    ->notify(new PdfInvoiceNotification($pdfInvoice));
+```
 
-1.  **Create a Custom Invoice Model**:
+### PDF Customization and Localization
 
-Define your own `App\Models\Invoice` class and ensure it extends the base `Elegantly\Invoices\Models\Invoice`.
+#### Logos, Templates, and Template Data
+
+Set `logo` to an image path or data URI, or configure a default with `invoices.pdf.logo`.
+
+Publish views to customize the layout, invoice content, header, footer, and payment instructions:
+
+```bash
+php artisan vendor:publish --tag="invoices-views"
+```
+
+Edit files in `resources/views/vendor/invoices/`. For a layout at `resources/views/vendor/invoices/my-custom/layout.blade.php`, use `template: 'my-custom.layout'` or set `invoices.pdf.template`.
+
+Pass custom template settings through `templateData`, and extra Blade variables through `view($data)` or `pdf(data: ...)`. Add styles for custom classes in `style.blade.php`.
+
+#### Fonts and PDF Options
+
+The default layout reads `font` and `fonts` from `templateData`:
+
+```php
+$pdfInvoice->templateData = [
+    'font' => 'Arimo',
+    'fonts' => [
+        'https://fonts.googleapis.com/css2?family=Arimo:ital,wght@0,400..700;1,400..700&display=swap',
+    ],
+];
+```
+
+You can set these defaults in `invoices.pdf.template_data`. Configure Dompdf's font directories, cache, remote resources, and other options through `invoices.pdf.options`. See the [Dompdf font guide](https://github.com/dompdf/dompdf/wiki/About-Fonts-and-Character-Encoding).
+
+#### Localization and Money Formatting
+
+Built-in type/state labels and template text use Laravel translations. Set your application locale and publish translations to customize them:
+
+```bash
+php artisan vendor:publish --tag="invoices-translations"
+```
+
+Use `format_money()` in custom templates to format amounts with the application locale, or specify a locale:
+
+```php
+use Brick\Money\CurrencyDisplay;
+use Brick\Money\Money;
+
+use function Elegantly\Invoices\format_money;
+
+$formatted = format_money(
+    Money::of('100.00', 'EUR'),
+    locale: 'fr',
+    currencyDisplay: CurrencyDisplay::Symbol,
+    hideFractionIfWhole: true,
+);
+```
+
+#### Extending PdfInvoice
+
+Extend `PdfInvoice` to customize behavior such as filenames:
+
+```php
+namespace App\ValueObjects;
+
+class PdfInvoice extends \Elegantly\Invoices\Pdf\PdfInvoice
+{
+    public function getFilename(): string
+    {
+        return 'acme-'.parent::getFilename();
+    }
+}
+```
+
+## The `Invoice` Eloquent Model
+
+Store invoice snapshots and totals with `Invoice`, and their line amounts, discounts, and taxes with `InvoiceItem`.
+
+Publish and run the migrations before using the models. Assign amounts using `Money`; the package handles database storage and currency.
+
+### Complete Example
+
+```php
+use Brick\Money\Money;
+use Elegantly\Invoices\Collections\InvoiceDiscountCollection;
+use Elegantly\Invoices\Collections\InvoiceTaxCollection;
+use Elegantly\Invoices\Enums\InvoiceState;
+use Elegantly\Invoices\Enums\InvoiceType;
+use Elegantly\Invoices\InvoiceDiscount;
+use Elegantly\Invoices\InvoiceTax;
+use Elegantly\Invoices\Models\Invoice;
+use Elegantly\Invoices\Models\InvoiceItem;
+use Elegantly\Invoices\Support\PaymentInstruction;
+use Illuminate\Support\Facades\DB;
+
+$invoice = new Invoice([
+    'type' => InvoiceType::Invoice->value,
+    'state' => InvoiceState::Pending->value,
+    'state_set_at' => now(),
+    'seller_information' => config('invoices.default_seller'),
+    'buyer_information' => [
+        'company' => 'Doe Corporation',
+        'name' => 'John Doe',
+        'address' => [
+            'street' => ['8405 Old James St', 'Apartment 1'],
+            'city' => 'New York',
+            'postal_code' => '14609',
+            'state' => 'NY',
+            'country' => 'US',
+        ],
+        'email' => 'john.doe@example.com',
+    ],
+    'description' => 'Application development',
+    'due_at' => now()->addDays(30),
+    'fields' => ['Order' => 'PO0234'],
+    'metadata' => ['source' => 'customer-portal'],
+    'payment_instructions' => [
+        new PaymentInstruction(
+            name: 'Bank transfer',
+            fields: ['IBAN' => 'GB12ACME12345678123456'],
+        ),
+    ],
+]);
+
+$invoice->configureSerialNumber(
+    format: 'PPP-YYCCCC',
+    prefix: 'INV',
+    year: now()->year,
+);
+
+$invoice->setItems([
+    new InvoiceItem([
+        'label' => 'Consulting',
+        'unit_price' => Money::of('100.00', 'EUR'),
+        'quantity' => 2,
+        'quantity_unit' => 'hours',
+        'description' => 'Application development',
+        'discounts' => new InvoiceDiscountCollection([
+            new InvoiceDiscount(code: 'WELCOME', percentage: 10),
+        ]),
+        'taxes' => new InvoiceTaxCollection([
+            new InvoiceTax(type: 'vat', country: 'FR', percentage: 20),
+        ]),
+        'metadata' => ['product_id' => 'consulting'],
+    ]),
+]);
+
+DB::transaction(fn () => $invoice->denormalize()->saveWithItems());
+
+// The invoice and its item are stored, with total_amount = EUR 216.00.
+```
+
+The transaction saves the invoice and its items together.
+
+### Stored Amounts and Denormalization
+
+Line amounts and invoice totals are stored separately:
+
+| Item attribute | Meaning | Invoice attribute |
+| --- | --- | --- |
+| `unit_price` | Price of one unit before discounts and taxes. | — |
+| `price_subtotal` | Normally `unit_price × quantity`. | `subtotal_amount` |
+| `price_discount` | Sum of line discounts. | `discount_amount` |
+| `price_tax` | Sum of line taxes. | `tax_amount` |
+| `price` | `price_subtotal − price_discount + price_tax`. | `total_amount` |
+
+Use the same currency for an invoice and its items. Numeric amounts assigned to the models are in major units.
+
+#### Calculating and Saving Amounts
+
+```php
+$invoice->denormalize()->saveWithItems();
+```
+
+`denormalize()` calculates missing line amounts and sums them into invoice totals.
+
+- Items fill missing line amounts when saved. Call `denormalize()` on the invoice to update its totals.
+- Existing amounts, including zero, are preserved.
+- If you supply only `price_subtotal`, the unit price is derived from the quantity.
+- Calculations use `invoices.rounding_mode`, defaulting to `RoundingMode::HalfUp`.
+
+#### Storing Precomputed Amounts
+
+Supply amounts directly to preserve your own calculations or those of a payment provider:
+
+```php
+use Brick\Money\Money;
+use Elegantly\Invoices\Collections\InvoiceDiscountCollection;
+use Elegantly\Invoices\Collections\InvoiceTaxCollection;
+use Elegantly\Invoices\InvoiceDiscount;
+use Elegantly\Invoices\InvoiceTax;
+use Elegantly\Invoices\Models\Invoice;
+use Elegantly\Invoices\Models\InvoiceItem;
+
+$invoice = new Invoice([
+    'subtotal_amount' => Money::of('200.00', 'EUR'),
+    'discount_amount' => Money::of('20.00', 'EUR'),
+    'tax_amount' => Money::of('36.00', 'EUR'),
+    'total_amount' => Money::of('216.00', 'EUR'),
+]);
+
+$invoice->setItems([
+    new InvoiceItem([
+        'label' => 'Consulting',
+        'quantity' => 2,
+        'unit_price' => Money::of('100.00', 'EUR'),
+        'price_subtotal' => Money::of('200.00', 'EUR'),
+        'price_discount' => Money::of('20.00', 'EUR'),
+        'price_tax' => Money::of('36.00', 'EUR'),
+        'price' => Money::of('216.00', 'EUR'),
+        'discounts' => new InvoiceDiscountCollection([
+            new InvoiceDiscount(code: 'WELCOME', amount: Money::of('20.00', 'EUR')),
+        ]),
+        'taxes' => new InvoiceTaxCollection([
+            new InvoiceTax(type: 'vat', country: 'FR', amount: Money::of('36.00', 'EUR')),
+        ]),
+    ]),
+]);
+
+$invoice->saveWithItems();
+```
+
+You can mix precomputed and calculated amounts: `denormalize()` fills the gaps. Include discount and tax entries with their amounts for PDF breakdowns and exports.
+
+#### Recalculating Existing Invoices
+
+Existing derived amounts remain populated after you edit source data. Recalculate them explicitly:
+
+```php
+$invoice->items->first()->quantity = 3;
+$invoice->denormalize(force: true)->saveWithItems();
+```
+
+`force: true` recalculates line amounts, percentage discounts and taxes, and invoice totals. Fixed amounts remain inputs.
+
+#### Denormalizing with Artisan
+
+Use the command to fill missing amounts or recalculate existing invoices in bulk:
+
+```bash
+# Fill missing amounts on all invoices and their items.
+php artisan invoices:denormalize
+
+# Limit processing to specific invoice IDs.
+php artisan invoices:denormalize 1 2 3
+
+# Recalculate derived amounts, replacing existing calculated values.
+php artisan invoices:denormalize 1 2 3 --force
+```
+
+### Managing Invoice Items
+
+```php
+use Brick\Money\Money;
+use Elegantly\Invoices\Models\InvoiceItem;
+
+// Set the items.
+$invoice->setItems([
+    new InvoiceItem(['label' => 'Support', 'unit_price' => Money::of('50.00', 'EUR')]),
+]);
+
+// Add more items.
+$invoice->addItems([
+    new InvoiceItem(['label' => 'Hosting', 'unit_price' => Money::of('10.00', 'EUR')]),
+]);
+
+$invoice->denormalize(force: true)->saveWithItems();
+```
+
+Use `saveWithItems()` to persist the invoice and its items, or `saveItems()` for an already saved invoice. `setItems()` replaces the loaded collection; delete unwanted database rows explicitly through `items()`.
+
+You can also manage items through the `items()` Eloquent relation. Reload items and use `denormalize(force: true)` to refresh calculated totals after changes.
+
+For fractional quantities, change the published integer `quantity` column to a decimal column in your application's migrations.
+
+Deleting an invoice deletes its items by default. Set `invoices.cascade_invoice_delete_to_invoice_items` to `false` to disable the model's cascading delete behavior.
+
+### Stored Discounts and Taxes
+
+Add percentage or fixed-amount discounts and taxes with the item helpers:
+
+```php
+use Brick\Money\Money;
+use Elegantly\Invoices\InvoiceDiscount;
+use Elegantly\Invoices\InvoiceTax;
+
+$item = $invoice->items->first();
+
+$item->addDiscounts(new InvoiceDiscount(
+    code: 'SUMMER',
+    label: 'Summer offer',
+    percentage: 10,
+));
+
+$item->addTaxes([
+    new InvoiceTax(type: 'vat', country: 'FR', percentage: 20),
+    new InvoiceTax(label: 'Fixed levy', amount: Money::of('2.00', 'EUR')),
+]);
+
+$invoice->denormalize(force: true)->saveWithItems();
+```
+
+- Discounts are applied sequentially, in the order provided.
+- Each percentage tax uses the subtotal after all discounts.
+- Fixed amounts apply to the whole line, not each unit.
+- Taxes can include `country`, `state`, and `taxability` for jurisdiction and exemption information.
+
+Use `Money` for amounts. Direct discount/tax array constructors interpret numeric amounts with a `currency` key in **minor units**.
+
+### Stored Parties, Fields, and Payment Instructions
+
+Store seller and buyer details in `seller_information` and `buyer_information` so invoices retain their original details when customer records change. Include addresses, contact details, tax IDs, and registration identities as needed.
+
+```php
+use Elegantly\Invoices\Support\Party;
+use Elegantly\Invoices\Support\PaymentInstruction;
+
+$invoice->seller_information = Party::make(config('invoices.default_seller'));
+
+$invoice->buyer_information = [
+    'company' => 'Doe Corporation',
+    'tax_id' => ['country' => 'FR', 'code' => '123456789'],
+    'identities' => [['type' => 'SIREN', 'code' => '732829320']],
+    'fields' => ['Customer number' => 'ACME-42'],
+];
+
+$invoice->mergeFields(['Order' => 'PO0234']);
+$invoice->metadata = ['external_id' => 'order_123'];
+
+$invoice->payment_instructions = [
+    new PaymentInstruction(
+        name: 'Bank transfer',
+        description: 'Use the invoice number as the reference.',
+        fields: ['IBAN' => 'GB12ACME12345678123456'],
+    ),
+];
+
+$invoice->save();
+```
+
+`fields` appear in the PDF header; `mergeFields()` adds to existing fields. Use `metadata` for application data that should not appear on the invoice.
+
+Payment instructions appear in the PDF and can include bank details, HTML payment links, and QR codes through `qrcode`.
+
+### Relations, Quotes, and Credits
+
+Associate an invoice with any Eloquent model through its polymorphic relations:
+
+```php
+$invoice->buyer()->associate($customer);
+$invoice->seller()->associate($team);
+$invoice->invoiceable()->associate($order);
+$invoice->save();
+```
+
+Define the inverse relation on your customer model:
 
 ```php
 namespace App\Models;
 
-class Invoice extends \Elegantly\Invoices\Models\Invoice
+use Elegantly\Invoices\Models\Invoice;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+
+class Customer extends Model
 {
-    // ...
+    public function invoices(): MorphMany
+    {
+        return $this->morphMany(Invoice::class, 'buyer');
+    }
 }
 ```
 
-2.  **Override the `toPdfInvoice` Method**:
+Invoices can also relate to other invoices through `parent_id`:
 
-In your custom `Invoice` model, override the `toPdfInvoice` method. This is where you'll implement your specific logic to construct and return the `PdfInvoice` object with your desired customizations.
+- `parent()` belongs to the parent invoice.
+- `children()` returns all child documents.
+- `quote()` returns a child with type `quote`.
+- `credits()` returns children with type `credit`.
+
+```php
+use Elegantly\Invoices\Models\Invoice;
+
+$credit = new Invoice(['type' => 'credit']);
+$credit->parent()->associate($invoice);
+// Add credit items and amounts, then denormalize and save.
+```
+
+### Types, States, and Query Scopes
+
+New invoices default to type `invoice` and state `draft`. Available values are:
+
+- Types: `invoice`, `quote`, `credit`, `proforma`.
+- States: `draft`, `pending`, `paid`, `refunded`.
+
+Set the state and `state_set_at` when your application records a payment or refund. Use query scopes to filter documents:
+
+```php
+use Elegantly\Invoices\Models\Invoice;
+
+$paidInvoices = Invoice::invoice()->paid()->with('items')->get();
+$draftQuotes = Invoice::quote()->draft()->get();
+$pendingCredits = Invoice::credit()->pending()->get();
+$refundedInvoices = Invoice::refunded()->get();
+$proformas = Invoice::where('type', 'proforma')->get();
+```
+
+Type scopes are `invoice()`, `quote()`, and `credit()`. State scopes are `draft()`, `pending()`, `paid()`, and `refunded()`.
+
+To display a paid date in the PDF, set `paid_at` on the converted `PdfInvoice`.
+
+### Generating Serial Numbers
+
+Serial numbers are generated automatically when an invoice is saved without one. The default format, `PPYYCCCC`, produces values such as `IN260001`.
+
+| Token | Meaning |
+| --- | --- |
+| `P` | Prefix |
+| `S` | Series |
+| `Y` | Year |
+| `M` | Month |
+| `C` | Sequential count |
+
+Repeat a token to set its width, and add separators as needed.
+
+#### Multiple Prefixes and Series
+
+```php
+use Elegantly\Invoices\Models\Invoice;
+
+$invoice = new Invoice;
+$invoice->configureSerialNumber(
+    format: 'PPP-SSSS-YYMMCCCC',
+    prefix: 'INV',
+    serie: 42,
+    year: 2026,
+    month: 10,
+);
+$invoice->save();
+
+// First invoice in this scope: INV-0042-26100001.
+```
+
+Numbering is sequential within each prefix, series, year, and month. Override `getPreviousInvoice()` in a custom model to change that scope.
+
+Set default numbering rules in configuration:
+
+```php
+// In config/invoices.php, alongside the other settings:
+return [
+    'serial_number' => [
+        'auto_generate' => true,
+        'format' => [
+            'invoice' => 'PPPYYCCCC',
+            'quote' => 'PPPYYCCCC',
+            'credit' => 'PPPYYCCCC',
+            'proforma' => 'PPPYYCCCC',
+        ],
+        'prefix' => [
+            'invoice' => 'INV',
+            'quote' => 'QUO',
+            'credit' => 'CRE',
+            'proforma' => 'PRO',
+        ],
+    ],
+];
+```
+
+#### Manual Serial Numbers and Parsing
+
+```php
+$invoice->setSerialNumber(
+    value: 'INV-0042-26100001',
+    format: 'PPP-SSSS-YYMMCCCC',
+)->save();
+```
+
+Manual numbers are preserved. Set `invoices.serial_number.auto_generate` to `false` if your application always supplies them.
+
+Use `SerialNumberGenerator` independently to generate or parse numbers without a model:
+
+```php
+use Elegantly\Invoices\SerialNumberGenerator;
+
+$generator = new SerialNumberGenerator('PPP-YYCCCC');
+$serial = $generator->generate(prefix: 'INV', year: 26, count: 1);
+$parts = $generator->parse($serial); // prefix, serie, year, month, count
+```
+
+### Storing Logos
+
+Without a stored logo, PDFs fall back to `invoices.pdf.logo`. To capture a logo in the database, store its binary contents:
+
+```php
+// Capture the current configured logo.
+$invoice->setLogoFromConfig();
+
+// Or capture a local file / uploaded file.
+$invoice->setLogoFromPath(public_path('images/logo.png'));
+$invoice->setLogoFromFile($uploadedFile);
+
+// Or assign raw image bytes directly.
+$invoice->logo = $rawImageBytes;
+
+$invoice->save();
+```
+
+### Converting Models to PDFs
+
+Use `toPdfInvoice()` to render the stored invoice without recalculating its amounts:
+
+```php
+namespace App\Http\Controllers;
+
+use Elegantly\Invoices\Models\Invoice;
+use Illuminate\Support\Facades\Storage;
+
+class InvoiceController extends Controller
+{
+    public function show(Invoice $invoice)
+    {
+        return $invoice->loadMissing('items')->toPdfInvoice()->stream();
+    }
+
+    public function download(Invoice $invoice)
+    {
+        return $invoice->loadMissing('items')->toPdfInvoice()->download();
+    }
+
+    public function preview(Invoice $invoice)
+    {
+        return $invoice->loadMissing('items')->toPdfInvoice()->view();
+    }
+
+    public function store(Invoice $invoice)
+    {
+        $pdfInvoice = $invoice->loadMissing('items')->toPdfInvoice();
+
+        Storage::put(
+            'invoices/'.$pdfInvoice->getFilename(),
+            $pdfInvoice->getPdfOutput(),
+        );
+
+        return response()->noContent();
+    }
+}
+```
+
+In `routes/web.php`:
+
+```php
+use App\Http\Controllers\InvoiceController;
+use Illuminate\Support\Facades\Route;
+
+Route::get('/invoices/{invoice}', [InvoiceController::class, 'show']);
+Route::get('/invoices/{invoice}/download', [InvoiceController::class, 'download']);
+Route::get('/invoices/{invoice}/preview', [InvoiceController::class, 'preview']);
+Route::post('/invoices/{invoice}/pdf', [InvoiceController::class, 'store']);
+```
+
+For a Blade preview, include `invoices::default.invoice` with the converted PDF as `invoice` and include the package's CSS.
+
+#### Livewire Downloads from a Model
+
+```php
+namespace App\Livewire;
+
+use Elegantly\Invoices\Models\Invoice;
+use Livewire\Component;
+
+class InvoiceDownload extends Component
+{
+    public Invoice $invoice;
+
+    public function mount(Invoice $invoice): void
+    {
+        $this->invoice = $invoice;
+    }
+
+    public function download()
+    {
+        $pdfInvoice = $this->invoice->loadMissing('items')->toPdfInvoice();
+
+        return response()->streamDownload(function () use ($pdfInvoice) {
+            echo $pdfInvoice->getPdfOutput();
+        }, $pdfInvoice->getFilename(), ['Content-Type' => 'application/pdf']);
+    }
+
+    public function render()
+    {
+        return view('livewire.invoice-download');
+    }
+}
+```
+
+In `resources/views/livewire/invoice-download.blade.php`:
+
+```blade
+<div>
+    <button wire:click="download" wire:loading.attr="disabled">
+        Download {{ $invoice->serial_number }}
+    </button>
+</div>
+```
+
+Mount it in a Blade view with your stored invoice:
+
+```blade
+<livewire:invoice-download :invoice="$invoice" />
+```
+
+#### Customizing PDF Output from the Model
+
+Extend the model and override `toPdfInvoice()` to adjust the returned PDF:
 
 ```php
 namespace App\Models;
@@ -1040,132 +1250,253 @@ use Elegantly\Invoices\Pdf\PdfInvoice;
 
 class Invoice extends \Elegantly\Invoices\Models\Invoice
 {
-    function toPdfInvoice(): PdfInvoice
+    public function toPdfInvoice(): PdfInvoice
     {
-        return new PdfInvoice(
-            // ... your custom PdfInvoice properties and configuration
-        );
+        $pdfInvoice = parent::toPdfInvoice();
+        $pdfInvoice->template = 'invoices::my-custom.layout';
+        $pdfInvoice->templateData = ['font' => 'DejaVu Sans'];
+        $pdfInvoice->fields['Support'] = 'billing@example.com';
+
+        return $pdfInvoice;
     }
 }
 ```
 
-3.  **Update the Package Configuration**:
+Register the model through `invoices.model_invoice`. You can also return your own `PdfInvoice` subclass, or configure global PDF settings under `invoices.pdf`.
 
-First, if you haven't already, publish the package's configuration file:
+### Model Mail Attachments
 
-```bash
-php artisan vendor:publish --tag="invoices-config"
-```
+Attach a stored invoice directly to mailables and notifications.
 
-Then, modify the `config/invoices.php` file to tell the package to use your custom model by updating the `model_invoice` key:
+#### Mailables
 
 ```php
+namespace App\Mail;
+
+use Elegantly\Invoices\Models\Invoice;
+use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Content;
+
+class InvoiceMail extends Mailable
+{
+    public function __construct(public Invoice $invoice) {}
+
+    public function content(): Content
+    {
+        return new Content(htmlString: '<p>Your invoice is attached.</p>');
+    }
+
+    public function attachments(): array
+    {
+        return [$this->invoice->toMailAttachment()];
+    }
+}
+```
+
+```php
+use App\Mail\InvoiceMail;
+use Elegantly\Invoices\Models\Invoice;
+use Illuminate\Support\Facades\Mail;
+
+$invoice = Invoice::with('items')->findOrFail($invoiceId);
+
+Mail::to($invoice->buyer_information->email)->send(new InvoiceMail($invoice));
+```
+
+Customize the filename with `$invoice->toPdfInvoice()->toMailAttachment(filename: 'invoice.pdf')`.
+
+#### Notifications
+
+```php
+namespace App\Notifications;
+
+use Elegantly\Invoices\Models\Invoice;
+use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Notifications\Notification;
+
+class InvoiceNotification extends Notification
+{
+    public function __construct(public Invoice $invoice) {}
+
+    public function via(object $notifiable): array
+    {
+        return ['mail'];
+    }
+
+    public function toMail(object $notifiable): MailMessage
+    {
+        return (new MailMessage)
+            ->subject('Your invoice')
+            ->line('Your invoice is attached.')
+            ->attach($this->invoice);
+    }
+}
+```
+
+```php
+use App\Notifications\InvoiceNotification;
+use Elegantly\Invoices\Models\Invoice;
+use Illuminate\Support\Facades\Notification;
+
+$invoice = Invoice::with('items')->findOrFail($invoiceId);
+
+Notification::route('mail', $invoice->buyer_information->email)
+    ->notify(new InvoiceNotification($invoice));
+```
+
+### Replicating, Scaling, and Allocating Amounts
+
+#### Replicating and Scaling
+
+Replicate an invoice and its items to create a new document. For example, create a credit with negative amounts:
+
+```php
+use Elegantly\Invoices\Enums\InvoiceType;
+
+$credit = $invoice->replicate();
+$credit->type = InvoiceType::Credit->value;
+$credit->configureSerialNumber(format: 'PPP-YYCCCC', prefix: 'CRE');
+$credit->parent()->associate($invoice);
+$credit->setItems($invoice->items->replicate());
+$credit->multiplyBy(-1)->saveWithItems();
+```
+
+The copy receives a new serial number. `multiplyBy()` scales invoice, item, discount, and tax amounts without changing quantities or percentages. Use a string such as `'0.5'` for decimal factors.
+
+#### Allocating Amounts
+
+Allocate target amounts proportionally across existing items, for example to create a partial credit or match a payment provider's totals:
+
+```php
+use Brick\Money\AllocationMode;
+use Brick\Money\Money;
+
+$invoice->items->allocate(
+    subtotal: Money::of('100.00', 'EUR'),
+    tax: Money::of('18.00', 'EUR'),
+    discount: Money::of('10.00', 'EUR'),
+    total: Money::of('108.00', 'EUR'),
+    mode: AllocationMode::FloorToFirst,
+);
+
+$invoice->subtotal_amount = $invoice->items->sumMoney('price_subtotal');
+$invoice->discount_amount = $invoice->items->sumMoney('price_discount');
+$invoice->tax_amount = $invoice->items->sumMoney('price_tax');
+$invoice->total_amount = $invoice->items->sumMoney('price');
+$invoice->saveWithItems();
+```
+
+Allocation uses existing item and breakdown amounts as proportions, and updates unit prices, discounts, and taxes. Start with calculated amounts and nonzero quantities. Save without forced denormalization to preserve the allocated result.
+
+### Collections and Money Totals
+
+Use `sumMoney()` to total amounts in the same currency, or convert collections to PDFs:
+
+```php
+use Elegantly\Invoices\Models\Invoice;
+
+$invoices = Invoice::paid()->where('currency', 'EUR')->with('items')->get();
+$total = $invoices->sumMoney('total_amount');
+$pdfInvoices = $invoices->toPdfInvoices();
+
+$subtotal = $invoice->items->sumMoney('price_subtotal');
+$pdfItems = $invoice->items->toPdfItems();
+```
+
+### Importing Stripe Checkout Line Items
+
+Install the optional Stripe SDK:
+
+```bash
+composer require stripe/stripe-php
+```
+
+Import Stripe Checkout line items while preserving Stripe's precomputed amounts and breakdowns:
+
+```php
+use Elegantly\Invoices\Integrations\StripeCheckoutIntegration;
+use Elegantly\Invoices\Models\Invoice;
+use Stripe\StripeClient;
+
+$stripe = new StripeClient(config('services.stripe.secret'));
+$lineItems = $stripe->checkout->sessions->allLineItems($checkoutSessionId, [
+    'expand' => [
+        'data.price',
+        'data.discounts.discount.promotion_code',
+        'data.taxes',
+    ],
+]);
+
+$integration = new StripeCheckoutIntegration;
+$invoice = new Invoice([
+    'state' => 'paid',
+    'state_set_at' => now(),
+    'seller_information' => config('invoices.default_seller'),
+    'buyer_information' => $buyerSnapshot,
+]);
+
+$invoice->setItems($integration->toInvoiceItemCollection($lineItems));
+$invoice->denormalize()->saveWithItems();
+```
+
+Use the expansions shown above and fetch all pages for larger sessions. `toInvoiceItem($lineItem)` imports a single line. Your application supplies invoice parties, dates, and associations; `denormalize()` sums the imported amounts without overwriting them.
+
+### GOBL Export
+
+Export an invoice using the [GOBL invoice schema](https://docs.gobl.org/draft-0/bill/invoice):
+
+```php
+use Elegantly\Invoices\Models\Invoice;
+use Illuminate\Support\Facades\Storage;
+
+$invoice = Invoice::with(['items', 'parent'])->firstOrFail();
+$gobl = $invoice->toGOBL();
+
+Storage::put(
+    'invoices/'.$invoice->serial_number.'.json',
+    json_encode($gobl, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR),
+);
+```
+
+The export includes document details, parties, lines, discounts, taxes, payment terms, and a reference to the parent invoice where applicable.
+
+Pass additional values to extend or override the mapping:
+
+```php
+$gobl = $invoice->toGOBL(['regime' => 'FR']);
+$line = $invoice->items->first()->toGOBL([
+    'item' => ['ref' => 'SKU-001'],
+]);
+```
+
+Items, parties, discounts, and taxes can also be exported individually with `toGOBL()`.
+
+### Custom Models and Value Objects
+
+Extend the package classes and register your subclasses in `config/invoices.php`:
+
+```php
+// In config/invoices.php, alongside the other settings:
 return [
-    // ...
-
     'model_invoice' => \App\Models\Invoice::class,
-
-    // ...
+    'model_invoice_item' => \App\Models\InvoiceItem::class,
+    'discount_class' => \App\ValueObjects\InvoiceDiscount::class,
+    'tax_class' => \App\ValueObjects\InvoiceTax::class,
+    'party_class' => \App\ValueObjects\Party::class,
+    'identity_class' => \App\ValueObjects\Identity::class,
+    'address_class' => \App\ValueObjects\Address::class,
+    'tax_id_class' => \App\ValueObjects\TaxId::class,
+    'payment_instructions_class' => \App\ValueObjects\PaymentInstruction::class,
 ];
 ```
 
-#### Using a Custom PdfInvoice Class
+Use `seller_class` and `buyer_class` to configure separate party classes if needed.
 
-You can extend the default PdfInvoice class provided by the package to customize its behavior, such as changing the generated filename or adding additional logic.
+Factories are available through `Invoice::factory()` and `InvoiceItem::factory()`. Invoice factories include `invoice()`, `quote()`, `credit()`, and `proforma()` states.
 
-1. Create Your Custom PdfInvoice Class
+### Casting Types and States to Enums
 
-```php
-class PdfInvoice extends \Elegantly\Invoices\Pdf\PdfInvoice
-{
-
-    public function __construct(
-        // your custom constructor
-    ){
-        // ...
-    }
-
-    public function getFilename(): string
-    {
-        return str($this->serial_number)
-            ->replace(['/', '\\'], '_')
-            ->append('.pdf')
-            ->value();
-    }
-}
-```
-
-In this example, we're overriding the `getFilename` method.
-
-2. Return Your Custom `PdfInvoice` from the Invoice Model
-
-Update your `Invoice` model to return an instance of your custom `PdfInvoice` class.
-
-```php
-namespace App\Models;
-
-use App\ValueObjects\PdfInvoice;
-
-class Invoice extends \Elegantly\Invoices\Models\Invoice
-{
-    function toPdfInvoice(): PdfInvoice
-    {
-        return new PdfInvoice(
-            // Pass any required data to your custom PdfInvoice constructor
-        );
-    }
-}
-```
-
-By overriding the `toPdfInvoice` method, you can inject your custom logic while preserving compatibility with the rest of the package.
-
-### Casting `state` and `type` to Enums
-
-By default, the `type` and `state` properties on the `Invoice` model are stored as strings. This approach offers flexibility, as it doesn't restrict you to predefined values and they are not automatically cast to Enum objects.
-
-However, you might prefer to cast these properties to Enum objects for better type safety and code clarity. You can use your own custom Enums or the ones provided by this package (e.g., `Elegantly\Invoices\Enums\InvoiceState`, `Elegantly\Invoices\Enums\InvoiceType`).
-
-To enable Enum casting for these properties, follow these steps:
-
-0.  **Create custom `InvoiceState` and `InvoiceType` Enums** (optional):
-
-If you're working with commonly used invoice states and types, you can use the enums provided by this package:
-
-- `Elegantly\Invoices\Enums\InvoiceState`
-- `Elegantly\Invoices\Enums\InvoiceType`
-
-For custom states or types, you can define your own enums.
-
-Make sure your custom enums implement the `Elegantly\Invoices\Contracts\HasLabel` contract, like so:
-
-```php
-namespace App\Enums;
-
-use Elegantly\Invoices\Contracts\HasLabel;
-
-enum InvoiceType: string implements HasLabel
-{
-    case Invoice = 'invoice';
-    case Quote = 'quote';
-    case Credit = 'credit';
-    case Proforma = 'proforma';
-
-    public function getLabel(): string
-    {
-        return match ($this) {
-            self::Invoice => __('invoices::invoice.types.invoice'),
-            self::Quote => __('invoices::invoice.types.quote'),
-            self::Credit => __('invoices::invoice.types.credit'),
-            self::Proforma => __('invoices::invoice.types.proforma'),
-        };
-    }
-}
-```
-
-1.  **Create a Custom `Invoice` Model**:
-
-Define your own `App\Models\Invoice` class that extends `\Elegantly\Invoices\Models\Invoice`.
-In this custom model, override the `casts()` method to specify the Enum classes for the `type` and `state` attributes.
+If you prefer enum attributes, merge enum casts with the parent's casts. Also override `getType()` and `getState()` to return the cast values for PDF conversion:
 
 ```php
 namespace App\Models;
@@ -1173,49 +1504,30 @@ namespace App\Models;
 use Elegantly\Invoices\Enums\InvoiceState;
 use Elegantly\Invoices\Enums\InvoiceType;
 
-/**
- * @property InvoiceType $type
- * @property InvoiceState $state
- */
 class Invoice extends \Elegantly\Invoices\Models\Invoice
 {
-    protected $attributes = [
-        'type' => InvoiceType::Invoice->value,
-        'state' => InvoiceState::Draft->value,
-    ];
-
     protected function casts(): array
     {
         return [
-            ...parent::casts(), // Merge with parent casts for other potential attributes
+            ...parent::casts(),
             'type' => InvoiceType::class,
             'state' => InvoiceState::class,
         ];
     }
+
+    public function getType(): InvoiceType
+    {
+        return $this->type;
+    }
+
+    public function getState(): InvoiceState
+    {
+        return $this->state;
+    }
 }
 ```
 
-2.  **Publish Package Configuration**:
-
-If you haven't already, publish the package's configuration file:
-
-```bash
-php artisan vendor:publish --tag="invoices-config"
-```
-
-3.  **Update Configuration to Use Your Custom Model**:
-
-Modify the `config/invoices.php` file and update the `model_invoice` key to point to your newly created custom `Invoice` model:
-
-```php
-return [
-    // ...
-
-    'model_invoice' => \App\Models\Invoice::class,
-
-    // ...
-];
-```
+Set `invoices.model_invoice` to this subclass. For custom enums, implement `Elegantly\Invoices\Contracts\HasLabel` to provide PDF labels, and configure serial numbers for your custom document types.
 
 ## Testing
 
