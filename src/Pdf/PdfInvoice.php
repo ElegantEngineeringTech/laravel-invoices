@@ -4,36 +4,39 @@ declare(strict_types=1);
 
 namespace Elegantly\Invoices\Pdf;
 
-use Brick\Math\RoundingMode;
-use Brick\Money\AllocationMode;
 use Brick\Money\Money;
 use Carbon\CarbonInterface;
 use Dompdf\Dompdf;
-use Elegantly\Invoices\Concerns\FormatForPdf;
+use Elegantly\Invoices\Collections\InvoiceDiscountCollection;
+use Elegantly\Invoices\Collections\InvoiceTaxCollection;
+use Elegantly\Invoices\Collections\PdfInvoiceItemCollection;
 use Elegantly\Invoices\Contracts\HasLabel;
 use Elegantly\Invoices\Enums\InvoiceState;
 use Elegantly\Invoices\Enums\InvoiceType;
 use Elegantly\Invoices\InvoiceDiscount;
+use Elegantly\Invoices\InvoiceServiceProvider;
+use Elegantly\Invoices\InvoiceTax;
 use Elegantly\Invoices\Support\Party;
 use Elegantly\Invoices\Support\PaymentInstruction;
+use Elegantly\Money\MoneyParser;
 use Illuminate\Contracts\Mail\Attachable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Response;
 use Illuminate\Mail\Attachment;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\HeaderUtils;
 
+/**
+ * @phpstan-consistent-constructor
+ *
+ * @phpstan-import-type ItemData from PdfInvoiceItem
+ */
 class PdfInvoice implements Attachable
 {
-    use FormatForPdf;
-
     public string $template;
 
     /**
-     * @param  array<string, mixed>  $fields  Additianl fileds to display in the header
-     * @param  PdfInvoiceItem[]  $items
-     * @param  InvoiceDiscount[]  $discounts
+     * @param  array<array-key, scalar>|list<array{key: string, value: scalar}>  $fields  Additional fields displayed in the header
      * @param  PaymentInstruction[]  $paymentInstructions
      * @param  ?string  $logo  A local file path. The file must be accessible using file_get_contents.
      * @param  array<string, mixed>  $templateData
@@ -49,12 +52,14 @@ class PdfInvoice implements Attachable
 
         public Party $seller = new Party,
         public Party $buyer = new Party,
-        public array $items = [],
+        public PdfInvoiceItemCollection $items = new PdfInvoiceItemCollection,
+
+        public ?Money $subtotal_amount = null,
+        public ?Money $discount_amount = null,
+        public ?Money $tax_amount = null,
+        public ?Money $total_amount = null,
 
         public ?string $description = null,
-        public ?string $tax_label = null,
-        public array $discounts = [],
-
         public array $paymentInstructions = [],
 
         ?string $template = null,
@@ -68,6 +73,136 @@ class PdfInvoice implements Attachable
         $this->template = sprintf('invoices::%s', $template ?? config('invoices.pdf.template') ?? config('invoices.default_template'));
         // @phpstan-ignore-next-line
         $this->templateData = $templateData ?: config('invoices.pdf.template_data') ?: [];
+    }
+
+    /**
+     * @param  array{
+     *     type?: HasLabel|string,
+     *     state?: HasLabel|string,
+     *     serial_number?: ?string,
+     *     created_at?: ?CarbonInterface,
+     *     due_at?: ?CarbonInterface,
+     *     paid_at?: ?CarbonInterface,
+     *     fields?: array<array-key, scalar>|list<array{key: string, value: scalar}>,
+     *     seller?: Party|array<string, mixed>,
+     *     seller_information?: Party|array<string, mixed>,
+     *     buyer?: Party|array<string, mixed>,
+     *     buyer_information?: Party|array<string, mixed>,
+     *     items?: PdfInvoiceItemCollection|array<PdfInvoiceItem|ItemData>,
+     *     currency?: ?string,
+     *     subtotal_amount?: Money|float|null,
+     *     discount_amount?: Money|float|null,
+     *     tax_amount?: Money|float|null,
+     *     total_amount?: Money|float|null,
+     *     description?: ?string,
+     *     paymentInstructions?: array<PaymentInstruction|array{name?: ?string, description?: ?string, qrcode?: ?string, fields?: array<array-key, null|int|float|string>}>,
+     *     template?: ?string, templateData?: array<string, mixed>, logo?: ?string
+     * }  $data
+     */
+    public static function make(array $data): static
+    {
+        $currency = $data['currency'] ?? InvoiceServiceProvider::getDefaultCurrency();
+
+        $items = $data['items'] ?? new PdfInvoiceItemCollection;
+
+        if (is_array($items)) {
+            $items = new PdfInvoiceItemCollection(array_map(
+                fn ($item) => $item instanceof PdfInvoiceItem ? $item : PdfInvoiceItem::make([
+                    'currency' => $currency,
+                    ...$item,
+                ]),
+                $items
+            ));
+        }
+
+        $type = $data['type'] ?? null;
+
+        if (is_string($type)) {
+            $type = InvoiceType::tryFrom($type) ?? $type;
+        }
+
+        $state = $data['state'] ?? null;
+
+        if (is_string($state)) {
+            $state = InvoiceState::tryFrom($state) ?? $state;
+        }
+
+        return new static(
+            type: $type ?? InvoiceType::Invoice,
+            state: $state ?? InvoiceState::Draft,
+            serial_number: $data['serial_number'] ?? null,
+            created_at: $data['created_at'] ?? null,
+            due_at: $data['due_at'] ?? null,
+            paid_at: $data['paid_at'] ?? null,
+            fields: $data['fields'] ?? [],
+            seller: Party::make($data['seller'] ?? $data['seller_information'] ?? null),
+            buyer: Party::make($data['buyer'] ?? $data['buyer_information'] ?? null),
+            items: $items,
+            subtotal_amount: MoneyParser::parse($data['subtotal_amount'] ?? null, $currency),
+            discount_amount: MoneyParser::parse($data['discount_amount'] ?? null, $currency),
+            tax_amount: MoneyParser::parse($data['tax_amount'] ?? null, $currency),
+            total_amount: MoneyParser::parse($data['total_amount'] ?? null, $currency),
+            description: $data['description'] ?? null,
+            paymentInstructions: array_map(
+                fn ($instruction) => $instruction instanceof PaymentInstruction ? $instruction : new PaymentInstruction(
+                    name: $instruction['name'] ?? null,
+                    description: $instruction['description'] ?? null,
+                    qrcode: $instruction['qrcode'] ?? null,
+                    fields: $instruction['fields'] ?? [],
+                ),
+                $data['paymentInstructions'] ?? []
+            ),
+            template: $data['template'] ?? null,
+            templateData: $data['templateData'] ?? [],
+            logo: $data['logo'] ?? null,
+        );
+    }
+
+    public function denormalize(bool $force = false): static
+    {
+        $this->items->denormalize($force);
+
+        if ($this->subtotal_amount === null || $force) {
+            $this->subtotal_amount = $this->items->sumMoney('price_subtotal');
+        }
+
+        if ($this->discount_amount === null || $force) {
+            $this->discount_amount = $this->items->sumMoney('price_discount');
+        }
+
+        if ($this->tax_amount === null || $force) {
+            $this->tax_amount = $this->items->sumMoney('price_tax');
+        }
+
+        if ($this->total_amount === null || $force) {
+            $this->total_amount = $this->items->sumMoney('price');
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return InvoiceDiscountCollection<InvoiceDiscount>
+     */
+    public function getDiscounts(): InvoiceDiscountCollection
+    {
+        $discounts = $this->items
+            ->toBase()
+            ->flatMap(fn ($item) => $item->discounts);
+
+        return new InvoiceDiscountCollection($discounts)->group();
+    }
+
+    /**
+     * @return InvoiceTaxCollection<InvoiceTax>
+     */
+    public function getTaxes(): InvoiceTaxCollection
+    {
+        $taxes = $this->items
+            ->toBase()
+            ->flatMap(fn ($item) => $item->taxes);
+
+        return new InvoiceTaxCollection($taxes)->group();
     }
 
     public function getTypeLabel(): ?string
@@ -88,108 +223,6 @@ class PdfInvoice implements Attachable
             ->value();
     }
 
-    public function getCurrency(): string
-    {
-        /** @var ?PdfInvoiceItem $firstItem */
-        $firstItem = Arr::first($this->items);
-
-        return $firstItem?->currency->getCurrencyCode() ?? config()->string('invoices.default_currency');
-    }
-
-    /**
-     * Before discount and taxes
-     */
-    public function subTotalAmount(): Money
-    {
-        return array_reduce(
-            $this->items,
-            fn ($total, $item) => $total->plus($item->subTotalAmount()),
-            Money::of(0, $this->getCurrency())
-        );
-    }
-
-    public function totalDiscountAmount(): Money
-    {
-        if (! $this->discounts) {
-            return Money::of(0, $this->getCurrency());
-        }
-
-        $amount = $this->subTotalAmount();
-
-        return array_reduce(
-            $this->discounts,
-            function ($total, $discount) use ($amount) {
-                return $total->plus($discount->computeDiscountAmountOn($amount));
-            },
-            Money::of(0, $amount->getCurrency())
-        );
-    }
-
-    public function subTotalDiscountedAmount(): Money
-    {
-        return $this->subTotalAmount()->minus($this->totalDiscountAmount());
-    }
-
-    /**
-     * After discount and taxes
-     */
-    public function totalTaxAmount(): Money
-    {
-        $totalDiscount = $this->totalDiscountAmount();
-
-        /**
-         * Taxes must be calculated based on the discounted subtotal.
-         * Since discounts are applied at the invoice level, but taxes are calculated at the item level,
-         * we allocate the total discount proportionally across individual items before computing taxes.
-         */
-        $ratios = array_map(
-            fn ($item) => $item->subTotalAmount()->abs()->getMinorAmount()->toInt(),
-            $this->items
-        );
-
-        if (array_sum($ratios) === 0) {
-            return Money::of(0, $this->getCurrency());
-        }
-
-        $allocatedDiscounts = $totalDiscount->allocate($ratios, AllocationMode::FloorToFirst);
-
-        $totalTaxAmount = Money::of(0, $this->getCurrency());
-
-        foreach ($this->items as $index => $item) {
-
-            if ($item->unit_tax) {
-                /**
-                 * When unit_tax is defined, the amount is considered correct
-                 */
-                $itemTaxAmount = $item->unit_tax->multipliedBy((string) $item->quantity);
-            } elseif ($item->tax_percentage) {
-
-                $itemDiscount = $allocatedDiscounts[$index];
-
-                $itemTaxAmount = $item->subTotalAmount()
-                    ->minus($itemDiscount)
-                    ->multipliedBy(
-                        (string) ($item->tax_percentage / 100.0),
-                        // @phpstan-ignore-next-line
-                        config('invoices.rounding_mode', RoundingMode::HalfUp)
-                    );
-
-            } else {
-                $itemTaxAmount = Money::zero($totalTaxAmount->getCurrency());
-            }
-
-            $totalTaxAmount = $totalTaxAmount->plus($itemTaxAmount);
-
-        }
-
-        return $totalTaxAmount;
-    }
-
-    public function totalAmount(): Money
-    {
-        return $this->subTotalDiscountedAmount()->plus($this->totalTaxAmount());
-    }
-
     /**
      * @param  array<string, mixed>  $options
      * @param  array{ size?: string, orientation?: string }  $paper
@@ -200,15 +233,15 @@ class PdfInvoice implements Attachable
 
         $pdf = new Dompdf(array_merge(
             // @phpstan-ignore-next-line
-            config('invoices.pdf.options') ?? config('invoices.pdf_options') ?? [],
+            config('invoices.pdf.options') ?? [],
             $options,
         ));
 
         $pdf->setPaper(
             // @phpstan-ignore-next-line
-            $paper['size'] ?? config('invoices.pdf.paper.size') ?? config('invoices.pdf.paper.paper') ?? config('invoices.paper_options.paper') ?? 'a4',
+            $paper['size'] ?? config('invoices.pdf.paper.size') ?? 'a4',
             // @phpstan-ignore-next-line
-            $paper['orientation'] ?? config('invoices.pdf.paper.orientation') ?? config('invoices.paper_options.orientation') ?? 'portrait'
+            $paper['orientation'] ?? config('invoices.pdf.paper.orientation') ?? 'portrait'
         );
 
         $html = $this->view($data)->render();

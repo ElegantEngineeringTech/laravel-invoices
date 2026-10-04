@@ -1,5 +1,11 @@
 @php
+    use function Elegantly\Invoices\format_money;
+
     $dateFormat = config('invoices.date_format');
+    $discounts = $invoice->getDiscounts();
+    $taxes = $invoice->getTaxes();
+
+    $columns = 4 + ((int) $discounts->isNotEmpty()) + ((int) $taxes->isNotEmpty());
 @endphp
 
 <div>
@@ -7,10 +13,10 @@
         <tbody>
             <tr>
                 <td class="p-0 align-top">
-                    <h1 class="mb-1 text-2xl">
+                    <h1 class="mb-1 p-px text-2xl">
                         <strong>{{ $invoice->getTypeLabel() }}</strong>
                     </h1>
-                    <p class="mb-5 text-sm">
+                    <p class="mb-5 p-px text-sm">
                         {{ $invoice->getStateLabel() }}
                     </p>
 
@@ -18,58 +24,52 @@
                         <tbody>
                             <tr class="text-xs">
                                 <td class="whitespace-nowrap pr-2">
-                                    <strong>{{ __('invoices::invoice.serial_number') }} </strong>
+                                    <strong>{{ __('invoices::invoice.pdf.serial_number') }} </strong>
                                 </td>
                                 <td class="whitespace-nowrap" width="100%">
                                     <strong>{{ $invoice->serial_number }}</strong>
                                 </td>
                             </tr>
-                            <tr class="text-xs">
-                                <td class="whitespace-nowrap pr-2">
-                                    {{ __('invoices::invoice.created_at') }}
-                                </td>
-                                <td class="" width="100%">
-                                    {{ $invoice->created_at?->format($dateFormat) }}
-                                </td>
-                            </tr>
+                            @if ($invoice->created_at)
+                                <tr class="text-xs">
+                                    <td class="whitespace-nowrap pr-2">
+                                        {{ __('invoices::invoice.pdf.created_at') }}
+                                    </td>
+                                    <td class="" width="100%">
+                                        {{ $invoice->created_at->isoFormat($dateFormat) }}
+                                    </td>
+                                </tr>
+                            @endif
                             @if ($invoice->due_at)
                                 <tr class="text-xs">
                                     <td class="whitespace-nowrap pr-2">
-                                        {{ __('invoices::invoice.due_at') }}
+                                        {{ __('invoices::invoice.pdf.due_at') }}
                                     </td>
                                     <td class="" width="100%">
-                                        {{ $invoice->due_at->format($dateFormat) }}
+                                        {{ $invoice->due_at->isoFormat($dateFormat) }}
                                     </td>
                                 </tr>
                             @endif
                             @if ($invoice->paid_at)
                                 <tr class="text-xs">
                                     <td class="whitespace-nowrap pr-2">
-                                        {{ __('invoices::invoice.paid_at') }}
+                                        {{ __('invoices::invoice.pdf.paid_at') }}
                                     </td>
                                     <td width="100%">
-                                        {{ $invoice->paid_at->format($dateFormat) }}
+                                        {{ $invoice->paid_at->isoFormat($dateFormat) }}
                                     </td>
                                 </tr>
                             @endif
 
-                            @foreach ($invoice->fields as $key => $value)
-                                <tr class="text-xs">
-                                    <td class="whitespace-nowrap pr-2">
-                                        @if (is_string($key))
-                                            {{ __($key) }}
-                                        @endif
-                                    </td>
-                                    <td width="100%">
-                                        {{ $value }}
-                                    </td>
-                                </tr>
-                            @endforeach
+                            @include('invoices::default.includes.fields', [
+                                'fields' => $invoice->fields,
+                            ])
+
                         </tbody>
                     </table>
                 </td>
                 @if ($invoice->logo)
-                    <td class="p-0 align-top" width="20%">
+                    <td class="align-top" width="20%">
                         <img src="{{ $invoice->logo }}" alt="logo" height="100" />
                     </td>
                 @endif
@@ -82,14 +82,18 @@
         <tbody>
             <tr>
                 <td class="p-0 align-top" width="33%">
-                    <p class="mb-1 pb-1 text-xs text-gray-500">{{ __('invoices::invoice.from') }}</p>
+                    <p class="mb-1 whitespace-nowrap p-px text-xs text-gray-500">
+                        {{ __('invoices::invoice.pdf.from') }}
+                    </p>
 
                     @include('invoices::default.includes.party', [
                         'party' => $invoice->seller,
                     ])
                 </td>
                 <td class="p-0 align-top" width="33%">
-                    <p class="mb-1 pb-1 text-xs text-gray-500">{{ __('invoices::invoice.to') }}</p>
+                    <p class="mb-1 whitespace-nowrap p-px text-xs text-gray-500">
+                        {{ __('invoices::invoice.pdf.to') }}
+                    </p>
 
                     @include('invoices::default.includes.party', [
                         'party' => $invoice->buyer,
@@ -99,8 +103,8 @@
                 @if ($invoice->buyer->shipping_address)
                     <td class="p-0 align-top" width="33%">
 
-                        <p class="mb-1 whitespace-nowrap pb-1 text-xs text-gray-500">
-                            {{ __('invoices::invoice.shipping_to') }}
+                        <p class="mb-1 whitespace-nowrap p-px text-xs text-gray-500">
+                            {{ __('invoices::invoice.pdf.shipping_to') }}
                         </p>
 
                         @if ($invoice->buyer->shipping_address)
@@ -115,141 +119,198 @@
         </tbody>
     </table>
 
-    @php
-        $hasTaxes = $invoice->tax_label || $invoice->totalTaxAmount()->isPositive();
-    @endphp
-
     <table class="mb-5 w-full">
         <thead>
             <tr class="text-gray-500">
-                <th class="whitespace-nowrap border-b py-2 pr-2 text-left text-xs font-normal">
-                    {{ __('invoices::invoice.description') }}
+                <th class="whitespace-nowrap border-b border-gray-200 py-2 pr-2 text-left text-xs font-normal">
+                    {{ __('invoices::invoice.pdf.items.label') }}
                 </th>
-                <th class="whitespace-nowrap border-b p-2 text-left text-xs font-normal">
-                    {{ __('invoices::invoice.quantity') }}
+                <th class="whitespace-nowrap border-b border-gray-200 p-2 text-left text-xs font-normal">
+                    {{ __('invoices::invoice.pdf.items.quantity') }}
                 </th>
-                <th class="whitespace-nowrap border-b p-2 text-left text-xs font-normal">
-                    {{ __('invoices::invoice.unit_price') }}
+                <th class="whitespace-nowrap border-b border-gray-200 p-2 text-left text-xs font-normal">
+                    {{ __('invoices::invoice.pdf.items.unit_price') }}
                 </th>
 
-                @if ($hasTaxes)
-                    <th class="whitespace-nowrap border-b p-2 text-left text-xs font-normal">
-                        {{ __('invoices::invoice.tax') }}
+                @if ($discounts->isNotEmpty())
+                    <th class="whitespace-nowrap border-b border-gray-200 p-2 text-left text-xs font-normal">
+                        {{ __('invoices::invoice.pdf.items.discount') }}
                     </th>
-                @else
-                    <th class="p-0"></th>
                 @endif
 
-                <th class="whitespace-nowrap border-b py-2 pl-2 text-right text-xs font-normal">
-                    {{ __('invoices::invoice.amount') }}
+                @if ($taxes->isNotEmpty())
+                    <th class="whitespace-nowrap border-b border-gray-200 p-2 text-left text-xs font-normal">
+                        {{ __('invoices::invoice.pdf.items.tax') }}
+                    </th>
+                @endif
+
+                <th class="whitespace-nowrap border-b border-gray-200 py-2 pl-2 text-right text-xs font-normal">
+                    {{ __('invoices::invoice.pdf.items.amount') }}
                 </th>
             </tr>
         </thead>
         <tbody>
             @foreach ($invoice->items as $item)
                 <tr>
-                    <td @class(['align-top py-2 pr-2', 'border-b' => !$loop->last])>
+                    <td @class([
+                        'align-top py-2 pr-2',
+                        'border-b border-gray-200' => !$loop->last,
+                    ])>
                         <p class="text-xs"><strong>{{ $item->label }}</strong></p>
                         @if ($item->description)
                             <p class="pt-1 text-xs">{{ $item->description }}</p>
                         @endif
                     </td>
-                    <td class="whitespace-nowrap border-b p-2 align-top text-xs">
+
+                    <td class="whitespace-nowrap border-b border-gray-200 p-2 align-top text-xs">
                         <p>{{ $item->quantity }}</p>
                     </td>
-                    <td class="whitespace-nowrap border-b p-2 align-top text-xs">
-                        <p>{{ $item->formatMoney($item->unit_price) }}</p>
+
+                    <td class="whitespace-nowrap border-b border-gray-200 p-2 align-top text-xs">
+                        <p>{{ format_money($item->unit_price) }}</p>
                     </td>
 
-                    @if ($hasTaxes)
-                        <td class="whitespace-nowrap border-b p-2 align-top text-xs">
-                            @if ($item->unit_tax !== null && $item->tax_percentage !== null)
-                                <p>
-                                    {{ $item->formatMoney($item->unit_tax) }}
-                                    ({{ $item->formatPercentage($item->tax_percentage) }})
-                                </p>
-                            @elseif ($item->unit_tax !== null)
-                                <p>{{ $item->formatMoney($item->unit_tax) }}</p>
-                            @elseif($item->tax_percentage !== null)
-                                <p>{{ $item->formatPercentage($item->tax_percentage) }}</p>
-                            @else
-                                <p>-</p>
-                            @endif
+                    @if ($discounts->isNotEmpty())
+                        <td class="whitespace-nowrap border-b border-gray-200 p-2 align-top text-xs">
+                            <p>
+                                {{ format_money($item->price_discount) }}
+
+                                @foreach ($item->discounts as $discount)
+                                    @include('invoices::default.includes.indicator', [
+                                        'index' => $discount->getIndex(),
+                                        'seed' => 4,
+                                    ])
+                                @endforeach
+                            </p>
                         </td>
-                    @else
-                        <td class="p-0"></td>
                     @endif
 
-                    <td class="whitespace-nowrap border-b py-2 pl-2 text-right align-top text-xs">
-                        <p>{{ $item->formatMoney($item->totalAmount()) }}</p>
+                    @if ($taxes->isNotEmpty())
+                        <td class="whitespace-nowrap border-b border-gray-200 p-2 align-top text-xs">
+                            <p>
+                                {{ format_money($item->price_tax) }}
+
+                                @foreach ($item->taxes as $tax)
+                                    @include('invoices::default.includes.indicator', [
+                                        'index' => $tax->getIndex(),
+                                        'seed' => 104,
+                                    ])
+                                @endforeach
+                            </p>
+                        </td>
+                    @endif
+
+                    <td class="whitespace-nowrap border-b border-gray-200 py-2 pl-2 text-right align-top text-xs">
+                        <p>{{ format_money($item->price) }}</p>
                     </td>
                 </tr>
             @endforeach
 
             <tr>
-                {{-- empty space --}}
+                {{-- item space --}}
                 <td class="py-2 pr-2"></td>
-                <td class="border-b p-2 text-xs" colspan="3">
-                    {{ __('invoices::invoice.subtotal_amount') }}
+                <td class="border-b border-gray-200 p-2 text-xs" colspan="{{ $columns - 2 }}">
+                    {{ __('invoices::invoice.pdf.summary.subtotal') }}
                 </td>
-                <td class="whitespace-nowrap border-b py-2 pl-2 text-right text-xs">
-                    {{ $invoice->formatMoney($invoice->subTotalAmount()) }}
+                <td class="whitespace-nowrap border-b border-gray-200 py-2 pl-2 text-right text-xs">
+                    {{ format_money($invoice->subtotal_amount) }}
                 </td>
             </tr>
 
-            @if ($invoice->discounts)
-                @foreach ($invoice->discounts as $discount)
-                    <tr>
-                        {{-- empty space --}}
+            @if ($discounts->isNotEmpty())
+                @foreach ($discounts as $discount)
+                    <tr class="text-gray-500">
+                        {{-- item space --}}
                         <td class="py-2 pr-2"></td>
-                        <td class="border-b p-2 text-xs" colspan="3">
-                            {{ __($discount->name ?: $discount->code) ?: __('invoices::invoice.discount_name') }}
-                            @if ($discount->percent_off)
-                                ({{ $discount->formatPercentage($discount->percent_off) }})
+                        <td class="border-b border-gray-200 p-2 text-xs" colspan="{{ $columns - 2 }}">
+                            @if ($label = $discount->getLabel())
+                                {{ $label }}
+                            @else
+                                {{ __('invoices::invoice.pdf.summary.discount') }}
                             @endif
+
+                            @if ($discount->code)
+                                {{ $discount->code }}
+                            @endif
+
+                            @if ($discount->percentage)
+                                ({{ Number::percentage($discount->percentage) }})
+                            @endif
+
+                            @include('invoices::default.includes.indicator', [
+                                'index' => $discount->getIndex(),
+                                'seed' => 4,
+                            ])
+
                         </td>
-                        <td class="whitespace-nowrap border-b py-2 pl-2 text-right text-xs">
-                            {{ $invoice->formatMoney($discount->computeDiscountAmountOn($invoice->subTotalAmount())?->multipliedBy(-1)) }}
+                        <td class="whitespace-nowrap border-b border-gray-200 py-2 pl-2 text-right text-xs">
+                            {{ format_money($discount->amount) }}
                         </td>
                     </tr>
                 @endforeach
 
                 <tr>
-                    {{-- empty space --}}
+                    {{-- item space --}}
                     <td class="py-2 pr-2"></td>
-                    <td class="border-b p-2 text-xs" colspan="3">
-                        {{ __('invoices::invoice.subtotal_discounted_amount') }}
+                    <td class="border-b border-gray-200 p-2 text-xs" colspan="{{ $columns - 2 }}">
+                        {{ __('invoices::invoice.pdf.summary.discounted') }}
                     </td>
-                    <td class="whitespace-nowrap border-b py-2 pl-2 text-right text-xs">
-                        {{ $invoice->formatMoney($invoice->subTotalDiscountedAmount()) }}
+                    <td class="whitespace-nowrap border-b border-gray-200 py-2 pl-2 text-right text-xs">
+                        {{ format_money($invoice->subtotal_amount->minus($invoice->discount_amount)) }}
                     </td>
                 </tr>
             @endif
 
 
+            @if ($taxes->isNotEmpty())
+                @foreach ($taxes as $tax)
+                    <tr class="text-gray-500">
+                        {{-- item space --}}
+                        <td class="py-2 pr-2"></td>
+                        <td class="border-b border-gray-200 p-2 text-xs" colspan="{{ $columns - 2 }}">
+                            @if ($label = $tax->getLabel())
+                                {{ $label }}
+                            @elseif($tax->type)
+                                {{ mb_strtoupper($tax->type) }}
 
-            @if ($hasTaxes)
-                <tr>
-                    {{-- empty space --}}
-                    <td class="py-2 pr-2"></td>
-                    <td class="border-b p-2 text-xs" colspan="3">
-                        {{ __($invoice->tax_label) ?? __('invoices::invoice.tax_label') }}
-                    </td>
-                    <td class="whitespace-nowrap border-b py-2 pl-2 text-right text-xs">
-                        {{ $invoice->formatMoney($invoice->totalTaxAmount()) }}
-                    </td>
-                </tr>
+                                @if ($tax->country)
+                                    {{ $tax->country }}
+                                @endif
+
+                                @if ($tax->percentage)
+                                    ({{ Number::percentage($tax->percentage) }})
+                                @endif
+                            @else
+                                {{ __('invoices::invoice.pdf.summary.tax') }}
+
+                                @if ($tax->percentage)
+                                    ({{ Number::percentage($tax->percentage) }})
+                                @endif
+                            @endif
+
+
+                            @include('invoices::default.includes.indicator', [
+                                'index' => $tax->getIndex(),
+                                'seed' => 104,
+                            ])
+
+                        </td>
+                        <td class="whitespace-nowrap border-b border-gray-200 py-2 pl-2 text-right text-xs">
+                            {{ format_money($tax->amount) }}
+                        </td>
+                    </tr>
+                @endforeach
             @endif
 
             <tr>
-                {{-- empty space --}}
+                {{-- item space --}}
                 <td class="py-2 pr-2"></td>
-                <td class="p-2 text-sm" colspan="3">
-                    <strong>{{ __('invoices::invoice.total_amount') }}</strong>
+                <td class="p-2 text-sm" colspan="{{ $columns - 2 }}">
+                    <strong>{{ __('invoices::invoice.pdf.summary.total') }}</strong>
                 </td>
                 <td class="whitespace-nowrap py-2 pl-2 text-right text-sm">
                     <strong>
-                        {{ $invoice->formatMoney($invoice->totalAmount()) }}
+                        {{ format_money($invoice->total_amount) }}
                     </strong>
                 </td>
             </tr>
@@ -257,67 +318,23 @@
     </table>
 
     @if ($invoice->description)
-        <p class="mb-2 text-sm">
-            <strong> {{ __('invoices::invoice.description') }} </strong>
+        <p class="mb-2 p-px text-sm">
+            <strong> {{ __('invoices::invoice.pdf.description') }} </strong>
         </p>
-        <p class="whitespace-pre-line text-xs">{!! $invoice->description !!}</p>
+        <p class="whitespace-pre-line p-px text-xs">{!! $invoice->description !!}</p>
     @endif
 
     @if ($invoice->paymentInstructions)
-        <div class="mt-12">
+        <div class="mt-12 pt-px">
             @foreach ($invoice->paymentInstructions as $paymentInstruction)
-                <div @class([
-                    'border-b' => !$loop->last,
-                    '-ml-12 -mr-12 px-12 bg-zinc-100 py-6',
-                ])>
-
-                    <table class="w-full">
-                        <tbody>
-                            <tr>
-                                <td class="w-full p-0 align-top">
-                                    @if ($paymentInstruction->name)
-                                        <p class="mb-1 text-xs">
-                                            <strong>{!! __($paymentInstruction->name) !!}</strong>
-                                        </p>
-                                    @endif
-
-                                    @if ($paymentInstruction->description)
-                                        <p class="mb-3 text-xs">
-                                            {!! __($paymentInstruction->description) !!}
-                                        </p>
-                                    @endif
-
-                                    <table>
-                                        <tbody>
-                                            @foreach ($paymentInstruction->fields as $key => $value)
-                                                <tr>
-                                                    @if (is_string($key))
-                                                        <td class="py-1 pr-5 text-xs">{{ __($key) }}</td>
-                                                        <td class="py-1 pl-2 text-xs text-gray-500">
-                                                            {!! $value !!}
-                                                        </td>
-                                                    @else
-                                                        <td class="py-1 pr-5 text-xs" colspan="2">
-                                                            {!! $value !!}
-                                                        </td>
-                                                    @endif
-                                                </tr>
-                                            @endforeach
-                                        </tbody>
-                                    </table>
-                                </td>
-                                @if ($paymentInstruction->qrcode)
-                                    <td class="min-w-28 p-0 align-top">
-                                        <img src="{{ $paymentInstruction->qrcode }}" class="w-28 bg-white" />
-                                    </td>
-                                @endif
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+                @include('invoices::default.includes.payment-instructions', [
+                    'first' => $loop->first,
+                    'last' => $loop->last,
+                    'index' => $loop->index,
+                    'paymentInstruction' => $paymentInstruction,
+                ])
             @endforeach
         </div>
     @endif
-
 
 </div>

@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace Elegantly\Invoices;
 
-use Brick\Math\RoundingMode;
 use Brick\Money\Money;
-use Elegantly\Invoices\Concerns\FormatForPdf;
 use Elegantly\Invoices\Contracts\GOBLable;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\Jsonable;
@@ -19,104 +17,118 @@ use JsonSerializable;
  */
 class InvoiceDiscount implements Arrayable, GOBLable, Jsonable, JsonSerializable
 {
-    use FormatForPdf;
+    /**
+     * Used internally to identify items in aggregate
+     */
+    protected int $index;
 
-    public ?string $name = null;
+    public ?string $label = null;
+
+    public ?string $code = null;
+
+    public ?float $percentage = null;
+
+    public ?Money $amount = null;
+
+    public ?Money $amount_subtotal = null;
 
     /**
-     * @param  null|string|array{name?: ?string, code?: ?string, amount_off?: null|int|Money, currency?: null|string, percent_off?: ?float}  $name
+     * @param  null|string|array{
+     *      code?: null|string,
+     *      label?: null|string,
+     *      percentage?: null|float|string,
+     *      amount?: null|int|Money,
+     *      amount_subtotal?: null|int|Money,
+     *      currency?: null|string,
+     * }  $code
      */
     public function __construct(
-        null|string|array $name = null,
-        public ?string $code = null,
-        public ?Money $amount_off = null,
-        public ?float $percent_off = null,
+        null|string|array $code = null,
+        ?string $label = null,
+        ?float $percentage = null,
+        ?Money $amount = null,
+        ?Money $amount_subtotal = null,
     ) {
-        if (is_array($name)) {
-            $amount_off = $name['amount_off'] ?? null;
+        if (is_array($code)) {
 
-            if ($amount_off === null || $amount_off instanceof Money) {
-                $this->amount_off = $amount_off;
-            } else {
-                $this->amount_off = Money::ofMinor($amount_off, $name['currency'] ?? config()->string('invoices.default_currency'));
+            $this->code = $code['code'] ?? null;
+            $this->label = $code['label'] ?? null;
+
+            $percentage = $code['percentage'] ?? null;
+            $this->percentage = $percentage === null ? null : round((float) $percentage, 2);
+
+            $amount = $code['amount'] ?? null;
+            $amount_subtotal = $code['amount_subtotal'] ?? null;
+            $currency = $code['currency'] ?? null;
+
+            if ($amount instanceof Money) {
+                $this->amount = $amount;
+            } elseif ($amount !== null && $currency) {
+                $this->amount = Money::ofMinor($amount, $currency);
             }
 
-            $this->name = $name['name'] ?? null;
-            $this->code = $name['code'] ?? null;
-            $this->percent_off = $name['percent_off'] ?? null;
+            if ($amount_subtotal instanceof Money) {
+                $this->amount_subtotal = $amount_subtotal;
+            } elseif ($amount_subtotal !== null && $currency) {
+                $this->amount_subtotal = Money::ofMinor($amount_subtotal, $currency);
+            }
 
         } else {
-            $this->name = $name;
+            $this->code = $code;
+            $this->label = $label;
+            $this->percentage = $percentage === null ? null : round($percentage, 2);
+            $this->amount = $amount;
+            $this->amount_subtotal = $amount_subtotal;
         }
     }
 
-    public function computeDiscountAmountOn(Money $amount): Money
+    public function getLabel(): ?string
     {
-        if ($this->amount_off) {
-            return $this->amount_off;
-        }
-
-        if ($this->percent_off !== null) {
-            return $amount->multipliedBy(
-                (string) ($this->percent_off / 100.0),
-                // @phpstan-ignore-next-line
-                config('invoices.rounding_mode', RoundingMode::HalfUp)
-            );
-        }
-
-        return Money::of(0, $amount->getCurrency());
+        return $this->label;
     }
 
-    /**
-     * @param  null|array{
-     *      name: ?string,
-     *      code: ?string,
-     *      currency: ?string,
-     *      amount_off: ?int,
-     *      percent_off: ?float,
-     * }  $array
-     */
-    public static function fromArray(?array $array): static
+    public function setIndex(int $value): static
     {
-        $currency = $array['currency'] ?? config()->string('invoices.default_currency');
-        $amount_off = $array['amount_off'] ?? null;
-        $percent_off = $array['percent_off'] ?? null;
+        $this->index = $value;
 
-        return new static(
-            name: $array['name'] ?? '',
-            code: $array['code'] ?? '',
-            amount_off: $amount_off ? Money::ofMinor($amount_off, $currency) : null,
-            percent_off: $percent_off ? (float) $percent_off : null
-        );
+        return $this;
+    }
+
+    public function getIndex(): int
+    {
+        return $this->index;
     }
 
     /**
      * @return array{
-     *      name: ?string,
-     *      code: ?string,
-     *      amount_off: ?int,
-     *      currency: ?string,
-     *      percent_off: ?float,
+     *      code: null|string,
+     *      label: null|string,
+     *      amount: null|int,
+     *      amount_subtotal: null|int,
+     *      currency: null|string,
+     *      percentage: null|float,
      * }
      */
     public function toArray(): array
     {
         return [
-            'name' => $this->name,
             'code' => $this->code,
-            'amount_off' => $this->amount_off?->getMinorAmount()->toInt(),
-            'currency' => $this->amount_off?->getCurrency()->getCurrencyCode(),
-            'percent_off' => $this->percent_off,
+            'label' => $this->label,
+            'amount' => $this->amount?->getMinorAmount()->toInt(),
+            'amount_subtotal' => $this->amount_subtotal?->getMinorAmount()->toInt(),
+            'currency' => $this->amount?->getCurrency()->getCurrencyCode() ?? $this->amount_subtotal?->getCurrency()->getCurrencyCode(),
+            'percentage' => $this->percentage,
         ];
     }
 
     /**
      * @return array{
-     *      name: ?string,
-     *      code: ?string,
-     *      amount_off: ?int,
-     *      currency: ?string,
-     *      percent_off: ?float,
+     *      code: null|string,
+     *      label: null|string,
+     *      amount: null|int,
+     *      amount_subtotal: null|int,
+     *      currency: null|string,
+     *      percentage: null|float,
      * }
      */
     public function jsonSerialize(): array
@@ -131,11 +143,12 @@ class InvoiceDiscount implements Arrayable, GOBLable, Jsonable, JsonSerializable
 
     /**
      * @return array{
-     *      name: ?string,
-     *      code: ?string,
-     *      amount_off: ?int,
-     *      currency: ?string,
-     *      percent_off: ?float,
+     *      code: null|string,
+     *      label: null|string,
+     *      amount: null|int,
+     *      amount_subtotal: null|int,
+     *      currency: null|string,
+     *      percentage: null|float,
      * }
      */
     public function toLivewire()
@@ -144,22 +157,25 @@ class InvoiceDiscount implements Arrayable, GOBLable, Jsonable, JsonSerializable
     }
 
     /**
-     * @param ?array{
-     *      name: ?string,
-     *      code: ?string,
-     *      amount_off: ?int,
-     *      currency: ?string,
-     *      percent_off: ?float,
+     * @param array{
+     *      code: null|string,
+     *      label: null|string,
+     *      amount: null|int,
+     *      amount_subtotal: null|int,
+     *      currency: null|string,
+     *      percentage: null|float,
      * } $value
      */
     // @phpstan-ignore-next-line
     public static function fromLivewire($value)
     {
-        return static::fromArray($value);
+        return new static($value);
     }
 
     /**
      * Convert the identity to its GOBL representation.
+     *
+     * @see https://docs.gobl.org/draft-0/bill/line_discount
      *
      * @param  array<array-key, mixed>  $values
      * @return array<array-key, mixed>
@@ -167,9 +183,10 @@ class InvoiceDiscount implements Arrayable, GOBLable, Jsonable, JsonSerializable
     public function toGOBL(array $values = []): array
     {
         return array_filter([
-            'amount' => $this->amount_off?->getAmount()->toString(),
-            'percent' => $this->percent_off ? "{$this->percent_off}%" : null,
-            'reason' => $this->name,
+            'base' => $this->amount_subtotal?->getAmount()->toString(),
+            'amount' => $this->amount?->getAmount()->toString(),
+            'percent' => $this->percentage !== null ? "{$this->percentage}%" : null,
+            'reason' => $this->getLabel(),
             'code' => $this->code,
             ...$values,
         ], fn ($value) => filled($value));

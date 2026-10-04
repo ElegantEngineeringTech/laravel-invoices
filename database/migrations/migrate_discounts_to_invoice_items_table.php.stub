@@ -1,0 +1,92 @@
+<?php
+
+declare(strict_types=1);
+
+use Brick\Money\AllocationMode;
+use Brick\Money\Money;
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\DB;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        $query = DB::table('invoices')
+            ->where('discounts', '!=', null);
+
+        $query->chunkById(100, function ($invoices) {
+            foreach ($invoices as $invoice) {
+
+                $items = DB::table('invoice_items')
+                    ->where('invoice_id', $invoice->id)
+                    ->get();
+
+                $discounts = json_decode($invoice->discounts ?? '[]', false) ?? [];
+
+                foreach ($items as $index => $item) {
+                    $items[$index]->discounts = [];
+                }
+
+                foreach ($discounts as $discount) {
+                    if ($discount->amount_off !== null && $discount->currency !== null) {
+                        $amount = Money::ofMinor($discount->amount_off, $discount->currency);
+
+                        $total = $items->sum(fn ($item) => $item->unit_price && $item->currency ? abs($item->unit_price * $item->quantity) : 0);
+
+                        if ($total > 0) {
+                            $amounts = $amount->allocate(
+                                $items->map(fn ($item) => $item->unit_price && $item->currency ? abs($item->unit_price * $item->quantity) : 0)->all(),
+                                AllocationMode::FloorToLargestRemainder
+                            );
+                        } else {
+                            $amounts = $items->map(fn () => $amount->multipliedBy(0));
+                        }
+
+                        foreach ($items as $index => $item) {
+                            $items[$index]->discounts[] = [
+                                'code' => $discount->code,
+                                'label' => $discount->name,
+                                'percentage' => $discount->percent_off === null ? null : (round((float) $discount->percent_off, 2)),
+                                'amount' => $amounts[$index]?->getMinorAmount()->toInt(),
+                                'currency' => $amounts[$index]?->getCurrency()->getCurrencyCode(),
+                                'amount_subtotal' => null,
+                            ];
+                        }
+                    } else {
+                        foreach ($items as $index => $item) {
+                            $items[$index]->discounts[] = [
+                                'code' => $discount->code,
+                                'label' => $discount->name,
+                                'percentage' => $discount->percent_off === null ? null : (round((float) $discount->percent_off, 2)),
+                                'amount' => null,
+                                'currency' => null,
+                                'amount_subtotal' => null,
+                            ];
+                        }
+                    }
+                }
+
+                foreach ($items as $item) {
+
+                    DB::table('invoice_items')
+                        ->where('id', $item->id)
+                        ->update([
+                            'discounts' => json_encode($item->discounts),
+                        ]);
+                }
+
+            }
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        //
+    }
+};
