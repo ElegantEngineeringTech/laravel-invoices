@@ -42,10 +42,10 @@ return [
         ],
         'summary' => [
             'tax' => 'Tax',
-            'subtotal' => 'Sous-total',
+            'subtotal' => 'Sous-total HT',
             'discount' => 'Remise',
-            'discounted' => 'Sous-total après remise',
-            'total' => 'Total',
+            'discounted' => 'Sous-total HT après remise',
+            'total' => 'Total TTC',
         ],
     ],
 ];
