@@ -453,6 +453,13 @@ class Invoice extends Model implements Attachable, GOBLable
 
     public function denormalize(bool $force = false): static
     {
+        /**
+         * Normalize the items into the custom collection.
+         *
+         * Filament may initially hydrate the relationship using Eloquent's default collection.
+         */
+        $this->setItems($this->items);
+
         $this->items->denormalize($force);
 
         if ($this->subtotal_amount === null || $force) {
