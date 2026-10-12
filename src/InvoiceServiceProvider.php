@@ -40,6 +40,8 @@ class InvoiceServiceProvider extends PackageServiceProvider
         'migrate_discounts_to_invoice_items_table',
         'migrate_taxes_to_invoice_items_table',
         'migrate_prices_columns_to_invoice_items_table',
+        'drop_discounts_from_invoices_table',
+        'drop_unit_tax_from_invoice_items_table',
     ];
 
     public function configurePackage(Package $package): void
