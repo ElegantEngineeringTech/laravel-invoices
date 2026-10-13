@@ -163,7 +163,13 @@
                     </td>
 
                     <td class="whitespace-nowrap border-b border-gray-200 p-2 align-top text-xs">
-                        <p>{{ $item->quantity }}</p>
+                        <p>
+                            {{ $item->quantity }}
+
+                            @if ($item->quantity_unit)
+                                {{ $item->quantity_unit }}
+                            @endif
+                        </p>
                     </td>
 
                     <td class="whitespace-nowrap border-b border-gray-200 p-2 align-top text-xs">
