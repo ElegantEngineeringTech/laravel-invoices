@@ -22,9 +22,9 @@
                                 <tr>
                                     @if (is_string($key))
                                         <td class="pr-5 text-xs">{{ __($key) }}</td>
-                                        <td class="text-xs text-gray-500">{!! $value !!}</td>
+                                        <td class="text-xs text-gray-500">{!! __($value) !!}</td>
                                     @else
-                                        <td class="text-xs" colspan="2">{!! $value !!}</td>
+                                        <td class="text-xs" colspan="2">{!! __($value) !!}</td>
                                     @endif
                                 </tr>
                             @endforeach
