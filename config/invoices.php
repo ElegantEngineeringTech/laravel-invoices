@@ -120,6 +120,10 @@ return [
             // Required to load external CSS or images (e.g., from a URL or storage path)
             'isRemoteEnabled' => true,
 
+            // Security: Restricts which hosts remote resources can be loaded from when isRemoteEnabled is true.
+            // Each value must be a valid hostname. Set to null to allow any remote host.
+            'allowedRemoteHosts' => ['fonts.googleapis.com', 'fonts.gstatic.com'],
+
             // Security: Keep false unless you specifically need to execute PHP inside the PDF template
             'isPhpEnabled' => false,
 

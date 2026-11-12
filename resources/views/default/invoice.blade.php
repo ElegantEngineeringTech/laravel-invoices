@@ -323,12 +323,9 @@
         </tbody>
     </table>
 
-    @if ($invoice->description)
-        <p class="mb-2 p-px text-sm">
-            <strong> {{ __('invoices::invoice.pdf.description') }} </strong>
-        </p>
-        <p class="whitespace-pre-line p-px text-xs">{!! $invoice->description !!}</p>
-    @endif
+    @include('invoices::default.includes.description', [
+        'invoice' => $invoice,
+    ])
 
     @if ($invoice->paymentInstructions)
         <div class="mt-12 pt-px">
